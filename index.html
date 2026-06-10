@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>FAST · Stroke Screening</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@500&display=swap');
+  :root {
+    --bg:#0A0E14; --surface:#131820; --surface2:#1C2330;
+    --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.14);
+    --blue:#3B82F6; --green:#10B981; --red:#EF4444; --amber:#F59E0B;
+    --text:#F1F5F9; --muted:rgba(241,245,249,0.45); --muted2:rgba(241,245,249,0.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);font-family:'DM Sans',-apple-system,sans-serif;color:var(--text);
+    min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden}
+
+  /* ── Header ── */
+  header{padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo-badge{background:var(--red);color:#fff;font-size:10px;font-weight:700;
+    letter-spacing:2px;padding:4px 8px;border-radius:6px}
+  .logo-name{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:1px}
+  .lang-toggle{display:flex;gap:6px}
+  .ltbtn{background:none;border:1.5px solid var(--border);border-radius:8px;
+    color:var(--muted);font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer;
+    font-family:inherit;transition:all 0.2s}
+  .ltbtn.active,.ltbtn:active{border-color:var(--blue);color:var(--text);background:rgba(59,130,246,0.1)}
+
+  /* ── Hero ── */
+  .hero{padding:32px 24px 24px;text-align:center}
+  .hero-eyebrow{font-size:11px;font-weight:600;letter-spacing:3px;color:var(--muted);
+    text-transform:uppercase;margin-bottom:12px}
+  .hero-title{font-size:28px;font-weight:600;line-height:1.25;margin-bottom:10px}
+  .hero-title em{font-style:normal;color:var(--red)}
+  .hero-sub{font-size:14px;color:var(--muted);line-height:1.65;max-width:300px;margin:0 auto}
+
+  /* ── Disclaimer ── */
+  .disclaimer{margin:0 24px 24px;background:rgba(245,158,11,0.06);
+    border:1px solid rgba(245,158,11,0.2);border-radius:14px;
+    padding:14px 16px;font-size:12px;color:#FBBF24;line-height:1.6;text-align:center}
+  .disclaimer strong{color:var(--amber)}
+
+  /* ── Mode Cards ── */
+  .modes{padding:0 24px;display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
+  .mode-card{background:var(--surface);border:1.5px solid var(--border);
+    border-radius:18px;padding:20px;cursor:pointer;text-align:left;
+    transition:border-color 0.2s,background 0.2s;width:100%}
+  .mode-card:active{background:var(--surface2)}
+  .mode-card.primary{border-color:rgba(59,130,246,0.35);background:rgba(59,130,246,0.05)}
+  .mode-card.primary:active{background:rgba(59,130,246,0.1)}
+  .mode-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .mode-icon{font-size:28px;width:48px;height:48px;background:var(--surface2);
+    border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .mode-card.primary .mode-icon{background:rgba(59,130,246,0.12)}
+  .mode-label{font-size:11px;font-weight:600;letter-spacing:2px;color:var(--muted);
+    text-transform:uppercase;margin-bottom:3px}
+  .mode-title{font-size:17px;font-weight:600}
+  .mode-desc{font-size:13px;color:var(--muted);line-height:1.55}
+  .mode-steps{display:flex;gap:8px;margin-top:12px}
+  .step-chip{font-size:11px;font-weight:500;padding:4px 10px;border-radius:20px;
+    background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+  .mode-card.primary .step-chip{background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.25);color:#93C5FD}
+
+  /* ── Individual Progress (Individual mode) ── */
+  .progress-section{padding:0 24px 32px}
+  .progress-title{font-size:11px;font-weight:600;letter-spacing:2px;color:var(--muted);
+    text-transform:uppercase;margin-bottom:12px}
+  .test-list{display:flex;flex-direction:column;gap:8px}
+  .test-item{background:var(--surface);border:1.5px solid var(--border);
+    border-radius:14px;padding:14px 16px;display:flex;align-items:center;
+    gap:14px;cursor:pointer;transition:all 0.2s;width:100%}
+  .test-item:active{background:var(--surface2)}
+  .test-item.done-ok{border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.04)}
+  .test-item.done-warn{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.04)}
+  .test-status{width:36px;height:36px;border-radius:10px;background:var(--surface2);
+    display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .test-item.done-ok .test-status{background:rgba(16,185,129,0.12)}
+  .test-item.done-warn .test-status{background:rgba(239,68,68,0.12)}
+  .test-info{flex:1;text-align:left}
+  .test-name{font-size:14px;font-weight:600;margin-bottom:2px}
+  .test-result{font-size:12px;color:var(--muted)}
+  .test-item.done-ok .test-result{color:var(--green)}
+  .test-item.done-warn .test-result{color:var(--red)}
+  .test-arrow{font-size:16px;color:var(--muted2)}
+
+  /* ── See Results button ── */
+  .see-result-btn{display:none;width:calc(100% - 48px);margin:0 24px 12px;
+    min-height:56px;border-radius:14px;border:none;background:var(--green);
+    color:#fff;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit}
+  .see-result-btn.visible{display:block}
+  .clear-btn{display:none;width:calc(100% - 48px);margin:0 24px 32px;
+    min-height:44px;border-radius:12px;border:1.5px solid var(--border);
+    background:none;color:var(--muted);font-size:13px;font-weight:500;
+    cursor:pointer;font-family:inherit}
+  .clear-btn.visible{display:block}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-badge">FAST</span>
+    <span class="logo-name">Stroke Screening</span>
+  </div>
+  <div class="lang-toggle">
+    <button class="ltbtn active" onclick="setLang('th')">TH</button>
+    <button class="ltbtn" onclick="setLang('en')">EN</button>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-eyebrow" data-i="eyebrow">การคัดกรองโรคหลอดเลือดสมอง</div>
+  <h1 class="hero-title" data-i="title">ตรวจเร็ว · รู้ทัน<br><em>ลดความเสี่ยง Stroke</em></h1>
+  <p class="hero-sub" data-i="sub">แบบประเมินเบื้องต้นตาม FAST — ใบหน้า แขน และการพูด ใช้เวลาไม่ถึง 3 นาที</p>
+</div>
+
+<div class="disclaimer" data-i="disclaimer">
+  แอปนี้ใช้เพื่อ <strong>ประเมินเบื้องต้นเท่านั้น</strong> ไม่สามารถทดแทนการวินิจฉัยโดยแพทย์ได้<br>
+  หากสงสัยว่าเป็น Stroke ให้โทร <strong>1669</strong> ทันที
+</div>
+
+<div class="modes">
+  <button class="mode-card primary" onclick="startFull()">
+    <div class="mode-top">
+      <div class="mode-icon">🏃</div>
+      <div>
+        <div class="mode-label" data-i="fullLabel">แนะนำ</div>
+        <div class="mode-title" data-i="fullTitle">ทดสอบครบ 3 ขั้นตอน</div>
+      </div>
+    </div>
+    <div class="mode-desc" data-i="fullDesc">ทดสอบใบหน้า แขน และการพูดต่อเนื่อง แล้วรับผลรวม FAST Score</div>
+    <div class="mode-steps">
+      <span class="step-chip">😊 ใบหน้า</span>
+      <span class="step-chip">💪 แขน</span>
+      <span class="step-chip">🗣️ การพูด</span>
+    </div>
+  </button>
+
+  <button class="mode-card" onclick="toggleIndividual()">
+    <div class="mode-top">
+      <div class="mode-icon">🔍</div>
+      <div>
+        <div class="mode-label" data-i="indLabel">ยืดหยุ่น</div>
+        <div class="mode-title" data-i="indTitle">ทดสอบแยก</div>
+      </div>
+    </div>
+    <div class="mode-desc" data-i="indDesc">เลือกทดสอบทีละอัน ผลจะสะสมและคำนวณรวมเมื่อครบทั้ง 3 อัน</div>
+  </button>
+</div>
+
+<div class="progress-section" id="individual-section" style="display:none">
+  <div class="progress-title" data-i="progressTitle">เลือกการทดสอบ</div>
+  <div class="test-list">
+    <button class="test-item" id="item-face" onclick="goTest('face')">
+      <div class="test-status" id="status-face">😊</div>
+      <div class="test-info">
+        <div class="test-name" data-i="faceName">ใบหน้า</div>
+        <div class="test-result" id="result-face" data-i="notDone">ยังไม่ได้ทดสอบ</div>
+      </div>
+      <div class="test-arrow">›</div>
+    </button>
+    <button class="test-item" id="item-arm" onclick="goTest('arm')">
+      <div class="test-status" id="status-arm">💪</div>
+      <div class="test-info">
+        <div class="test-name" data-i="armName">แขน</div>
+        <div class="test-result" id="result-arm" data-i="notDone">ยังไม่ได้ทดสอบ</div>
+      </div>
+      <div class="test-arrow">›</div>
+    </button>
+    <button class="test-item" id="item-speech" onclick="goTest('speech')">
+      <div class="test-status" id="status-speech">🗣️</div>
+      <div class="test-info">
+        <div class="test-name" data-i="speechName">การพูด</div>
+        <div class="test-result" id="result-speech" data-i="notDone">ยังไม่ได้ทดสอบ</div>
+      </div>
+      <div class="test-arrow">›</div>
+    </button>
+  </div>
+</div>
+
+<button class="see-result-btn" id="see-result-btn" onclick="goResult()">
+  ดูผลรวม FAST Score →
+</button>
+<button class="clear-btn" id="clear-btn" onclick="clearProgress()">
+  ล้างผลทดสอบทั้งหมด
+</button>
+
+<script>
+'use strict';
+
+// ── i18n ──────────────────────────────────────────────────────────────────
+const I18N = {
+  th: {
+    eyebrow: 'การคัดกรองโรคหลอดเลือดสมอง',
+    title: 'ตรวจเร็ว · รู้ทัน<br><em>ลดความเสี่ยง Stroke</em>',
+    sub: 'แบบประเมินเบื้องต้นตาม FAST — ใบหน้า แขน และการพูด ใช้เวลาไม่ถึง 3 นาที',
+    disclaimer: 'แอปนี้ใช้เพื่อ <strong>ประเมินเบื้องต้นเท่านั้น</strong> ไม่สามารถทดแทนการวินิจฉัยโดยแพทย์ได้<br>หากสงสัยว่าเป็น Stroke ให้โทร <strong>1669</strong> ทันที',
+    fullLabel: 'แนะนำ', fullTitle: 'ทดสอบครบ 3 ขั้นตอน',
+    fullDesc: 'ทดสอบใบหน้า แขน และการพูดต่อเนื่อง แล้วรับผลรวม FAST Score',
+    indLabel: 'ยืดหยุ่น', indTitle: 'ทดสอบแยก',
+    indDesc: 'เลือกทดสอบทีละอัน ผลจะสะสมและคำนวณรวมเมื่อครบทั้ง 3 อัน',
+    progressTitle: 'เลือกการทดสอบ',
+    faceName: 'ใบหน้า', armName: 'แขน', speechName: 'การพูด',
+    notDone: 'ยังไม่ได้ทดสอบ',
+    ok: 'ปกติ', warn: 'พบความผิดปกติ',
+    seeResult: 'ดูผลรวม FAST Score →',
+    clearBtn: 'ล้างผลทดสอบทั้งหมด',
+  },
+  en: {
+    eyebrow: 'Stroke Screening',
+    title: 'Check Fast · Act Faster<br><em>Reduce Stroke Risk</em>',
+    sub: 'A quick FAST assessment — Face, Arms, and Speech. Takes under 3 minutes.',
+    disclaimer: 'This app is for <strong>preliminary screening only</strong> and cannot replace a doctor\'s diagnosis.<br>If you suspect a stroke, call <strong>emergency services</strong> immediately.',
+    fullLabel: 'Recommended', fullTitle: 'Full 3-Step Test',
+    fullDesc: 'Test face, arms, and speech in sequence, then get your FAST Score.',
+    indLabel: 'Flexible', indTitle: 'Individual Tests',
+    indDesc: 'Test one at a time. Results accumulate and calculate when all 3 are done.',
+    progressTitle: 'Select a Test',
+    faceName: 'Face', armName: 'Arms', speechName: 'Speech',
+    notDone: 'Not tested yet',
+    ok: 'Normal', warn: 'Abnormal detected',
+    seeResult: 'View FAST Score →',
+    clearBtn: 'Clear all results',
+  },
+};
+
+let lang = 'th';
+let indOpen = false;
+
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.ltbtn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0 && l==='th') || (i===1 && l==='en'));
+  });
+  const T = I18N[l];
+  // update static text
+  document.querySelectorAll('[data-i]').forEach(el => {
+    const key = el.dataset.i;
+    if (T[key] !== undefined) el.innerHTML = T[key];
+  });
+  // update dynamic result texts
+  updateProgress();
+  document.getElementById('see-result-btn').textContent = T.seeResult;
+  document.getElementById('clear-btn').textContent = T.clearBtn;
+  sessionStorage.setItem('fast_lang', l);
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────
+function startFull() {
+  // Full FAST: ล้าง session แล้วเริ่มที่ face
+  clearProgress(true);
+  sessionStorage.setItem('fast_mode', 'full');
+  sessionStorage.setItem('fast_lang', lang);
+  window.location.href = 'face-test.html';
+}
+
+function toggleIndividual() {
+  indOpen = !indOpen;
+  document.getElementById('individual-section').style.display = indOpen ? 'block' : 'none';
+  updateProgress();
+}
+
+function goTest(module) {
+  sessionStorage.setItem('fast_mode', 'individual');
+  sessionStorage.setItem('fast_lang', lang);
+  window.location.href = module + '-test.html';
+}
+
+function goResult() {
+  window.location.href = 'result.html';
+}
+
+// ── Progress tracking ─────────────────────────────────────────────────────
+function updateProgress() {
+  const T = I18N[lang];
+  const modules = ['face', 'arm', 'speech'];
+  let doneCount = 0;
+
+  modules.forEach(m => {
+    const raw = sessionStorage.getItem('fast_' + m);
+    const item = document.getElementById('item-' + m);
+    const status = document.getElementById('status-' + m);
+    const result = document.getElementById('result-' + m);
+
+    if (!raw) {
+      item.className = 'test-item';
+      result.textContent = T.notDone;
+      result.dataset.i = 'notDone';
+      status.textContent = m === 'face' ? '😊' : m === 'arm' ? '💪' : '🗣️';
+      return;
+    }
+
+    doneCount++;
+    const data = JSON.parse(raw);
+    const ok = data.riskLevel === 'ok' || data.passed === true;
+    item.className = 'test-item ' + (ok ? 'done-ok' : 'done-warn');
+    status.textContent = ok ? '✅' : '⚠️';
+    result.textContent = ok ? T.ok : T.warn;
+    if (data.score !== undefined) {
+      result.textContent += ` (${data.score}/100)`;
+    }
+  });
+
+  const seeBtn = document.getElementById('see-result-btn');
+  const clearBtn = document.getElementById('clear-btn');
+  const allDone = doneCount === 3;
+  seeBtn.className = 'see-result-btn' + (allDone ? ' visible' : '');
+  clearBtn.className = 'clear-btn' + (doneCount > 0 ? ' visible' : '');
+}
+
+function clearProgress(silent = false) {
+  ['fast_face', 'fast_arm', 'fast_speech', 'fast_mode', 'fast_lang'].forEach(k => sessionStorage.removeItem(k));
+  if (!silent) updateProgress();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+const savedLang = sessionStorage.getItem('fast_lang') || 'th';
+setLang(savedLang);
+updateProgress();
+</script>
+</body>
+</html>

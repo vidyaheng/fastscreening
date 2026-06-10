@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>FAST · Arm Drift Test</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@500&display=swap');
+  :root {
+    --bg:#0A0E14; --surface:#131820; --border:rgba(255,255,255,0.08);
+    --blue:#3B82F6; --green:#10B981; --red:#EF4444; --amber:#F59E0B;
+    --text:#F1F5F9; --muted:rgba(241,245,249,0.45); --radius:20px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);font-family:'DM Sans',-apple-system,sans-serif;color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+
+  /* lang screen */
+  #lang-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:32px 28px}
+  .lang-logo{font-size:12px;font-weight:600;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
+  .lang-title{font-size:26px;font-weight:600;text-align:center}
+  .disclaimer-box{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:14px;padding:13px 16px;font-size:12px;color:#FBBF24;line-height:1.55;text-align:center;max-width:310px}
+  .lang-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px}
+  .lang-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .2s,background .2s;width:100%}
+  .lang-btn:active{border-color:var(--blue);background:rgba(59,130,246,.10)}
+  .lang-flag{font-size:26px}
+  .lang-name{font-size:15px;font-weight:600;color:var(--text);display:block;text-align:left}
+  .lang-native{font-size:12px;color:var(--muted);display:block;text-align:left}
+
+  /* test screen */
+  #test-screen{flex:1;display:none;flex-direction:column}
+  #top-bar{padding:16px 22px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .top-label{font-size:11px;font-weight:600;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase}
+  
+  /* ขวาบน: จัดกลุ่มปุ่มเปลี่ยนภาษากับจุดสถานะ */
+  .top-right{display:flex;align-items:center;gap:14px}
+  .back-lang-btn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;transition:background 0.2s}
+  .back-lang-btn:active{background:rgba(255,255,255,0.05);color:var(--text)}
+  
+  .step-dots{display:flex;gap:6px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s}
+  .dot.active{background:var(--blue)} .dot.done{background:var(--green)}
+
+  #result-row{display:flex;gap:10px;padding:10px 22px 0;flex-shrink:0}
+  .rcard{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:10px 8px;text-align:center;display:flex;flex-direction:column;gap:3px;transition:border-color .4s,opacity .3s;opacity:.4}
+  .rcard.active{opacity:1;border-color:var(--blue)} .rcard.pass{opacity:1;border-color:rgba(16,185,129,.55)} .rcard.fail{opacity:1;border-color:rgba(239,68,68,.55)}
+  .rcard-arm{font-size:10px;font-weight:600;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+  .rcard-icon{font-size:20px;line-height:1.3} .rcard-lbl{font-size:11px;font-weight:500;color:var(--muted)}
+  .rcard.pass .rcard-lbl{color:var(--green)} .rcard.fail .rcard-lbl{color:var(--red)}
+
+  #mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 24px;gap:10px;min-height:0}
+
+  .arm-wrap{position:relative;width:150px;height:150px;flex-shrink:0}
+  .arm-ring-outer{position:absolute;inset:-11px;border-radius:50%;border:3px solid transparent;transition:border-color .4s}
+  .arm-ring-outer.alert{border-color:rgba(239,68,68,0.45);animation:pulse-ring 1s ease-in-out infinite}
+  @keyframes pulse-ring{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.06);opacity:.5}}
+  .arm-circle{width:150px;height:150px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;transition:border-color .3s,background .3s;background:var(--surface)}
+  .arm-circle.waiting{border-color:var(--amber);background:rgba(245,158,11,.07)}
+  .arm-circle.stable{border-color:var(--green);background:rgba(16,185,129,.07)}
+  .arm-circle.drifting{border-color:var(--red);background:rgba(239,68,68,.07)}
+  .arm-icon{font-size:58px}
+
+  #warn-banner{display:none;width:100%;max-width:290px;background:rgba(245,158,11,.10);border:1.5px solid rgba(245,158,11,.35);border-radius:12px;padding:11px 14px;text-align:center;flex-direction:column;gap:3px}
+  .warn-title{font-size:14px;font-weight:600;color:var(--amber)}
+  .warn-sub{font-size:12px;color:var(--muted);line-height:1.5}
+
+  #instr{font-size:17px;font-weight:500;text-align:center;line-height:1.5;max-width:280px}
+  #sub-instr{font-size:13px;color:var(--muted);text-align:center;line-height:1.6;max-width:260px;min-height:28px}
+
+  #pre-cd{display:none;font-family:'DM Mono',monospace;font-size:72px;font-weight:500;color:var(--amber);line-height:1;animation:pop .4s ease}
+  @keyframes pop{from{transform:scale(1.4);opacity:.3}to{transform:scale(1);opacity:1}}
+
+  #cd-wrap{display:none;flex-direction:column;align-items:center}
+  .cd-svg-wrap{position:relative;width:86px;height:86px}
+  .cd-svg{transform:rotate(-90deg)}
+  .cd-track{fill:none;stroke:var(--border);stroke-width:4}
+  .cd-prog{fill:none;stroke:var(--blue);stroke-width:4;stroke-linecap:round;stroke-dasharray:226;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear}
+  .cd-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .cd-num{font-family:'DM Mono',monospace;font-size:30px;font-weight:500;line-height:1}
+  .cd-unit{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+
+  #drift-wrap{display:none;flex-direction:column;gap:5px;width:100%;max-width:240px}
+  .drift-row{display:flex;justify-content:space-between;align-items:baseline}
+  .drift-lbl{font-size:10px;font-weight:600;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+  .drift-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}
+  .drift-track{height:9px;background:var(--border);border-radius:5px;overflow:hidden}
+  .drift-fill{height:100%;width:0;border-radius:5px;background:var(--green);transition:width .1s,background .25s}
+
+  #final-banner{display:none;width:100%;max-width:280px;border-radius:14px;padding:15px;text-align:center;flex-direction:column;gap:5px}
+  #final-banner.ok{background:rgba(16,185,129,.10);border:1.5px solid rgba(16,185,129,.30)}
+  #final-banner.bad{background:rgba(239,68,68,.10);border:1.5px solid rgba(239,68,68,.30)}
+  .fb-icon{font-size:28px} .fb-title{font-size:16px;font-weight:600} .fb-sub{font-size:12px;color:var(--muted);line-height:1.6}
+  #final-banner.ok .fb-title{color:var(--green)} #final-banner.bad .fb-title{color:var(--red)}
+
+  #action-btn{display:block;width:calc(100% - 44px);margin:0 22px 32px;min-height:62px;border-radius:16px;border:none;font-family:'DM Sans',sans-serif;font-size:17px;font-weight:600;cursor:pointer;color:#fff;background:var(--blue);transition:opacity .15s,transform .1s,background .3s;flex-shrink:0}
+  #action-btn:active{opacity:.82;transform:scale(.98)}
+  #action-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+  #action-btn.green{background:var(--green)} #action-btn.red{background:var(--red)}
+</style>
+<script src="fast-permissions.js"></script>
+</head>
+<body>
+
+<div id="lang-screen">
+  <span class="lang-logo">🚨 FAST · Arm Drift</span>
+  <div style="text-align:center">
+    <div class="lang-title">Select Language</div>
+  </div>
+  <div class="disclaimer-box">⚠️ <b>Medical Disclaimer:</b> For screening only — not a medical diagnosis. Call emergency services if you suspect a stroke.</div>
+  <div class="lang-btns">
+    <button class="lang-btn" onclick="selectLang('en')"><span class="lang-flag">🇬🇧</span><div><span class="lang-name">English</span><span class="lang-native">English</span></div></button>
+    <button class="lang-btn" onclick="selectLang('th')"><span class="lang-flag">🇹🇭</span><div><span class="lang-name">Thai</span><span class="lang-native">ภาษาไทย</span></div></button>
+    <button class="lang-btn" onclick="selectLang('ja')"><span class="lang-flag">🇯🇵</span><div><span class="lang-name">Japanese</span><span class="lang-native">日本語</span></div></button>
+  </div>
+</div>
+
+<div id="test-screen">
+  <div id="top-bar">
+    <span class="top-label" id="top-lbl">Arm Drift Test</span>
+    <div class="top-right">
+      <!-- 🌐 ปุ่มย้อนกลับไปหน้าเลือกภาษา -->
+      <button class="back-lang-btn" onclick="navToLangScreen()">🌐 Language</button>
+      <div class="step-dots"><div class="dot" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div></div>
+    </div>
+  </div>
+  <div id="result-row">
+    <div class="rcard" id="card-right"><span class="rcard-arm" id="lbl-r-arm">RIGHT</span><span class="rcard-icon" id="ico-right">—</span><span class="rcard-lbl" id="lbl-right">Pending</span></div>
+    <div class="rcard" id="card-left"><span class="rcard-arm" id="lbl-l-arm">LEFT</span><span class="rcard-icon" id="ico-left">—</span><span class="rcard-lbl" id="lbl-left">Pending</span></div>
+  </div>
+  <div id="mid">
+    <div class="arm-wrap">
+      <div class="arm-ring-outer" id="arm-ring"></div>
+      <div class="arm-circle" id="arm-circle"><span class="arm-icon" id="arm-icon">🤚</span></div>
+    </div>
+    <div id="warn-banner"><span class="warn-title" id="warn-title"></span><span class="warn-sub" id="warn-sub"></span></div>
+    <p id="instr">Ready</p>
+    <p id="sub-instr"></p>
+    <div id="pre-cd"></div>
+    <div id="cd-wrap">
+      <div class="cd-svg-wrap">
+        <svg class="cd-svg" width="86" height="86" viewBox="0 0 80 80">
+          <circle class="cd-track" cx="40" cy="40" r="36"/>
+          <circle class="cd-prog" cx="40" cy="40" r="36" id="cd-prog"/>
+        </svg>
+        <div class="cd-center"><span class="cd-num" id="cd-num">10</span><span class="cd-unit" id="cd-unit">sec</span></div>
+      </div>
+    </div>
+    <div id="drift-wrap">
+      <div class="drift-row"><span class="drift-lbl" id="drift-lbl">Arm drift</span><span class="drift-num" id="drift-num">0.0°</span></div>
+      <div class="drift-track"><div class="drift-fill" id="drift-fill"></div></div>
+    </div>
+    <div id="final-banner"><span class="fb-icon" id="fb-icon"></span><span class="fb-title" id="fb-title"></span><span class="fb-sub" id="fb-sub"></span></div>
+  </div>
+  <button id="action-btn" onclick="handleBtn()">Start Test</button>
+</div>
+
+<script>
+'use strict';
+
+const LANG = {
+  en:{
+    code:'en-US', topLbl:'Arm Drift Test', cdUnit:'sec', driftLbl:'Arm drift',
+    armRight:'RIGHT', armLeft:'LEFT', pending:'Pending', passLbl:'Normal', failLbl:'Drift detected',
+    sensorDenied:'Motion access denied. Please allow in Settings and refresh.',
+    sensorUnsupported:'Motion sensor not supported on this device.',
+    instrWait_right:'Extend your right arm', subWait_right:'Screen facing LEFT · hold still',
+    instrWait_left:'Extend your left arm',   subWait_left:'Screen facing RIGHT · hold still',
+    instrCalib:'Almost ready…',              subCalib:'Hold steady a moment',
+    instrMeasure:'Eyes closed — hold still', subMeasure:'Keep arm extended, breathe naturally',
+    instrDone_right:'Lower your right arm',  instrDone_left:'Lower your left arm',
+    warnFlat:'Hold the phone upright',       warnFlatSub:'Do not lay it flat',
+    warnWrong_right:'Use your RIGHT hand',   warnWrongSub_right:'Screen should face LEFT',
+    warnWrong_left:'Use your LEFT hand',     warnWrongSub_left:'Screen should face RIGHT',
+    finalOk:'Both arms normal',              finalOkSub:'No significant drift detected.',
+    finalBad:'Possible weakness detected',   finalBadSub:'One or both arms drifted. Please see a doctor promptly.',
+    btnStart:'Start Test', btnNext:'Continue — Left Arm', btnRetry:'Test Again',
+    vWait_right:'Extend your right arm. Screen faces left. Hold still.',
+    vWait_left: 'Now extend your left arm. Screen faces right. Hold still.',
+    vCalibRetry:'Hold as still as you can.',
+    vWrongHand: 'Please switch hands.',
+    vFlat:      'Hold the phone upright please.',
+    vReady:     'Ready. Close your eyes.',
+    vMid4:'Good.', vMid7:'Almost done.',
+    vDone:'Well done. Lower your arm.',
+    vFinalOk: 'Both arms normal.',
+    vFinalBad:'Drift detected. Please see a doctor soon.',
+  },
+  th:{
+    code:'th-TH', topLbl:'ทดสอบแขนอ่อนแรง', cdUnit:'วิ', driftLbl:'การเอียงของแขน',
+    armRight:'แขนขวา', armLeft:'แขนซ้าย', pending:'รอทดสอบ', passLbl:'ปกติ', failLbl:'พบการเอียง',
+    sensorDenied:'ไม่ได้รับอนุญาตเข้าถึงเซนเซอร์ กรุณาเปิดสิทธิ์ในการตั้งค่า',
+    sensorUnsupported:'อุปกรณ์นี้ไม่รองรับเซนเซอร์การเคลื่อนไหว',
+    instrWait_right:'เหยียดแขนขวาออกตรง', subWait_right:'หน้าจอหันซ้าย · ถือนิ่งๆ',
+    instrWait_left:'เหยียดแขนซ้ายออกตรง', subWait_left:'หน้าจอหันขวา · ถือนิ่งๆ',
+    instrCalib:'เกือบพร้อมแล้ว…',         subCalib:'ถือค้างไว้สักครู่นะคะ',
+    instrMeasure:'หลับตา · นิ่งๆ ไว้',     subMeasure:'เหยียดแขนค้างไว้ หายใจสบายๆ',
+    instrDone_right:'ลดแขนขวาลงได้เลยค่ะ', instrDone_left:'ลดแขนซ้ายลงได้เลยค่ะ',
+    warnFlat:'กรุณาถือโทรศัพท์ตั้งขึ้น',   warnFlatSub:'ห้ามวางราบนะคะ',
+    warnWrong_right:'กรุณาใช้มือขวาค่ะ',    warnWrongSub_right:'หน้าจอควรหันซ้าย',
+    warnWrong_left:'กรุณาใช้มือซ้ายค่ะ',    warnWrongSub_left:'หน้าจอควรหันขวา',
+    finalOk:'แขนทั้งสองข้างปกติ',           finalOkSub:'ไม่พบการเอียงที่ผิดปกติ',
+    finalBad:'อาจพบความผิดปกติ',            finalBadSub:'แขนมีการเอียง กรุณาพบแพทย์โดยเร็วนะคะ',
+    btnStart:'เริ่มทดสอบ', btnNext:'ต่อไป — แขนซ้าย', btnRetry:'ทดสอบอีกครั้ง',
+    vWait_right:'เหยียดแขนขวาออกตรง หน้าจอหันซ้าย แล้วถือนิ่งๆ นะคะ',
+    vWait_left: 'เยี่ยมค่ะ เหยียดแขนซ้ายออกตรง หน้าจอหันขวา แล้วถือนิ่งๆ นะคะ',
+    vCalibRetry:'ถือนิ่งๆ ได้เลยนะคะ',
+    vWrongHand: 'กรุณาเปลี่ยนมือนะคะ',
+    vFlat:      'กรุณาถือโทรศัพท์ตั้งขึ้นนะคะ',
+    vReady:     'หลับตาได้เลยค่ะ', // 🔥 ปรับตัดคำว่า "พร้อมแล้ว" ออกตามคำแนะนำ เพื่อความกระชับและลื่นหูขึ้น
+    vMid4:'ดีมากค่ะ', vMid7:'เกือบแล้วค่ะ',
+    vDone:'เยี่ยมค่ะ ลดแขนลงได้เลยนะคะ',
+    vFinalOk: 'แขนทั้งสองข้างปกติดีค่ะ',
+    vFinalBad:'พบการเอียง กรุณาพบแพทย์โดยเร็วนะคะ',
+  },
+  ja:{
+    code:'ja-JP', topLbl:'腕の下垂テスト', cdUnit:'秒', driftLbl:'腕のずれ',
+    armRight:'右腕', armLeft:'左腕', pending:'待機中', passLbl:'正常', failLbl:'ずれあり',
+    sensorDenied:'センサーの権限が拒否されました。設定で許可してください。',
+    sensorUnsupported:'このデバイスはモーションセンサーに対応していません。',
+    instrWait_right:'右腕をまっすぐ前に', subWait_right:'画面を左向き · 静止してください',
+    instrWait_left:'左腕をまっすぐ前に',  subWait_left:'画面を右向き · 静止してください',
+    instrCalib:'もう少しです…',           subCalib:'そのまま静止してください',
+    instrMeasure:'目を閉じて静止',        subMeasure:'腕を伸ばしたまま、自然に呼吸を',
+    instrDone_right:'右腕を下ろしてください', instrDone_left:'左腕を下ろしてください',
+    warnFlat:'スマホを縦に持ってください',  warnFlatSub:'水平に置かないでください',
+    warnWrong_right:'右腕で持ってください', warnWrongSub_right:'画面は左向きにしてください',
+    warnWrong_left:'左腕で持ってください',  warnWrongSub_left:'画面は右向きにしてください',
+    finalOk:'両腕ともに正常です',          finalOkSub:'有意なずれは検出されませんでした。',
+    finalBad:'異常の可能性があります',     finalBadSub:'腕にずれが検出されました。医師に相談してください。',
+    btnStart:'テスト開始', btnNext:'次へ — 左腕', btnRetry:'再テスト',
+    vWait_right:'右腕をまっすぐ前に伸ばし、画面を左に向けて静止してください。',
+    vWait_left: 'お疲れ様でした。左腕をまっすぐ前に伸ばし、画面を右に向けて静止してください。',
+    vCalibRetry:'できるだけ静止してください。',
+    vWrongHand: '持つ手を替えてください。',
+    vFlat:      'スマホを縦に持ち直してください。',
+    vReady:     '準備ができました。目を閉じてください。',
+    vMid4:'よくできています。', vMid7:'もうすぐ終わります。',
+    vDone:'お疲れ様でした。腕を下ろしてください。',
+    vFinalOk: '両腕ともに正常です。',
+    vFinalBad:'ずれが検出されました。早めに医師に相談してください。',
+  },
+};
+
+/* ═══════════════════════════════
+   CONFIG (องศาการดักจับเพื่อความไว)
+═══════════════════════════════ */
+const MEASURE_SEC   = 10;
+const DRIFT_THR     = 10;     // เกิน 10 องศาถือว่าไม่ปกติ (FAIL ทันที)
+const DRIFT_WARN    = 5;      // เกิน 5 องศา แถบจะเริ่มเตือนเป็นสีเหลือง
+const STABLE_WINDOW = 20;   
+const STABLE_RANGE  = 5.0;  
+const STABLE_HOLD   = 25;   
+const FLAT_Z_THR    = 0.90;
+const GAMMA_THR     = 10;
+const RETRY_SEC     = 6;
+const LPF           = 0.15;
+
+let _speaking  = false;
+let _voiceQ    = [];
+
+function speak(txt, onDone) {
+  _voiceQ.push({ txt, onDone });
+  _drainQueue();
+}
+
+function _drainQueue() {
+  if (_speaking || !_voiceQ.length) return;
+  const { txt, onDone } = _voiceQ.shift();
+  if (!window.speechSynthesis) { onDone && onDone(); _drainQueue(); return; }
+  _speaking = true;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(txt);
+  u.lang = T.code; u.rate = 0.93;
+  
+  const finish = () => {
+    _speaking = false;
+    onDone && onDone();
+    _drainQueue();
+  };
+  u.onend   = finish;
+  u.onerror = finish;
+  
+  const guard = setTimeout(finish, Math.max(txt.length * 80, 3000));
+  u.onend = () => { clearTimeout(guard); finish(); };
+  speechSynthesis.speak(u);
+}
+
+function clearVoiceQueue() {
+  _voiceQ    = [];
+  _speaking  = false;
+  if (window.speechSynthesis) speechSynthesis.cancel();
+}
+
+function speakNow(txt, onDone) {
+  clearVoiceQueue();
+  speak(txt, onDone);
+}
+
+let T       = null;
+let phase   = 'IDLE'; 
+let arm     = 'right';
+let results = { right:null, left:null };
+
+let betaNow   = 0, gammaNow = 0;
+let filtVec   = { x:0, y:0, z:1 };
+let betaBase  = null;   
+let driftMax  = 0;
+let driftValues = { right: null, left: null };
+let sensorOk  = false;
+
+let betaWindow    = [];
+let stableCount   = 0;
+
+let measureTimer  = null;
+let mElapsed      = 0;
+let voiced4       = false, voiced7 = false;
+let retryTimer    = null;
+let lastWarnKey   = '';
+
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+function beep(freq, dur) {
+  try {
+    initAudio();
+    const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
+  } catch(e){}
+}
+function vibe(p) { if (navigator.vibrate) navigator.vibrate(p); }
+
+function requestSensor(cb) {
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission()
+      .then(r => { if (r==='granted') { attachSensor(); cb(); } else alert(T.sensorDenied); })
+      .catch(() => alert(T.sensorDenied));
+  } else {
+    if ('ondeviceorientation' in window) { attachSensor(); cb(); }
+    else alert(T.sensorUnsupported);
+  }
+}
+function attachSensor() {
+  window.addEventListener('deviceorientation', onOrientation, true);
+  sensorOk = true;
+}
+function onOrientation(e) {
+  betaNow  = e.beta  ?? 0;
+  gammaNow = e.gamma ?? 0;
+  const bR = betaNow * Math.PI/180, gR = gammaNow * Math.PI/180;
+  const rx = Math.sin(gR), ry = Math.sin(bR)*Math.cos(gR), rz = Math.cos(bR)*Math.cos(gR);
+  filtVec.x += LPF*(rx-filtVec.x);
+  filtVec.y += LPF*(ry-filtVec.y);
+  filtVec.z += LPF*(rz-filtVec.z);
+
+  if (phase === 'CALIB')   tickCalib();
+  if (phase === 'MEASURE') tickMeasure();
+}
+
+function tickCalib() {
+  if (phase !== 'CALIB') return; 
+
+  if (Math.abs(filtVec.z) > FLAT_Z_THR) {
+    stableCount = 0; betaWindow = [];
+    warnKey('flat', T.warnFlat, T.warnFlatSub, T.vFlat);
+    $('arm-circle').className = 'arm-circle waiting';
+    return;
+  }
+
+  const wrongHand =
+    (arm === 'right' && gammaNow >  GAMMA_THR) ||
+    (arm === 'left'  && gammaNow < -GAMMA_THR);
+  if (wrongHand) {
+    stableCount = 0; betaWindow = [];
+    warnKey('wrong', T['warnWrong_'+arm], T['warnWrongSub_'+arm], T.vWrongHand);
+    $('arm-circle').className = 'arm-circle waiting';
+    return;
+  }
+
+  betaWindow.push(betaNow);
+  if (betaWindow.length > STABLE_WINDOW) betaWindow.shift();
+
+  const bMax = Math.max(...betaWindow);
+  const bMin = Math.min(...betaWindow);
+  const range = bMax - bMin;
+
+  const isStable = betaWindow.length >= STABLE_WINDOW && range < STABLE_RANGE;
+
+  if (isStable) {
+    stableCount++;
+    hideWarn();
+    $('arm-circle').className  = 'arm-circle stable';
+    $('instr').textContent     = T.instrCalib;
+    $('sub-instr').textContent = T.subCalib;
+    lastWarnKey = '';
+
+    if (stableCount >= STABLE_HOLD) {
+      betaBase = (Math.max(...betaWindow) + betaWindow.reduce((a,b)=>a+b,0)/betaWindow.length) / 2;
+      phase = 'PRE_MEASURE'; 
+      if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
+      
+      setTimeout(() => {
+        startMeasure();
+      }, 1500);
+    }
+  } else {
+    stableCount = 0;
+    if (!isWarnVisible()) {
+      $('arm-circle').className  = 'arm-circle waiting';
+      $('instr').textContent     = T['instrWait_'+arm];
+      $('sub-instr').textContent = T['subWait_'+arm];
+    }
+  }
+}
+
+function tickMeasure() {
+  if (phase !== 'MEASURE') return;
+
+  const currentDrift = Math.abs(betaNow - betaBase);          
+  if (currentDrift > driftMax) {
+    driftMax = currentDrift;
+  }
+
+  const pct = Math.min(driftMax/DRIFT_THR*100, 100);
+  $('drift-fill').style.width = pct + '%';
+  $('drift-fill').style.background =
+    driftMax >= DRIFT_THR  ? 'var(--red)'   :
+    driftMax >= DRIFT_WARN ? 'var(--amber)' : 'var(--green)';
+  $('drift-num').textContent = driftMax.toFixed(1) + '°';
+  $('arm-circle').className  = driftMax >= DRIFT_THR ? 'arm-circle drifting' : 'arm-circle stable';
+  $('arm-ring').className    = driftMax >= DRIFT_THR ? 'arm-ring-outer alert' : 'arm-ring-outer';
+  
+  if (driftMax >= DRIFT_THR) {
+    vibe(60);
+    clearInterval(measureTimer); 
+    finishArm();
+  }
+}
+
+function startWait() {
+  phase = 'WAIT_VOICE';
+  betaWindow = []; stableCount = 0; driftMax = 0; lastWarnKey = '';
+
+  setDot(arm==='right'?0:1, 'active');
+  cardState(arm, 'active', '🤚', T.pending);
+  $('arm-circle').className = 'arm-circle waiting';
+  $('arm-ring').className   = 'arm-ring-outer';
+  $('arm-icon').textContent = '🤚';
+  $('cd-wrap').style.display    = 'none';
+  $('drift-wrap').style.display = 'none';
+  $('pre-cd').style.display     = 'none';
+  $('final-banner').style.display = 'none';
+  hideWarn();
+  $('instr').textContent     = T['instrWait_'+arm];
+  $('sub-instr').textContent = T['subWait_'+arm];
+  $('action-btn').disabled   = true;
+
+  speakNow(T['vWait_'+arm], () => {
+    if (phase === 'WAIT_VOICE') {
+      phase = 'CALIB';
+      if (retryTimer) clearInterval(retryTimer);
+      retryTimer = setInterval(() => {
+        if (phase !== 'CALIB') { clearInterval(retryTimer); retryTimer = null; return; }
+        speak(T.vCalibRetry);
+      }, RETRY_SEC * 1000);
+    }
+  });
+}
+
+function startMeasure() {
+  phase = 'MEASURE';
+  mElapsed = 0; voiced4 = false; voiced7 = false;
+
+  $('instr').textContent     = T.instrMeasure;
+  $('sub-instr').textContent = T.subMeasure;
+  $('cd-wrap').style.display    = 'flex';
+  $('drift-wrap').style.display = 'flex';
+  $('cd-num').textContent       = MEASURE_SEC;
+  $('cd-prog').style.strokeDashoffset = 0;
+  
+  hideWarn();
+  beep(880, 0.15); vibe(120);
+  speak(T.vReady);
+
+  const circ = 226;
+  measureTimer = setInterval(() => {
+    mElapsed++;
+    $('cd-num').textContent = MEASURE_SEC - mElapsed;
+    $('cd-prog').style.strokeDashoffset = (circ*mElapsed/MEASURE_SEC).toFixed(2);
+    if (mElapsed===4 && !voiced4) { voiced4=true; speak(T.vMid4); }
+    if (mElapsed===7 && !voiced7) { voiced7=true; speak(T.vMid7); }
+    if (mElapsed>=MEASURE_SEC)    { clearInterval(measureTimer); finishArm(); }
+  }, 1000);
+}
+
+function finishArm() {
+  phase = 'BETWEEN';
+  const passed = driftMax < DRIFT_THR;
+  results[arm] = passed ? 'pass' : 'fail';
+  driftValues[arm] = driftMax; // เก็บค่า drift ไว้คำนวณ score
+
+  beep(587, 0.5); vibe(passed ? 200 : [300,100,300]);
+  speakNow(T.vDone); 
+
+  setDot(arm==='right'?0:1, 'done');
+  cardState(arm, passed?'pass':'fail', passed?'✅':'⚠️', passed?T.passLbl:T.failLbl);
+  $('instr').textContent     = T['instrDone_'+arm];
+  $('sub-instr').textContent = '';
+  $('cd-wrap').style.display    = 'none';
+  $('drift-wrap').style.display = 'none';
+  $('arm-circle').className = 'arm-circle '+(passed?'stable':'drifting');
+  $('arm-ring').className   = 'arm-ring-outer';
+
+  if (arm==='right') {
+    $('action-btn').textContent = T.btnNext;
+    $('action-btn').className   = '';
+    $('action-btn').disabled    = false;
+  } else {
+    setTimeout(showFinal, 600);
+  }
+}
+
+// แปลง drift องศา → score 0-100
+// drift 0° = 100, drift = DRIFT_THR(10°) = 50, drift 20°+ = 0
+function driftToScore(deg) {
+  if (deg === null) return 50;
+  if (deg <= 0) return 100;
+  if (deg < DRIFT_THR) return Math.round(100 - (deg / DRIFT_THR) * 50); // 100→50
+  return Math.round(Math.max(0, 50 - ((deg - DRIFT_THR) / DRIFT_THR) * 50)); // 50→0
+}
+
+function showFinal() {
+  phase = 'DONE'; setDot(2,'done');
+  const ok = results.right==='pass' && results.left==='pass';
+
+  // ── คำนวณ FAST score: ใช้แขนที่แย่ที่สุด (max drift) ──
+  const scoreR = driftToScore(driftValues.right);
+  const scoreL = driftToScore(driftValues.left);
+  const armScore = Math.min(scoreR, scoreL); // แขนที่แย่สุดเป็นตัวตัดสิน
+  const riskLevel = armScore >= 70 ? 'ok' : armScore >= 45 ? 'warn' : 'bad';
+
+  sessionStorage.setItem('fast_arm', JSON.stringify({
+    score: armScore,
+    riskLevel,
+    passed: ok,
+    breakdown: { rightDrift: driftValues.right, leftDrift: driftValues.left, rightScore: scoreR, leftScore: scoreL }
+  }));
+
+  // navigation ตาม FAST flow
+  handleArmFastFlow();
+  const fb = $('final-banner');
+  fb.className = ok?'ok':'bad'; fb.style.display='flex';
+  $('fb-icon').textContent  = ok?'✅':'⚠️';
+  $('fb-title').textContent = ok?T.finalOk:T.finalBad;
+  $('fb-sub').textContent   = ok?T.finalOkSub:T.finalBadSub;
+  $('instr').textContent     = ok?T.finalOk:T.finalBad;
+  $('sub-instr').textContent = '';
+  $('arm-icon').textContent  = ok?'🙌':'⚠️';
+  $('action-btn').textContent = T.btnRetry;
+  $('action-btn').className   = ok?'green':'red';
+  $('action-btn').disabled    = false;
+  speak(ok?T.vFinalOk:T.vFinalBad);
+}
+
+function handleBtn() {
+  initAudio();
+  if (phase==='IDLE') {
+    arm='right'; cardState('right','active','🤚',T.pending);
+    $('action-btn').disabled=true;
+    if (!sensorOk) requestSensor(()=>startWait()); else startWait();
+  } else if (phase==='BETWEEN' && arm==='right') {
+    arm='left'; $('action-btn').disabled=true; startWait();
+  } else if (phase==='DONE') {
+    resetAll();
+  }
+}
+
+/* 🛠️ ฟังก์ชันสำหรับสลับกลับไปหน้าเลือกภาษา (Reset ทั้งหมดพร้อมย้ายหน้าจอ) */
+function navToLangScreen() {
+  if (measureTimer) { clearInterval(measureTimer); measureTimer = null; }
+  if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
+  clearVoiceQueue();
+  
+  phase = 'IDLE';
+  $('test-screen').style.display = 'none';
+  $('lang-screen').style.display = 'flex';
+}
+
+function resetAll() {
+  phase='IDLE'; arm='right'; results={right:null,left:null};
+  driftMax=0; mElapsed=0; betaWindow=[]; stableCount=0; driftValues={right:null,left:null};
+  if (measureTimer)  { clearInterval(measureTimer);  measureTimer=null; }
+  if (retryTimer)    { clearInterval(retryTimer);     retryTimer=null; }
+  clearVoiceQueue();
+  for(let i=0;i<3;i++) $('d'+i).className='dot';
+  ['right','left'].forEach(s=>cardState(s,'','—',T.pending));
+  $('final-banner').style.display='none'; $('cd-wrap').style.display='none';
+  $('drift-wrap').style.display='none';   $('pre-cd').style.display='none';
+  $('cd-num').textContent=MEASURE_SEC;    $('cd-prog').style.strokeDashoffset=0;
+  $('drift-fill').style.width='0%';       $('drift-num').textContent='0.0°';
+  $('arm-circle').className='arm-circle'; $('arm-ring').className='arm-ring-outer';
+  $('arm-icon').textContent='🤚'; hideWarn();
+  $('instr').textContent=T['instrWait_right'];
+  $('sub-instr').textContent=T['subWait_right'];
+  $('action-btn').textContent=T.btnStart;
+  $('action-btn').className=''; $('action-btn').disabled=false;
+}
+
+const $ = id => document.getElementById(id);
+
+function setDot(i,s){$('d'+i).className='dot '+s}
+function cardState(side,cls,icon,lbl){
+  $('card-'+side).className='rcard '+cls;
+  $('ico-'+side).textContent=icon;
+  $('lbl-'+side).textContent=lbl;
+}
+function showWarn(title,sub){
+  $('warn-banner').style.display='flex';
+  $('warn-title').textContent=title; $('warn-sub').textContent=sub;
+  $('instr').style.display='none'; $('sub-instr').style.display='none';
+}
+function hideWarn(){
+  $('warn-banner').style.display='none';
+  $('instr').style.display='block'; $('sub-instr').style.display='block';
+}
+function isWarnVisible(){ return $('warn-banner').style.display==='flex'; }
+
+function warnKey(key, title, sub, voiceTxt) {
+  showWarn(title, sub);
+  if (lastWarnKey !== key) {
+    lastWarnKey = key;
+    speak(voiceTxt);  
+  }
+}
+
+function selectLang(code) {
+  T = LANG[code];
+  $('lang-screen').style.display='none';
+  $('test-screen').style.display='flex';
+  $('top-lbl').textContent=T.topLbl; $('cd-unit').textContent=T.cdUnit;
+  $('drift-lbl').textContent=T.driftLbl; $('lbl-r-arm').textContent=T.armRight;
+  $('lbl-l-arm').textContent=T.armLeft;  $('lbl-right').textContent=T.pending;
+  $('lbl-left').textContent=T.pending;
+  $('instr').textContent=T['instrWait_right'];
+  $('sub-instr').textContent=T['subWait_right'];
+  
+  $('action-btn').textContent=T.btnStart;
+  $('action-btn').disabled=false;
+  $('action-btn').className='';
+}
+
+// ═══════════════════════════════════════════════════
+// FAST FLOW navigation
+// ═══════════════════════════════════════════════════
+function handleArmFastFlow() {
+  const mode = sessionStorage.getItem('fast_mode');
+  const lang = sessionStorage.getItem('fast_lang') || 'th';
+  const allDone = ['fast_face','fast_arm','fast_speech'].every(k => sessionStorage.getItem(k));
+
+  const L = {
+    th: { result:'ดูผลรวม FAST →', next:'ทดสอบการพูดต่อ →', home:'กลับหน้าหลัก' },
+    en: { result:'View FAST Score →', next:'Continue to Speech →', home:'Back to Home' }
+  }[lang];
+
+  setTimeout(() => {
+    const existing = document.getElementById('fast-nav-btn');
+    if (existing) existing.remove();
+    const btn = document.createElement('button');
+    btn.id = 'fast-nav-btn';
+    btn.style.cssText = 'width:calc(100% - 44px);margin:0 22px 16px;min-height:54px;border-radius:14px;border:none;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;color:#fff;background:var(--blue)';
+
+    if (mode === 'full') {
+      // Full: arm เป็นอันที่ 2 → ไป speech ต่อ
+      btn.textContent = L.next;
+      btn.onclick = () => window.location.href = 'speech-test.html';
+    } else {
+      if (allDone) {
+        btn.textContent = L.result;
+        btn.style.background = 'var(--green)';
+        btn.onclick = () => window.location.href = 'result.html';
+      } else {
+        btn.textContent = L.home;
+        btn.onclick = () => window.location.href = 'index.html';
+      }
+    }
+    const actionBtn = $('action-btn');
+    actionBtn.parentNode.insertBefore(btn, actionBtn);
+  }, 700);
+}
+
+// ── Auto-select ภาษาจาก FAST flow (ข้ามหน้าเลือกภาษา) ──
+(function() {
+  const savedLang = sessionStorage.getItem('fast_lang');
+  const mode = sessionStorage.getItem('fast_mode');
+  if (savedLang && mode && (savedLang === 'th' || savedLang === 'en' || savedLang === 'ja')) {
+    if (typeof selectLang === 'function') selectLang(savedLang);
+  }
+})();
+</script>
+</body>
+</html>

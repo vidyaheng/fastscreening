@@ -3,123 +3,189 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>FAST · ผลการทดสอบ</title>
+<title>FAST · ผลการตรวจ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@500&display=swap');
   :root {
-    --bg:#0A0E14; --surface:#131820; --surface2:#1C2330;
-    --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.14);
-    --blue:#3B82F6; --green:#10B981; --red:#EF4444; --amber:#F59E0B;
-    --text:#F1F5F9; --muted:rgba(241,245,249,0.45);
+    --paper:#F4F6F8; --surface:#FFFFFF; --surface-alt:#FAFBFC;
+    --ink:#1B2A3A; --ink-soft:#5A6B7B; --ink-faint:#94A3B2;
+    --clinical:#2B7DE9; --clinical-soft:#EAF2FD;
+    --mint:#1FA98F; --mint-soft:#E6F6F2;
+    --amber:#E89B3C; --amber-soft:#FCF3E6;
+    --coral:#E5544E; --coral-soft:#FCEBEA;
+    --line:#D4DEE8; --line-soft:#E8EEF4;
+    --shadow:0 2px 4px rgba(27,42,58,0.06), 0 8px 24px rgba(27,42,58,0.10);
+    --r:18px; --r-sm:13px;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{background:var(--bg);font-family:'DM Sans',-apple-system,sans-serif;color:var(--text);
-    min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden}
+  html,body{-webkit-overflow-scrolling:touch}
+  body{
+    background:var(--paper);
+    font-family:'IBM Plex Sans Thai','Manrope',-apple-system,sans-serif;
+    color:var(--ink);min-height:100dvh;display:flex;flex-direction:column;
+    overflow-x:hidden;line-height:1.5;
+  }
+  .num{font-family:'Manrope',sans-serif;font-variant-numeric:tabular-nums}
 
-  header{padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between}
-  .logo{display:flex;align-items:center;gap:10px}
-  .logo-badge{background:var(--red);color:#fff;font-size:10px;font-weight:700;
-    letter-spacing:2px;padding:4px 8px;border-radius:6px}
-  .back-btn{background:none;border:1.5px solid var(--border);border-radius:8px;
-    color:var(--muted);font-size:13px;font-weight:500;padding:6px 12px;cursor:pointer;font-family:inherit}
+  header{
+    padding:18px 22px;display:flex;align-items:center;justify-content:space-between;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-mark{
+    width:34px;height:34px;border-radius:9px;background:var(--clinical);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 8px rgba(43,125,233,0.25);
+  }
+  .brand-mark svg{width:19px;height:19px;stroke:#fff;fill:none;stroke-width:2.2}
+  .brand-text{font-family:'Manrope';font-weight:800;font-size:15px;letter-spacing:0.5px}
+  .brand-text span{color:var(--clinical)}
+  .back-btn{
+    border:1px solid var(--line);background:var(--surface);border-radius:9px;
+    color:var(--ink-soft);font-family:'IBM Plex Sans Thai';font-size:13px;font-weight:500;
+    padding:7px 13px;cursor:pointer;display:flex;align-items:center;gap:5px;
+  }
+  .back-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
 
-  /* ── Score Hero ── */
-  .score-hero{padding:28px 24px 20px;text-align:center}
-  .score-eyebrow{font-size:11px;font-weight:600;letter-spacing:3px;color:var(--muted);
-    text-transform:uppercase;margin-bottom:16px}
-  .score-ring{width:140px;height:140px;margin:0 auto 16px;position:relative}
+  /* ── Score hero ── */
+  .score-hero{padding:30px 24px 22px;text-align:center}
+  .score-eyebrow{
+    font-family:'Manrope';font-size:12px;font-weight:700;letter-spacing:2px;
+    color:var(--ink-faint);text-transform:uppercase;margin-bottom:18px;
+  }
+  .score-ring{width:168px;height:168px;margin:0 auto 18px;position:relative}
   .score-ring svg{transform:rotate(-90deg)}
-  .ring-track{fill:none;stroke:var(--surface2);stroke-width:10}
-  .ring-fill{fill:none;stroke-width:10;stroke-linecap:round;
-    stroke-dasharray:376;stroke-dashoffset:376;transition:stroke-dashoffset 1.2s ease}
+  .ring-track{fill:none;stroke:var(--line-soft);stroke-width:12}
+  .ring-fill{fill:none;stroke-width:12;stroke-linecap:round;
+    stroke-dasharray:376;stroke-dashoffset:376;transition:stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)}
   .score-center{position:absolute;inset:0;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:2px}
-  .score-num{font-family:'DM Mono',monospace;font-size:36px;font-weight:500}
-  .score-denom{font-size:12px;color:var(--muted)}
-  .risk-badge{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;
-    border-radius:20px;font-size:13px;font-weight:600;margin-bottom:8px}
-  .risk-badge.ok{background:rgba(16,185,129,0.12);color:var(--green)}
-  .risk-badge.warn{background:rgba(245,158,11,0.12);color:var(--amber)}
-  .risk-badge.bad{background:rgba(239,68,68,0.12);color:var(--red)}
-  .risk-desc{font-size:13px;color:var(--muted);line-height:1.6;max-width:280px;margin:0 auto}
+    align-items:center;justify-content:center}
+  .score-num{font-family:'Manrope';font-size:56px;font-weight:800;line-height:1;letter-spacing:-2px}
+  .score-denom{font-family:'Manrope';font-size:14px;font-weight:600;color:var(--ink-faint);margin-top:2px}
+
+  .risk-badge{
+    display:inline-flex;align-items:center;gap:7px;padding:9px 20px;
+    border-radius:24px;font-size:16px;font-weight:700;margin-bottom:12px;
+  }
+  .risk-badge svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5}
+  .risk-badge.ok{background:var(--mint-soft);color:var(--mint)}
+  .risk-badge.warn{background:var(--amber-soft);color:var(--amber)}
+  .risk-badge.bad{background:var(--coral-soft);color:var(--coral)}
+  .risk-desc{font-size:15px;color:var(--ink-soft);line-height:1.6;max-width:300px;margin:0 auto;font-weight:500}
 
   /* ── Module breakdown ── */
-  .section{padding:0 24px 20px}
-  .section-title{font-size:11px;font-weight:600;letter-spacing:2px;color:var(--muted);
-    text-transform:uppercase;margin-bottom:12px}
-  .module-cards{display:flex;flex-direction:column;gap:8px}
-  .mcard{background:var(--surface);border:1.5px solid var(--border);
-    border-radius:14px;padding:14px 16px}
-  .mcard.ok{border-color:rgba(16,185,129,0.3)}
-  .mcard.warn{border-color:rgba(245,158,11,0.3)}
-  .mcard.bad{border-color:rgba(239,68,68,0.3)}
-  .mcard-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-  .mcard-icon{font-size:22px;width:40px;height:40px;background:var(--surface2);
-    border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  .mcard.ok .mcard-icon{background:rgba(16,185,129,0.1)}
-  .mcard.warn .mcard-icon{background:rgba(245,158,11,0.1)}
-  .mcard.bad .mcard-icon{background:rgba(239,68,68,0.1)}
-  .mcard-name{font-size:13px;font-weight:600;margin-bottom:2px}
-  .mcard-status{font-size:12px}
-  .mcard.ok .mcard-status{color:var(--green)}
+  .section{padding:8px 24px 0}
+  .section-eyebrow{
+    font-family:'Manrope';font-size:11px;font-weight:700;letter-spacing:1.5px;
+    color:var(--ink-faint);text-transform:uppercase;margin-bottom:13px;padding-left:2px;
+  }
+  #module-cards{display:flex;flex-direction:column;gap:10px}
+  .mcard{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);
+    padding:16px 18px;box-shadow:var(--shadow);
+  }
+  .mcard-top{display:flex;align-items:center;gap:13px;margin-bottom:13px}
+  .mcard-icon{
+    width:46px;height:46px;border-radius:12px;display:flex;align-items:center;
+    justify-content:center;flex-shrink:0;background:var(--surface-alt);
+  }
+  .mcard-icon svg{width:24px;height:24px;stroke:var(--ink-soft);fill:none;stroke-width:2}
+  .mcard.ok .mcard-icon{background:var(--mint-soft)}
+  .mcard.ok .mcard-icon svg{stroke:var(--mint)}
+  .mcard.warn .mcard-icon{background:var(--amber-soft)}
+  .mcard.warn .mcard-icon svg{stroke:var(--amber)}
+  .mcard.bad .mcard-icon{background:var(--coral-soft)}
+  .mcard.bad .mcard-icon svg{stroke:var(--coral)}
+  .mcard-name{font-size:17px;font-weight:700;color:var(--ink)}
+  .mcard-status{font-size:14px;font-weight:600;margin-top:1px}
+  .mcard.ok .mcard-status{color:var(--mint)}
   .mcard.warn .mcard-status{color:var(--amber)}
-  .mcard.bad .mcard-status{color:var(--red)}
-  .mcard-score-row{display:flex;align-items:center;gap:8px}
-  .mcard-bar-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
-  .mcard-bar-fill{height:100%;border-radius:3px;transition:width 1s ease}
-  .mcard.ok .mcard-bar-fill{background:var(--green)}
+  .mcard.bad .mcard-status{color:var(--coral)}
+  .mcard-score-row{display:flex;align-items:center;gap:12px}
+  .mcard-bar-track{flex:1;height:8px;background:var(--line-soft);border-radius:5px;overflow:hidden}
+  .mcard-bar-fill{height:100%;border-radius:5px;transition:width 1s cubic-bezier(0.4,0,0.2,1)}
+  .mcard.ok .mcard-bar-fill{background:var(--mint)}
   .mcard.warn .mcard-bar-fill{background:var(--amber)}
-  .mcard.bad .mcard-bar-fill{background:var(--red)}
-  .mcard-score-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);
-    width:40px;text-align:right;flex-shrink:0}
+  .mcard.bad .mcard-bar-fill{background:var(--coral)}
+  .mcard-score-num{font-family:'Manrope';font-size:20px;font-weight:800;
+    color:var(--ink);width:62px;text-align:right;flex-shrink:0}
 
   /* ── Emergency box ── */
-  .emergency-box{margin:0 24px 20px;background:rgba(239,68,68,0.08);
-    border:1.5px solid rgba(239,68,68,0.3);border-radius:14px;padding:16px;
-    display:none;text-align:center}
+  .emergency-box{
+    margin:20px 24px 0;background:var(--coral-soft);
+    border:1.5px solid rgba(229,84,78,0.3);border-radius:var(--r);padding:18px;
+    display:none;text-align:center;
+  }
   .emergency-box.visible{display:block}
-  .emg-title{font-size:15px;font-weight:700;color:var(--red);margin-bottom:6px}
-  .emg-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:12px}
-  .emg-call{display:block;background:var(--red);color:#fff;border:none;
-    border-radius:10px;padding:12px;font-size:16px;font-weight:700;
-    cursor:pointer;font-family:inherit;width:100%}
+  .emg-icon{width:48px;height:48px;margin:0 auto 10px;border-radius:14px;
+    background:var(--coral);display:flex;align-items:center;justify-content:center}
+  .emg-icon svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2.2}
+  .emg-title{font-size:18px;font-weight:700;color:var(--coral);margin-bottom:14px}
+  .emg-call{display:flex;align-items:center;justify-content:center;gap:9px;
+    background:var(--coral);color:#fff;border:none;border-radius:13px;padding:15px;
+    font-family:'IBM Plex Sans Thai';font-size:18px;font-weight:700;cursor:pointer;width:100%;
+    transition:transform 0.12s}
+  .emg-call:active{transform:scale(0.97)}
+  .emg-call svg{width:21px;height:21px;stroke:#fff;fill:none;stroke-width:2.2}
 
-  /* ── Suggestion box ── */
-  .suggest-box{margin:0 24px 20px;background:var(--surface);border:1.5px solid var(--border);
-    border-radius:14px;padding:16px}
-  .suggest-title{font-size:13px;font-weight:600;margin-bottom:8px}
-  .suggest-list{list-style:none;display:flex;flex-direction:column;gap:6px}
-  .suggest-list li{font-size:13px;color:var(--muted);line-height:1.5;
-    padding-left:16px;position:relative}
-  .suggest-list li::before{content:'·';position:absolute;left:4px;color:var(--muted)}
+  /* ── Suggestions ── */
+  .suggest-box{margin:20px 24px 0;background:var(--surface);
+    border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
+  .suggest-title{font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .suggest-title svg{width:18px;height:18px;stroke:var(--clinical);fill:none;stroke-width:2}
+  #suggest-list{list-style:none;display:flex;flex-direction:column;gap:11px}
+  #suggest-list li{font-size:14.5px;color:var(--ink-soft);line-height:1.5;
+    padding-left:24px;position:relative;font-weight:500}
+  #suggest-list li::before{
+    content:'';position:absolute;left:4px;top:7px;width:8px;height:8px;
+    border-radius:50%;background:var(--clinical);
+  }
 
-  /* ── Action buttons ── */
-  .actions{padding:0 24px 32px;display:flex;flex-direction:column;gap:10px}
-  .btn-primary{min-height:56px;border-radius:14px;border:none;background:var(--blue);
-    color:#fff;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit}
-  .btn-secondary{min-height:48px;border-radius:12px;border:1.5px solid var(--border);
-    background:none;color:var(--muted);font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+  /* ── Actions ── */
+  .actions{padding:24px;margin-top:auto;display:flex;flex-direction:column;gap:11px}
+  .btn-primary{
+    min-height:58px;border-radius:15px;border:none;background:var(--clinical);
+    color:#fff;font-family:'IBM Plex Sans Thai';font-size:17px;font-weight:600;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+    box-shadow:0 6px 18px rgba(43,125,233,0.28);transition:transform 0.12s;
+  }
+  .btn-primary:active{transform:scale(0.97)}
+  .btn-primary svg{width:19px;height:19px;stroke:#fff;fill:none;stroke-width:2.2}
+  .btn-secondary{
+    min-height:50px;border-radius:13px;border:1px solid var(--line);
+    background:var(--surface);color:var(--ink-soft);font-family:'IBM Plex Sans Thai';
+    font-size:15px;font-weight:600;cursor:pointer;transition:transform 0.12s;
+  }
+  .btn-secondary:active{transform:scale(0.98)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">
-    <span class="logo-badge">FAST</span>
+  <div class="brand">
+    <div class="brand-mark"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg></div>
+    <div class="brand-text">FAST<span>·</span></div>
   </div>
-  <button class="back-btn" onclick="history.back()">← กลับ</button>
+  <button class="back-btn" onclick="history.back()">
+    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    <span id="back-label">กลับ</span>
+  </button>
 </header>
 
 <div class="score-hero">
-  <div class="score-eyebrow" id="eyebrow">ผลการทดสอบ FAST</div>
+  <div class="score-eyebrow" id="eyebrow">FAST SCORE</div>
   <div class="score-ring">
-    <svg width="140" height="140" viewBox="0 0 140 140">
-      <circle class="ring-track" cx="70" cy="70" r="60"/>
-      <circle class="ring-fill" id="ring-fill" cx="70" cy="70" r="60"/>
+    <svg width="168" height="168" viewBox="0 0 168 168">
+      <circle class="ring-track" cx="84" cy="84" r="60"/>
+      <circle class="ring-fill" id="ring-fill" cx="84" cy="84" r="60"/>
     </svg>
     <div class="score-center">
       <div class="score-num" id="total-score">—</div>
-      <div class="score-denom">/100</div>
+      <div class="score-denom">/ 100</div>
     </div>
   </div>
   <div class="risk-badge" id="risk-badge">—</div>
@@ -127,24 +193,32 @@
 </div>
 
 <div class="section">
-  <div class="section-title" id="breakdown-title">ผลแต่ละการทดสอบ</div>
-  <div class="module-cards" id="module-cards"></div>
+  <div class="section-eyebrow" id="breakdown-title">รายละเอียด</div>
+  <div id="module-cards"></div>
 </div>
 
 <div class="emergency-box" id="emergency-box">
-  <div class="emg-title">⚠️ แนะนำพบแพทย์ทันที</div>
-  <div class="emg-sub" id="emg-sub">พบความผิดปกติของการพูดและ/หรือร่างกาย กรุณาติดต่อแพทย์หรือโทรสายฉุกเฉินทันที</div>
-  <button class="emg-call" onclick="window.location.href='tel:1669'">📞 โทร 1669</button>
+  <div class="emg-icon">
+    <svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+  </div>
+  <div class="emg-title" id="emg-sub">ควรพบแพทย์</div>
+  <button class="emg-call" onclick="window.location.href='tel:1669'">
+    <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    <span id="call-label">โทร 1669</span>
+  </button>
 </div>
 
 <div class="suggest-box" id="suggest-box">
-  <div class="suggest-title" id="suggest-title">คำแนะนำ</div>
-  <ul class="suggest-list" id="suggest-list"></ul>
+  <div class="suggest-title">
+    <svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>
+    <span id="suggest-title">คำแนะนำ</span>
+  </div>
+  <ul id="suggest-list"></ul>
 </div>
 
 <div class="actions">
-  <button class="btn-primary" id="retry-btn" onclick="retryAll()">ทดสอบใหม่อีกครั้ง</button>
-  <button class="btn-secondary" onclick="window.location.href='index.html'">กลับหน้าหลัก</button>
+  <button class="btn-primary" id="retry-btn" onclick="retryAll()">ทดสอบใหม่</button>
+  <button class="btn-secondary" id="home-btn" onclick="window.location.href='index.html'">หน้าหลัก</button>
 </div>
 
 <script>
@@ -152,64 +226,65 @@
 
 const lang = sessionStorage.getItem('fast_lang') || 'th';
 
-// weights ตาม FAST clinical importance
-// น้ำหนักตามหลักฐานงานวิจัย: face และ arm เป็นตัวทำนาย stroke อิสระ
-// (Santa Clara study, n=359) จึงให้น้ำหนักสูงกว่า speech
+// น้ำหนักตามงานวิจัย: face และ arm เป็นตัวทำนาย stroke อิสระ (Santa Clara, n=359)
 const WEIGHTS = { face: 0.40, arm: 0.40, speech: 0.20 };
 
 const LABELS = {
   th: {
-    face: 'ใบหน้า', arm: 'แขน', speech: 'การพูด',
-    ok: 'ปกติ', warn: 'เฝ้าระวัง', bad: 'ความเสี่ยงสูง',
-    riskOk: 'ผลการทดสอบปกติ',
-    riskWarn: 'พบความผิดปกติเล็กน้อย',
-    riskBad: 'ความเสี่ยงสูง — ควรพบแพทย์',
-    descOk: 'ไม่พบความผิดปกติที่ชัดเจน ควรทดสอบซ้ำเป็นระยะ หากมีอาการผิดปกติให้รีบพบแพทย์',
-    descWarn: 'พบความผิดปกติบางส่วน ควรพบแพทย์เพื่อประเมินเพิ่มเติม',
-    descBad: 'พบความผิดปกติหลายจุด กรุณาพบแพทย์หรือโทร 1669 ทันที',
-    suggestOk: ['ทดสอบซ้ำทุก 3-6 เดือน', 'ดูแลสุขภาพหัวใจและหลอดเลือด', 'หากมีอาการผิดปกติกะทันหัน ให้รีบพบแพทย์'],
-    suggestWarn: ['พบแพทย์เพื่อประเมินเพิ่มเติม', 'บันทึกอาการและเวลาที่เกิด', 'หากอาการแย่ลง โทร 1669 ทันที'],
-    suggestBad: ['โทร 1669 หรือไปห้องฉุกเฉินทันที', 'อย่าขับรถหรือเดินทางคนเดียว', 'เวลาสำคัญมาก — รักษาภายใน 4.5 ชั่วโมง'],
-    retryAll: 'ทดสอบใหม่ทั้งหมด',
-    notTested: 'ไม่ได้ทดสอบ',
-    overrideNote: 'แม้คะแนนรวมจะไม่ต่ำมาก แต่พบความผิดปกติชัดเจนที่: {modules} ซึ่งเพียงอาการเดียวก็บ่งชี้ความเสี่ยง stroke ได้ ควรพบแพทย์',
+    face:'หน้า', arm:'แขน', speech:'เสียง',
+    ok:'ปกติ', warn:'ต้องระวัง', bad:'ผิดปกติ',
+    riskOk:'ผลปกติ', riskWarn:'พบความผิดปกติเล็กน้อย', riskBad:'เสี่ยงสูง · ควรพบแพทย์',
+    descOk:'ไม่พบความผิดปกติชัดเจน เช็คซ้ำเป็นระยะ',
+    descWarn:'พบความผิดปกติบางจุด ควรพบแพทย์',
+    descBad:'พบความผิดปกติ ควรพบแพทย์ทันที',
+    suggestOk:['เช็คซ้ำทุก 3-6 เดือน', 'ดูแลหัวใจและหลอดเลือด', 'มีอาการกะทันหัน รีบพบแพทย์'],
+    suggestWarn:['พบแพทย์เพื่อตรวจเพิ่ม', 'จดอาการและเวลาที่เกิด', 'อาการแย่ลง โทร 1669'],
+    suggestBad:['โทร 1669 ทันที', 'อย่าขับรถคนเดียว', 'รักษาภายใน 4.5 ชม.'],
+    retryAll:'ทดสอบใหม่', back:'กลับ', home:'หน้าหลัก', call:'โทร 1669',
+    seeDoc:'ควรพบแพทย์', eyebrow:'FAST SCORE', breakdown:'รายละเอียด', suggest:'คำแนะนำ',
+    notTested:'ไม่ได้เช็ค',
+    overrideNote:'พบความผิดปกติชัดที่: {modules} แม้อาการเดียวก็เสี่ยงสโตรก ควรพบแพทย์',
   },
   en: {
-    face: 'Face', arm: 'Arms', speech: 'Speech',
-    ok: 'Normal', warn: 'Watch', bad: 'High Risk',
-    riskOk: 'Results look normal',
-    riskWarn: 'Minor abnormality detected',
-    riskBad: 'High risk — see a doctor',
-    descOk: 'No clear abnormalities detected. Continue monitoring and see a doctor if symptoms appear.',
-    descWarn: 'Some abnormalities found. See a doctor for further evaluation.',
-    descBad: 'Multiple abnormalities found. Call emergency services or go to an ER immediately.',
-    suggestOk: ['Retest every 3-6 months', 'Maintain cardiovascular health', 'Seek care immediately if sudden symptoms appear'],
-    suggestWarn: ['See a doctor for further evaluation', 'Record symptoms and timing', 'Call emergency services if symptoms worsen'],
-    suggestBad: ['Call emergency services immediately', "Don't drive or travel alone", 'Time is critical — treatment within 4.5 hours'],
-    retryAll: 'Test Again',
-    notTested: 'Not tested',
-    overrideNote: 'Although the overall score is not low, a clear abnormality was found in: {modules}. A single positive sign alone can indicate stroke risk — see a doctor.',
+    face:'Face', arm:'Arms', speech:'Speech',
+    ok:'Normal', warn:'Watch', bad:'Abnormal',
+    riskOk:'Normal result', riskWarn:'Minor abnormality', riskBad:'High risk · See a doctor',
+    descOk:'No clear abnormality. Re-check periodically.',
+    descWarn:'Some abnormality found. See a doctor.',
+    descBad:'Abnormality found. See a doctor now.',
+    suggestOk:['Re-check every 3-6 months', 'Care for heart & vessels', 'Sudden symptoms? See a doctor'],
+    suggestWarn:['See a doctor for evaluation', 'Note symptoms & timing', 'Worsening? Call emergency'],
+    suggestBad:['Call emergency now', "Don't drive alone", 'Treat within 4.5 hrs'],
+    retryAll:'Test Again', back:'Back', home:'Home', call:'Call Emergency',
+    seeDoc:'See a doctor', eyebrow:'FAST SCORE', breakdown:'Breakdown', suggest:'Tips',
+    notTested:'Not tested',
+    overrideNote:'Clear abnormality in: {modules}. A single sign can mean stroke risk. See a doctor.',
   },
   ja: {
-    face: '顔', arm: '腕', speech: '発話',
-    ok: '正常', warn: '注意', bad: '高リスク',
-    riskOk: '結果は正常です',
-    riskWarn: '軽度の異常を検出',
-    riskBad: '高リスク — 医師の診察を',
-    descOk: '明らかな異常は検出されませんでした。定期的に再検査し、症状が出たら医師に相談してください。',
-    descWarn: 'いくつかの異常が見つかりました。詳しい評価のため医師の診察を受けてください。',
-    descBad: '複数の異常が見つかりました。すぐに救急に連絡するか、救急外来を受診してください。',
-    suggestOk: ['3〜6ヶ月ごとに再検査', '心血管の健康を維持', '突然の症状が出たらすぐ受診'],
-    suggestWarn: ['詳しい評価のため医師の診察を', '症状と発生時刻を記録', '症状が悪化したら救急に連絡'],
-    suggestBad: ['すぐに救急に連絡', '一人で運転・移動しない', '時間が重要 — 4.5時間以内の治療'],
-    retryAll: 'もう一度テスト',
-    notTested: '未テスト',
-    overrideNote: '総合スコアは低くありませんが、次の項目で明らかな異常が見つかりました: {modules}。1つの陽性兆候だけでも脳卒中リスクを示すことがあります — 医師の診察を受けてください。',
+    face:'顔', arm:'腕', speech:'声',
+    ok:'正常', warn:'注意', bad:'異常',
+    riskOk:'正常な結果', riskWarn:'軽度の異常', riskBad:'高リスク · 医師へ',
+    descOk:'明らかな異常なし。定期的に再チェックを。',
+    descWarn:'一部に異常。医師の診察を。',
+    descBad:'異常あり。すぐ医師へ。',
+    suggestOk:['3〜6ヶ月ごとに再チェック', '心臓・血管を大切に', '突然の症状はすぐ受診'],
+    suggestWarn:['医師の診察を受ける', '症状と時刻を記録', '悪化したら救急へ'],
+    suggestBad:['すぐ救急へ', '一人で運転しない', '4.5時間以内に治療'],
+    retryAll:'再テスト', back:'戻る', home:'ホーム', call:'救急へ電話',
+    seeDoc:'医師へ', eyebrow:'FAST SCORE', breakdown:'詳細', suggest:'アドバイス',
+    notTested:'未チェック',
+    overrideNote:'{modules}に明らかな異常。1つでも脳卒中リスクの兆候です。医師へ。',
   },
 };
 
 const T = LABELS[lang];
-const ICONS = { face: '😊', arm: '💪', speech: '🗣️' };
+
+// SVG icons แทน emoji
+const ICONS = {
+  face:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg>',
+  arm:'<svg viewBox="0 0 24 24"><path d="M6 19V9a3 3 0 0 1 6 0v1m0-1a3 3 0 0 1 6 0v10"/></svg>',
+  speech:'<svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v3"/></svg>',
+};
 
 function getRiskClass(score) {
   if (score >= 70) return 'ok';
@@ -217,16 +292,28 @@ function getRiskClass(score) {
   return 'bad';
 }
 
+function applyStaticLabels() {
+  document.getElementById('eyebrow').textContent = T.eyebrow;
+  document.getElementById('breakdown-title').textContent = T.breakdown;
+  document.getElementById('suggest-title').textContent = T.suggest;
+  document.getElementById('back-label').textContent = T.back;
+  document.getElementById('call-label').textContent = T.call;
+  document.getElementById('emg-sub').textContent = T.seeDoc;
+  document.getElementById('home-btn').textContent = T.home;
+}
+
 function buildResult() {
+  applyStaticLabels();
+
   const data = {
     face:   JSON.parse(sessionStorage.getItem('fast_face')   || 'null'),
     arm:    JSON.parse(sessionStorage.getItem('fast_arm')    || 'null'),
     speech: JSON.parse(sessionStorage.getItem('fast_speech') || 'null'),
   };
 
-  // คำนวณ weighted FAST score
+  // weighted FAST score
   let totalWeight = 0, weightedSum = 0;
-  ['face', 'arm', 'speech'].forEach(m => {
+  ['face','arm','speech'].forEach(m => {
     if (data[m] && data[m].score !== undefined) {
       weightedSum += data[m].score * WEIGHTS[m];
       totalWeight += WEIGHTS[m];
@@ -234,100 +321,79 @@ function buildResult() {
   });
   const fastScore = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
 
-  // ── Single-positive override (หลัก CPSS) ──────────────────────────
-  // ถ้า module ใดได้ "bad" แม้แต่อันเดียว → flag เสี่ยงสูงทันที
-  // ไม่ว่าค่าเฉลี่ยถ่วงน้ำหนักจะเป็นเท่าไหร่
-  // เพราะการพบอาการเดียวก็บ่งชี้ stroke ได้ (ป้องกัน false negative)
-  let anyBad = false;
-  let badModules = [];
-  ['face', 'arm', 'speech'].forEach(m => {
+  // single-positive override (หลัก CPSS)
+  let anyBad = false, badModules = [];
+  ['face','arm','speech'].forEach(m => {
     if (data[m] && data[m].score !== undefined && getRiskClass(data[m].score) === 'bad') {
-      anyBad = true;
-      badModules.push(m);
+      anyBad = true; badModules.push(m);
     }
   });
+  const riskClass = anyBad ? 'bad' : getRiskClass(fastScore);
 
-  // riskClass ตัดสินจาก override ก่อน แล้วค่อยดู weighted score
-  let riskClass;
-  if (anyBad) {
-    riskClass = 'bad';
-  } else {
-    riskClass = getRiskClass(fastScore);
-  }
-
-  // ── Score ring ──
+  // score ring
   const circumference = 376;
   const offset = circumference - (fastScore / 100) * circumference;
-  const ringColors = { ok: '#10B981', warn: '#F59E0B', bad: '#EF4444' };
+  const ringColors = { ok:'#1FA98F', warn:'#E89B3C', bad:'#E5544E' };
   const fill = document.getElementById('ring-fill');
   fill.style.stroke = ringColors[riskClass];
   setTimeout(() => { fill.style.strokeDashoffset = offset; }, 100);
   document.getElementById('total-score').textContent = fastScore;
   document.getElementById('total-score').style.color = ringColors[riskClass];
 
-  // ── Risk badge ──
+  // risk badge
+  const checkIcon = '<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>';
+  const warnIcon = '<svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
   const badge = document.getElementById('risk-badge');
   badge.className = 'risk-badge ' + riskClass;
-  badge.textContent = { ok: '✅ ' + T.riskOk, warn: '⚠️ ' + T.riskWarn, bad: '🚨 ' + T.riskBad }[riskClass];
-  document.getElementById('risk-desc').textContent = T['desc' + riskClass.charAt(0).toUpperCase() + riskClass.slice(1)];
+  const badgeIcon = riskClass === 'ok' ? checkIcon : warnIcon;
+  const badgeText = { ok:T.riskOk, warn:T.riskWarn, bad:T.riskBad }[riskClass];
+  badge.innerHTML = badgeIcon + '<span>' + badgeText + '</span>';
 
-  // ถ้าเกิดจาก single-positive override ทั้งที่ค่าเฉลี่ยไม่ต่ำ ให้อธิบายเพิ่ม
+  document.getElementById('risk-desc').textContent =
+    T['desc' + riskClass.charAt(0).toUpperCase() + riskClass.slice(1)];
   if (anyBad && fastScore >= 45) {
-    const moduleNames = badModules.map(m => T[m]).join(', ');
-    document.getElementById('risk-desc').textContent = T.overrideNote.replace('{modules}', moduleNames);
+    const names = badModules.map(m => T[m]).join(', ');
+    document.getElementById('risk-desc').textContent = T.overrideNote.replace('{modules}', names);
   }
 
-  // ── Module cards ──
+  // module cards
   const container = document.getElementById('module-cards');
   container.innerHTML = '';
-  ['face', 'arm', 'speech'].forEach(m => {
+  ['face','arm','speech'].forEach(m => {
     const d = data[m];
     const score = d?.score ?? null;
     const cls = score !== null ? getRiskClass(score) : 'warn';
+    const statusText = score !== null ? { ok:T.ok, warn:T.warn, bad:T.bad }[cls] : T.notTested;
     const card = document.createElement('div');
     card.className = 'mcard ' + cls;
-    const statusText = score !== null
-      ? { ok: T.ok, warn: T.warn, bad: T.bad }[cls]
-      : T.notTested;
     card.innerHTML = `
       <div class="mcard-top">
         <div class="mcard-icon">${ICONS[m]}</div>
-        <div>
-          <div class="mcard-name">${T[m]}</div>
-          <div class="mcard-status">${statusText}</div>
-        </div>
+        <div><div class="mcard-name">${T[m]}</div><div class="mcard-status">${statusText}</div></div>
       </div>
       <div class="mcard-score-row">
-        <div class="mcard-bar-track">
-          <div class="mcard-bar-fill" style="width:0%" data-target="${score ?? 0}"></div>
-        </div>
-        <div class="mcard-score-num">${score !== null ? score + '/100' : '—'}</div>
+        <div class="mcard-bar-track"><div class="mcard-bar-fill" style="width:0%" data-target="${score ?? 0}"></div></div>
+        <div class="mcard-score-num">${score !== null ? score : '—'}</div>
       </div>`;
     container.appendChild(card);
   });
-  // animate bars
   setTimeout(() => {
-    document.querySelectorAll('.mcard-bar-fill').forEach(el => {
-      el.style.width = el.dataset.target + '%';
-    });
+    document.querySelectorAll('.mcard-bar-fill').forEach(el => { el.style.width = el.dataset.target + '%'; });
   }, 200);
 
-  // ── Emergency box ──
-  if (riskClass === 'bad') {
-    document.getElementById('emergency-box').classList.add('visible');
-  }
+  // emergency
+  if (riskClass === 'bad') document.getElementById('emergency-box').classList.add('visible');
 
-  // ── Suggestions ──
+  // suggestions
   const suggestions = T['suggest' + riskClass.charAt(0).toUpperCase() + riskClass.slice(1)];
-  const list = document.getElementById('suggest-list');
-  list.innerHTML = suggestions.map(s => `<li>${s}</li>`).join('');
+  document.getElementById('suggest-list').innerHTML = suggestions.map(s => `<li>${s}</li>`).join('');
 
-  // ── Retry button ──
+  // retry button
   document.getElementById('retry-btn').textContent = T.retryAll;
 }
 
 function retryAll() {
-  ['fast_face', 'fast_arm', 'fast_speech'].forEach(k => sessionStorage.removeItem(k));
+  ['fast_face','fast_arm','fast_speech'].forEach(k => sessionStorage.removeItem(k));
   window.location.href = 'index.html';
 }
 

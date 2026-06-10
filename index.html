@@ -107,6 +107,7 @@
   <div class="lang-toggle">
     <button class="ltbtn active" onclick="setLang('th')">TH</button>
     <button class="ltbtn" onclick="setLang('en')">EN</button>
+    <button class="ltbtn" onclick="setLang('ja')">JA</button>
   </div>
 </header>
 
@@ -224,6 +225,22 @@ const I18N = {
     seeResult: 'View FAST Score →',
     clearBtn: 'Clear all results',
   },
+  ja: {
+    eyebrow: '脳卒中スクリーニング',
+    title: '早期チェック · 早期対応<br><em>脳卒中リスクを減らす</em>',
+    sub: 'FASTに基づく簡易評価 — 顔・腕・発話。3分以内で完了します。',
+    disclaimer: 'このアプリは<strong>予備的なスクリーニングのみ</strong>を目的とし、医師の診断に代わるものではありません。<br>脳卒中の疑いがある場合は、<strong>すぐに救急</strong>に連絡してください。',
+    fullLabel: '推奨', fullTitle: '3ステップ完全テスト',
+    fullDesc: '顔・腕・発話を順番にテストし、FASTスコアを取得します。',
+    indLabel: '柔軟', indTitle: '個別テスト',
+    indDesc: '1つずつテストできます。3つすべて完了すると結果が計算されます。',
+    progressTitle: 'テストを選択',
+    faceName: '顔', armName: '腕', speechName: '発話',
+    notDone: '未テスト',
+    ok: '正常', warn: '異常を検出',
+    seeResult: 'FASTスコアを見る →',
+    clearBtn: 'すべての結果を消去',
+  },
 };
 
 let lang = 'th';
@@ -231,8 +248,9 @@ let indOpen = false;
 
 function setLang(l) {
   lang = l;
+  const order = ['th', 'en', 'ja'];
   document.querySelectorAll('.ltbtn').forEach((b,i) => {
-    b.classList.toggle('active', (i===0 && l==='th') || (i===1 && l==='en'));
+    b.classList.toggle('active', order[i] === l);
   });
   const T = I18N[l];
   // update static text

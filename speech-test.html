@@ -5,20 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>FAST · Speech Test (Trailing Silence V3)</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap');
   :root {
-    --bg:#0A0E14; --surface:#131820; --border:rgba(255,255,255,0.08);
-    --blue:#3B82F6; --green:#10B981; --red:#EF4444; --amber:#F59E0B;
-    --text:#F1F5F9; --muted:rgba(241,245,249,0.45);
+    --bg:#F4F6F8; --surface:#FFFFFF; --surface-alt:#FAFBFC; --border:#D4DEE8;
+    --blue:#2B7DE9; --green:#1FA98F; --red:#E5544E; --amber:#E89B3C;
+    --text:#1B2A3A; --muted:#5A6B7B; --muted2:#94A3B2;
+    --shadow:0 2px 4px rgba(27,42,58,0.06), 0 8px 24px rgba(27,42,58,0.10);
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{background:var(--bg);font-family:'DM Sans',-apple-system,sans-serif;color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden;-webkit-overflow-scrolling:touch}
+  body{background:var(--bg);font-family:'IBM Plex Sans Thai','Manrope',-apple-system,sans-serif;color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden;-webkit-overflow-scrolling:touch}
+  .num{font-family:'Manrope';font-variant-numeric:tabular-nums}
 
   #lang-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:32px 28px}
   .title-lbl{font-size:12px;font-weight:600;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
   .main-title{font-size:26px;font-weight:600;text-align:center}
   .lang-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px}
-  .lang-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;width:100%;color:var(--text)}
+  .lang-btn{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;width:100%;color:var(--text);box-shadow:var(--shadow);transition:transform 0.12s}
+  .lang-btn:active{transform:scale(0.98)}
   .lang-btn:active{border-color:var(--blue);background:rgba(59,130,246,.1)}
   .lang-flag{font-size:26px}.lang-text{font-size:15px;font-weight:600}
 
@@ -35,27 +38,28 @@
   .mic-icon{font-size:38px}
   #freq-canvas{position:absolute;inset:0;width:120px;height:120px;border-radius:50%;pointer-events:none;transform:rotate(-90deg)}
 
-  .word-display{font-size:30px;font-weight:600;text-align:center}
-  .hint-lbl{font-size:13px;color:var(--muted);text-align:center;max-width:280px;line-height:1.6}
-  #transcript-box{font-family:'DM Mono',monospace;font-size:13px;color:var(--amber);background:rgba(255,255,255,0.03);padding:8px 16px;border-radius:10px;display:none;text-align:center;width:100%;max-width:280px}
+  .word-display{font-size:36px;font-weight:800;text-align:center;letter-spacing:-0.5px;color:var(--text)}
+  .hint-lbl{font-size:15px;color:var(--muted);text-align:center;max-width:290px;line-height:1.6;font-weight:500}
+  #transcript-box{font-family:'Manrope',monospace;font-size:13px;color:var(--amber);background:rgba(255,255,255,0.03);padding:8px 16px;border-radius:10px;display:none;text-align:center;width:100%;max-width:280px}
 
   #metrics-box{width:100%;max-width:280px;display:none;flex-direction:column;gap:10px}
   .metric-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
-  .metric-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--text)}
-  .bar-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
-  .bar-fill{height:100%;width:0%;border-radius:3px;transition:width 0.2s}
+  .metric-val{font-family:'Manrope',monospace;font-size:14px;font-weight:700;color:var(--text)}
+  .bar-track{height:8px;background:var(--surface-alt);border:1px solid var(--border);border-radius:5px;overflow:hidden}
+  .bar-fill{height:100%;width:0%;border-radius:4px;transition:width 0.3s}
 
   #result-banner{display:none;width:100%;max-width:280px;border-radius:14px;padding:14px 16px;flex-direction:column;gap:4px}
   #result-banner.ok{background:rgba(16,185,129,.1);border:1.5px solid rgba(16,185,129,.3)}
   #result-banner.warn{background:rgba(245,158,11,.1);border:1.5px solid rgba(245,158,11,.3)}
   #result-banner.bad{background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.3)}
-  .rb-title{font-size:15px;font-weight:600}
-  .rb-score{font-family:'DM Mono',monospace;font-size:28px;font-weight:600;text-align:center;margin:4px 0}
+  .rb-title{font-size:18px;font-weight:700}
+  .rb-score{font-family:'Manrope',monospace;font-size:42px;font-weight:800;text-align:center;margin:6px 0;letter-spacing:-1px}
   .rb-sub{font-size:11px;color:var(--muted);line-height:1.5}
 
   #debug-box{display:none;width:calc(100% - 44px);margin:0 22px 10px;background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 14px;font-family:monospace;font-size:12px;color:rgba(255,255,255,0.75);line-height:2;flex-shrink:0}
 
-  #action-btn{width:calc(100% - 44px);margin:0 22px 28px;min-height:58px;border-radius:16px;border:none;font-size:17px;font-weight:600;cursor:pointer;color:#fff;background:var(--blue);flex-shrink:0}
+  #action-btn{width:calc(100% - 44px);margin:0 22px 28px;min-height:60px;border-radius:15px;border:none;font-family:'IBM Plex Sans Thai';font-size:17px;font-weight:600;cursor:pointer;color:#fff;background:var(--blue);flex-shrink:0;box-shadow:0 6px 18px rgba(43,125,233,0.28);transition:transform 0.12s}
+  #action-btn:active{transform:scale(0.97)}
   #action-btn:active{opacity:.85;transform:scale(.98)}
   #action-btn.red{background:var(--red)}
   #action-btn.green{background:var(--green)}

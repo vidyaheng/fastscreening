@@ -56,7 +56,7 @@
   .rb-score{font-family:'Manrope',monospace;font-size:42px;font-weight:800;text-align:center;margin:6px 0;letter-spacing:-1px}
   .rb-sub{font-size:11px;color:var(--muted);line-height:1.5}
 
-  #debug-box{display:none;width:calc(100% - 44px);margin:0 22px 10px;background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 14px;font-family:monospace;font-size:12px;color:rgba(255,255,255,0.75);line-height:2;flex-shrink:0}
+  #debug-box{display:none;width:calc(100% - 44px);margin:0 22px 10px;background:#1B2A3A;border-radius:10px;padding:12px 14px;font-family:monospace;font-size:12px;color:#A8F5C3;line-height:2;flex-shrink:0}
 
   #action-btn{width:calc(100% - 44px);margin:0 22px 28px;min-height:60px;border-radius:15px;border:none;font-family:'IBM Plex Sans Thai';font-size:17px;font-weight:600;cursor:pointer;color:#fff;background:var(--blue);flex-shrink:0;box-shadow:0 6px 18px rgba(43,125,233,0.28);transition:transform 0.12s}
   #action-btn:active{transform:scale(0.97)}
@@ -113,6 +113,7 @@
       <div class="rb-sub"  id="rb-sub"></div>
     </div>
   </div>
+  <button id="debug-toggle" onclick="const d=document.getElementById('debug-box');d.style.display=d.style.display==='block'?'none':'block'" style="display:none;width:calc(100% - 44px);margin:0 22px 8px;padding:8px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer">🔬 Debug</button>
   <div id="debug-box"></div>
   <button id="action-btn" onclick="handleAction()"></button>
 </div>
@@ -215,6 +216,7 @@ function resetUI() {
   $('metrics-box').style.display   = 'none';
   $('result-banner').style.display = 'none';
   $('debug-box').style.display     = 'none';
+  $('debug-toggle').style.display  = 'none';
   $('action-btn').className        = '';
   $('action-btn').textContent      = T ? T.btnStart : '';
   ['word','rate','stab'].forEach(k => {
@@ -259,7 +261,7 @@ async function startRecording() {
   $('transcript-box').style.display = 'block';
   $('transcript-box').textContent  = '🔇 วัดเสียงรบกวนรอบห้อง...';
   $('metrics-box').style.display   = 'flex';
-  $('debug-box').style.display     = 'block';
+  $('debug-toggle').style.display  = 'block';
   $('debug-box').textContent       = 'calibrating noise floor...';
 
   try {

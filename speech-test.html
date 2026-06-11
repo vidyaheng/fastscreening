@@ -44,22 +44,24 @@
   
   #transcript-box{font-family:'IBM Plex Sans Thai', sans-serif;font-size:15px;font-weight:600;color:#1E3A8A;background:rgba(43,125,233,0.08);border:1px solid rgba(43,125,233,0.15);padding:10px 18px;border-radius:12px;display:none;text-align:center;width:100%;max-width:280px;box-shadow:inset 0 1px 2px rgba(0,0,0,0.02)}
 
-  /* ── กล่องพับเก็บรายละเอียดข้อมูลเพิ่มเติม (Collapsible Area) ── */
+  /* ── แก้ไขส่วนพับเก็บรายละเอียดข้อมูลให้เปิดใช้งานได้สมบูรณ์ ── */
   #details-collapse {
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: max-height 0.4s ease, opacity 0.3s ease;
+    transition: max-height 0.35s ease-out, opacity 0.25s ease-out, margin 0.25s ease;
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 12px;
   }
+  /* เมื่อมีคลาส expanded จะแสดงแผงข้อมูลออกมา */
   #details-collapse.expanded {
-    max-height: 800px; /* ยืดหยุ่นความสูงเมื่อกางออก */
+    max-height: 1000px; 
     opacity: 1;
-    margin-top: 4px;
+    margin-top: 10px;
+    margin-bottom: 10px;
   }
 
   #metrics-box{width:100%;max-width:280px;display:flex;flex-direction:column;gap:12px;background:var(--surface);padding:14px;border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow)}
@@ -82,25 +84,26 @@
   
   .rb-title { font-size: 18px; font-weight: 800; }
   .rb-score { font-family: 'Manrope', monospace; font-size: 44px; font-weight: 800; margin: 2px 0; letter-spacing: -1px; }
-  .rb-sub { font-size: 13px; font-weight: 600; line-height: 1.5; color: #334155 !important; margin-bottom: 6px; }
+  .rb-sub { font-size: 13px; font-weight: 600; line-height: 1.5; color: #334155 !important; margin-bottom: 8px; }
 
-  /* ปุ่มกดสำหรับ Toggle ดูรายละเอียดเพิ่มเติม */
+  /* ปุ่มกดสำหรับเปิดดูรายละเอียดเพิ่มเติม */
   #toggle-details-btn {
-    background: rgba(0,0,0,0.04);
+    background: rgba(0,0,0,0.05);
     border: none;
     border-radius: 8px;
     color: var(--muted);
     font-family: inherit;
     font-size: 12px;
     font-weight: 700;
-    padding: 6px 12px;
+    padding: 8px 14px;
     cursor: pointer;
     align-self: center;
-    transition: background 0.2s;
+    transition: background 0.2s, color 0.2s;
   }
-  #toggle-details-btn:active { background: rgba(0,0,0,0.08); }
+  #toggle-details-btn:hover { background: rgba(0,0,0,0.08); color: var(--text); }
+  #toggle-details-btn:active { background: rgba(0,0,0,0.12); }
 
-  #debug-box{display:none;width:100%;max-width:280px;background:#E2E8F0;border:1px solid #CBD5E1;border-radius:10px;padding:12px 14px;font-family:monospace;font-size:11px;color:#334155;line-height:1.8;box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);}
+  #debug-box{display:block; width:100%;max-width:280px;background:#E2E8F0;border:1px solid #CBD5E1;border-radius:10px;padding:12px 14px;font-family:monospace;font-size:11px;color:#334155;line-height:1.8;box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);}
 
   /* ส่วนควบคุมปุ่มกดด้านล่าง */
   #controls-area {
@@ -285,11 +288,10 @@ function toggleDetails() {
   const isExpanded = area.classList.toggle('expanded');
   btn.textContent = isExpanded ? T.hideMore : T.showMore;
   
-  // เลื่อนหน้าจอให้เห็นกล่องข้อมูลที่กางออกมาแบบนุ่มนวล
   if (isExpanded) {
     setTimeout(() => {
       area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 150);
+    }, 100);
   }
 }
 
@@ -319,7 +321,6 @@ async function startRecording() {
   $('action-btn').className        = '';
   $('transcript-box').style.display = 'block';
   $('transcript-box').textContent  = '🔇 วัดเสียงรบกวนรอบห้อง...';
-  $('debug-box').style.display     = 'block';
   $('debug-box').textContent       = 'calibrating noise floor...';
 
   try {

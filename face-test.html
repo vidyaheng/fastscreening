@@ -16,7 +16,7 @@
     --col-yellow:  #E89B3C;
     --col-bg:      #0E1620;
     --radius-dash: 26px;
-    --transition:  background 0.35s ease;
+    --transition:  all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -50,25 +50,26 @@
     pointer-events: none;
   }
 
+  /* ── หน้า Disclaimer: ปรับเป็น Clinical Clean ขาวนวล ── */
   #disclaimer-overlay {
     position: absolute; inset: 0;
-    background: rgba(8, 12, 16, 0.93);
+    background: rgba(247, 249, 252, 0.94);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     gap: 18px; padding: 28px;
     z-index: 30;
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(12px);
   }
   #disclaimer-overlay .disc-icon { font-size: 38px; }
   #disclaimer-overlay h2 {
-    color: #fff; font-size: 21px; font-weight: 800;
+    color: #1A2530; font-size: 21px; font-weight: 800;
     letter-spacing: 0.3px; text-align: center;
   }
   #disclaimer-overlay p {
-    color: rgba(255,255,255,0.8); font-size: 15px; font-weight:500;
+    color: #4A5568; font-size: 15px; font-weight:500;
     text-align: center; line-height: 1.65; max-width: 320px;
   }
-  #disclaimer-overlay p strong { color: #FFB84D; font-weight:700; }
+  #disclaimer-overlay p strong { color: #D97706; font-weight:700; }
   #understand-btn {
     margin-top: 8px;
     background: var(--col-blue); color: #fff;
@@ -77,7 +78,7 @@
     font-size: 16px; font-weight: 700;
     cursor: pointer; letter-spacing: 0.3px;
     transition: transform 0.12s;
-    box-shadow: 0 6px 18px rgba(43,125,233,0.4);
+    box-shadow: 0 6px 18px rgba(43,125,233,0.3);
   }
   #understand-btn:active { transform: scale(0.97); }
 
@@ -87,10 +88,42 @@
     transform: translateX(-50%);
     background: rgba(229, 84, 78, 0.95);
     color: #fff; padding: 9px 20px;
-    border-radius: 20px; font-size: 14px; font-weight:600;
-    font-weight: 700; white-space: nowrap; z-index: 10;
+    border-radius: 20px; font-size: 14px; font-weight: 700;
+    white-space: nowrap; z-index: 10;
     backdrop-filter: blur(4px);
   }
+
+  /* ── ชุดตัวเลขแสดงผลลอยด้านซ้ายบน (Floating Display) ── */
+  #float-readout {
+    display: none;
+    position: absolute; top: 14px; left: 14px;
+    background: rgba(8, 12, 16, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 10px 16px; border-radius: 16px;
+    backdrop-filter: blur(8px);
+    z-index: 10;
+    flex-direction: column; min-width: 120px;
+    transition: var(--transition);
+  }
+  #float-label {
+    color: rgba(255, 255, 255, 0.6); font-size: 9px;
+    font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; margin-bottom: 2px;
+  }
+  #float-num-wrap {
+    display: flex; align-items: baseline; gap: 2px;
+    color: #fff;
+  }
+  #float-num {
+    font-family: 'Manrope', monospace;
+    font-size: 38px; font-weight: 800; line-height: 1;
+    color: #1FA98F;
+  }
+  #float-unit { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.7); }
+
+  /* คลาสพิเศษปรับสีตามสถานะแจ้งเตือน */
+  #float-readout.state-warn #float-num { color: #E89B3C; }
+  #float-readout.state-danger #float-num { color: #E5544E; }
 
   #pose-hud {
     display: none;
@@ -130,87 +163,64 @@
     color: #fff; font-size: 10px; font-weight: 700;
   }
 
+  /* ── Dashboard: ปรับให้ไม่มีพื้นหลัง เตี้ยลง และยืดหยุ่นตามปุ่มกด ── */
   #dashboard {
-    flex: 1; min-height: 200px;
-    border-radius: var(--radius-dash) var(--radius-dash) 0 0;
+    flex: none;
+    height: 90px; /* เตี้ยลง 60% ตอนเริ่มแรกที่ไม่มีปุ่ม */
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    padding: 16px 24px 20px; gap: 8px;
-    transition: var(--transition);
-    background: var(--col-blue);
+    padding: 12px 24px; gap: 6px;
+    background: transparent; /* โปร่งใส ตัวหนังสือลอย */
     position: relative;
     overflow: hidden;
+    transition: var(--transition);
+    z-index: 15;
   }
-  #dashboard::before {
-    content: '';
-    position: absolute; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none; opacity: 0.35;
+  
+  /* ขยายความสูงขึ้นเล็กน้อยเมื่อมีปุ่มกดปรากฏขึ้น */
+  #dashboard.has-buttons {
+    height: 135px;
   }
 
   #app-title {
-    color: rgba(255,255,255,0.6);
+    color: rgba(255,255,255,0.5);
     font-size: 10px; font-weight: 700;
     letter-spacing: 3px; text-transform: uppercase;
   }
   #status-msg {
-    color: #fff; font-size: 18px; font-weight: 600;
-    text-align: center; line-height: 1.5;
+    color: #fff; font-size: 16px; font-weight: 600;
+    text-align: center; line-height: 1.4;
     max-width: 340px; position: relative;
-  }
-
-  #countdown-box { text-align: center; display: none; }
-  #countdown-label {
-    color: rgba(255,255,255,0.7); font-size: 12px;
-    font-weight: 700; letter-spacing: 1.5px;
-    text-transform: uppercase; display: block;
-  }
-  #countdown-num {
-    font-family: 'Manrope', monospace;
-    color: #fff; font-size: 60px;
-    font-weight: 800; line-height: 1;
-  }
-
-  #score-box { text-align: center; display: none; }
-  #score-label {
-    color: rgba(255,255,255,0.7); font-size: 12px;
-    font-weight: 700; letter-spacing: 1.5px;
-    text-transform: uppercase; display: block;
-  }
-  #score-num {
-    font-family: 'Manrope', monospace;
-    font-size: 52px; font-weight: 800; line-height: 1;
-  }
-  #score-threshold {
-    color: rgba(255,255,255,0.45); font-size: 11px;
-    margin-top: 2px; display: block;
   }
 
   #btn-row { display: flex; gap: 10px; margin-top: 4px; position: relative; }
   .action-btn {
-    background: rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.15);
     border: 1.5px solid rgba(255,255,255,0.35);
     color: #fff; border-radius: 13px;
-    padding: 14px 32px;
+    padding: 12px 28px;
     font-family: 'IBM Plex Sans Thai', sans-serif;
-    font-size: 16px; font-weight: 700;
+    font-size: 15px; font-weight: 700;
     letter-spacing: 0.3px; cursor: pointer;
     transition: transform 0.12s, background 0.18s;
   }
-  .action-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.22); }
+  .action-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.25); }
   #start-btn {
     background: var(--col-blue); border-color: var(--col-blue);
-    box-shadow: 0 6px 18px rgba(43,125,233,0.4);
+    box-shadow: 0 6px 18px rgba(43,125,233,0.3);
   }
 
-  /* ── แก้ไข: สีข้อความเตือน pose ให้อ่านออกบนพื้นเหลือง ── */
+  /* กล่องเตือน Pose ปรับแต่งให้อ่านง่ายลอยอยู่เหนือแผง */
   #pose-warn-msg {
     display: none;
-    color: #1A237E;
-    font-size: 15px;
+    color: #fff;
+    background: rgba(232, 155, 60, 0.95);
+    font-size: 14px;
     font-weight: 700;
     text-align: center;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+    padding: 6px 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
 
   #debug-panel {
@@ -226,7 +236,7 @@
   .dbg-row { display: flex; gap: 8px; align-items: baseline; }
   .dbg-lbl {
     color: rgba(255,255,255,0.40); font-size: 9px;
-    font-weight: 700; letter-spacing: 1px;
+    font-weight: 700; letter-spacing: 1 Barb;
     text-transform: uppercase; width: 70px;
   }
   .dbg-val {
@@ -237,10 +247,10 @@
   .hidden { display: none !important; }
 
   @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50%       { transform: scale(1.035); }
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50%       { transform: scale(1.02); opacity: 1; }
   }
-  .pulse { animation: pulse 0.9s ease-in-out infinite; }
+  .pulse { animation: pulse 1s ease-in-out infinite; }
 </style>
 <script src="fast-permissions.js"></script>
 </head>
@@ -255,6 +265,13 @@
     <button onclick="switchFaceLang('ja')" style="background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer">JA</button>
   </div>
 
+  <div id="float-readout">
+    <span id="float-label">RECORDING</span>
+    <div id="float-num-wrap">
+      <span id="float-num">5</span>
+      <span id="float-unit">s</span>
+    </div>
+  </div>
 
   <div id="disclaimer-overlay">
     <div class="disc-icon">⚕️</div>
@@ -307,17 +324,6 @@
   <p id="status-msg"></p>
   <p id="pose-warn-msg"></p>
 
-  <div id="countdown-box">
-    <span id="countdown-label"></span>
-    <span id="countdown-num">5</span><span style="color:#fff;font-size:20px;font-weight:700;">s</span>
-  </div>
-
-  <div id="score-box">
-    <span id="score-label">Smoothed Z-Score</span>
-    <span id="score-num">0.00</span>
-    <span id="score-threshold"></span>
-  </div>
-
   <div id="btn-row">
     <button class="action-btn hidden" id="start-btn"></button>
     <button class="action-btn hidden" id="reset-btn"></button>
@@ -341,7 +347,8 @@ const FACE_I18N = {
     understand: 'รับทราบและเริ่มใช้งาน',
     noFace: '⚠️ ไม่พบใบหน้า — วางใบหน้าให้อยู่กลางกรอบ',
     loading: 'กำลังเปิดกล้องและโหลดระบบ...',
-    calibLabel: 'กำลังบันทึกค่าเริ่มต้น',
+    calibLabel: 'บันทึกค่าเริ่มต้น',
+    scoreLabel: 'Z-Score',
     threshold: 'เกณฑ์ ±3.0',
     startBtn: '▶\u00A0 เริ่มทดสอบ',
     resetBtn: '↺\u00A0 ทดสอบใหม่',
@@ -371,7 +378,8 @@ const FACE_I18N = {
     understand: 'I Understand, Start',
     noFace: '⚠️ No face detected — center your face in the frame',
     loading: 'Opening camera and loading...',
-    calibLabel: 'Recording baseline',
+    calibLabel: 'Baseline',
+    scoreLabel: 'Z-Score',
     threshold: 'Threshold ±3.0',
     startBtn: '▶\u00A0 Start Test',
     resetBtn: '↺\u00A0 Retry',
@@ -401,7 +409,8 @@ const FACE_I18N = {
     understand: '了解して開始',
     noFace: '⚠️ 顔が検出されません — 顔を枠の中央に合わせてください',
     loading: 'カメラを起動しています...',
-    calibLabel: '基準値を記録中',
+    calibLabel: '基準値',
+    scoreLabel: 'Zスコア',
     threshold: 'しきい値 ±3.0',
     startBtn: '▶\u00A0 テスト開始',
     resetBtn: '↺\u00A0 再テスト',
@@ -436,19 +445,24 @@ function applyFaceLang() {
   setHTML('disc-body', FL.discBody);
   setText('understand-btn', FL.understand);
   setText('no-face-banner', FL.noFace);
-  setText('countdown-label', FL.calibLabel);
-  setText('score-threshold', FL.threshold);
   setText('start-btn', FL.startBtn);
   setText('reset-btn', FL.resetBtn);
-  // status-msg เริ่มต้น
+  
   const sm = document.getElementById('status-msg');
   if (sm && !sm.textContent.trim()) sm.textContent = FL.loading;
+
+  // รีเฟรช label บนกล่องลอยตัวเลขตามเฟสปัจจุบัน
+  const flb = document.getElementById('float-label');
+  if (flb) {
+    if (phase === 'RESTING_PHASE') flb.textContent = FL.calibLabel;
+    else if (phase === 'ACTION_PHASE') flb.textContent = FL.scoreLabel;
+  }
 }
 
 const Z_SCORE_THRESHOLD    = 3.0;
-const ACTION_DURATION_MS   = 6000;   // ทดสอบ action phase 6 วินาที แล้วสรุปผล
+const ACTION_DURATION_MS   = 6000;   
 let actionStartMs          = null;
-let actionZScores          = [];     // เก็บ sz ตลอด action phase สำหรับคำนวณ score
+let actionZScores          = [];     
 const CALIBRATION_SECONDS  = 5;
 const SMOOTHING_WINDOW     = 15;
 const MAX_HISTORY          = 300;
@@ -493,14 +507,16 @@ const statusMsg      = document.getElementById('status-msg');
 const poseWarnMsg    = document.getElementById('pose-warn-msg');
 const startBtn       = document.getElementById('start-btn');
 const resetBtn       = document.getElementById('reset-btn');
-const countdownBox   = document.getElementById('countdown-box');
-const countdownNum   = document.getElementById('countdown-num');
-const scoreBox       = document.getElementById('score-box');
-const scoreNum       = document.getElementById('score-num');
 const noFaceBanner   = document.getElementById('no-face-banner');
 const poseHud        = document.getElementById('pose-hud');
 const disclaimerEl   = document.getElementById('disclaimer-overlay');
 const understandBtn  = document.getElementById('understand-btn');
+
+// ชี้เป้าแผงลอยมุมซ้ายบน
+const floatReadout   = document.getElementById('float-readout');
+const floatLabel     = document.getElementById('float-label');
+const floatNum       = document.getElementById('float-num');
+const floatUnit      = document.getElementById('float-unit');
 
 function switchFaceLang(code) {
   if (!FACE_I18N[code]) return;
@@ -521,7 +537,7 @@ debugBtn.addEventListener('click', () => {
 
 understandBtn.addEventListener('click', () => {
   disclaimerEl.style.display = 'none';
-  startCamera(); // ขอกล้องหลังผู้ใช้รับทราบ disclaimer แล้ว
+  startCamera(); 
 });
 
 function computeStats(v) {
@@ -578,11 +594,6 @@ function computeScore(lm) {
   return { score, rollDeg, yawDeg, pitchDeg };
 }
 
-// ── แก้ไข: pitch sign convention ──
-// ใน normalized coords ของ MediaPipe: y=0 บน, y=1 ล่าง
-// ก้มหน้าลง  → จมูกลงต่ำ → noseY เพิ่ม → currentRatio เพิ่ม → pitchDeg > 0  ✓
-// เงยหน้าขึ้น → จมูกขึ้นสูง → noseY ลด   → currentRatio ลด   → pitchDeg < 0  ✓
-// ดังนั้น sign ถูกต้องอยู่แล้ว แต่ข้อความเตือนเดิมสลับกัน (แก้ตรง warning block แทน)
 function getPitchDeg(noseY, foreheadY, faceLength) {
   if (pitchNeutralRatio === null) return 0;
   const currentRatio = (noseY - foreheadY) / faceLength;
@@ -622,29 +633,32 @@ function updatePoseBar(barId, valId, deg, maxDeg) {
   val.style.color       = bad ? '#FF6B6B' : '#A8F5C3';
 }
 
-function setUI({ color, msg, poseWarn = '', showCD = false, showScore = false,
+function setUI({ msg, poseWarn = '', showCD = false, showScore = false,
                  showStart = false, showReset = false, showHud = false, pulse = false }) {
-  dashboard.style.background = color;
   statusMsg.textContent      = msg;
   statusMsg.style.display    = msg ? 'block' : 'none';
 
   poseWarnMsg.textContent    = poseWarn;
   poseWarnMsg.style.display  = poseWarn ? 'block' : 'none';
 
-  countdownBox.style.display = showCD    ? 'block' : 'none';
-  scoreBox.style.display     = showScore ? 'block' : 'none';
+  // สลับการเปิดปิดของแผงลอยตามบริบทใช้งาน
+  floatReadout.style.display = (showCD || showScore) ? 'flex' : 'none';
+
   startBtn.classList.toggle('hidden', !showStart);
   resetBtn.classList.toggle('hidden', !showReset);
   debugBtn.classList.toggle('hidden', !showReset);
   poseHud.style.display      = showHud   ? 'flex'  : 'none';
   dashboard.classList.toggle('pulse', pulse);
+
+  // ตรวจจับว่า ณ ขณะนั้นแสดงปุ่มกดหรือไม่ เพื่อปรับระดับความสูงของ Dashboard
+  const hasButtonsVisible = showStart || showReset || !debugBtn.classList.contains('hidden');
+  dashboard.classList.toggle('has-buttons', hasButtonsVisible);
 }
 
 function finaliseBaseline() {
   if (!baselineScores.length) {
     phase = 'BEFORE_START';
     setUI({
-      color: 'var(--col-warn)',
       msg: FL.noFaceBaseline,
       showStart: true,
     });
@@ -654,8 +668,14 @@ function finaliseBaseline() {
   phase = 'ACTION_PHASE';
   actionStartMs = performance.now();
   actionZScores = [];
+
+  // สลับป้ายแผงลอยเป็นคะแนน Z-Score
+  floatLabel.textContent = FL.scoreLabel;
+  floatUnit.textContent = '';
+  floatNum.textContent = '0.00';
+  floatReadout.className = '';
+
   setUI({
-    color: 'var(--col-green)',
     msg: FL.step2,
     showScore: true, showReset: true, showHud: true,
   });
@@ -674,18 +694,21 @@ function startScreening() {
   baselineStats        = { mean: 0, std: 1 };
   actionStartMs        = null;
   actionZScores        = [];
-  scoreNum.textContent            = '0.00';
+  
+  // รีเซ็ตแผงลอยกลับมาโหมดนับถอยหลัง
+  floatLabel.textContent = FL.calibLabel;
+  floatUnit.textContent = 's';
+  floatNum.textContent = countdownVal;
+  floatReadout.className = '';
+
   noFaceBanner.style.display      = 'none';
   poseWarnMsg.style.display       = 'none';
-  countdownNum.textContent        = countdownVal;
 
-  // ลบปุ่ม navigation เก่า (กรณี retry หลังทดสอบจบ)
   const oldNav = document.getElementById('fast-nav-btn');
   if (oldNav) oldNav.remove();
 
   phase = 'RESTING_PHASE';
   setUI({
-    color: 'var(--col-orange)',
     msg: FL.step1,
     showCD: true, showHud: true,
   });
@@ -694,7 +717,7 @@ function startScreening() {
   countdownTimer = setInterval(() => {
     if (countdownPaused) return;
     countdownVal--;
-    countdownNum.textContent = countdownVal;
+    floatNum.textContent = countdownVal;
     if (countdownVal <= 0) {
       clearInterval(countdownTimer);
       countdownTimer = null;
@@ -756,7 +779,6 @@ faceMesh.onResults(results => {
   const mouthCheck = checkMouthVisibility(lm);
   if (!mouthCheck.ok) {
     countdownPaused = true;
-    dashboard.style.background = 'var(--col-yellow)';
     poseWarnMsg.textContent    = mouthCheck.reason;
     poseWarnMsg.style.display  = 'block';
     statusMsg.style.display    = 'none';
@@ -772,21 +794,12 @@ faceMesh.onResults(results => {
       countdownPaused = true;
       let warnText = '';
       if (rollBad) {
-        // roll: ค่าบวก = หัวเอียงซ้าย (จากมุมมองผู้ใช้)
-        warnText = rollDeg > 0
-          ? FL.tiltLeft
-          : FL.tiltRight;
+        warnText = rollDeg > 0 ? FL.tiltLeft : FL.tiltRight;
       } else if (yawBad) {
-        warnText = yawDeg > 0
-          ? FL.turnRight
-          : FL.turnLeft;
+        warnText = yawDeg > 0 ? FL.turnRight : FL.turnLeft;
       } else if (pitchBad) {
-        // ── แก้ไขหลัก: pitchDeg > 0 = ก้มหน้าลง, pitchDeg < 0 = เงยหน้าขึ้น ──
-        warnText = pitchDeg > 0
-          ? FL.lookUp
-          : FL.lookDown;
+        warnText = pitchDeg > 0 ? FL.lookUp : FL.lookDown;
       }
-      dashboard.style.background = 'var(--col-yellow)';
       poseWarnMsg.textContent    = warnText;
       poseWarnMsg.style.display  = 'block';
       statusMsg.style.display    = 'none';
@@ -819,11 +832,9 @@ faceMesh.onResults(results => {
         if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
         phase = 'CRITICAL_ASYMMETRY';
         setUI({
-          color: 'var(--col-red)',
           msg: FL.critical,
           showReset: true, pulse: true,
         });
-        // บันทึกผลและไป flow ทันที
         actionZScores = actionZScores.length ? actionZScores : [Z_SCORE_THRESHOLD * 2];
         finishFace();
         return;
@@ -840,7 +851,6 @@ faceMesh.onResults(results => {
     document.getElementById('dbg-n').textContent     = baselineScores.length;
 
     statusMsg.textContent = FL.step1;
-    dashboard.style.background = 'var(--col-orange)';
     return;
   }
 
@@ -851,8 +861,14 @@ faceMesh.onResults(results => {
     const sz = recentZScores.reduce((a, b) => a + b, 0) / recentZScores.length;
     actionZScores.push(sz);
 
-    scoreNum.textContent = sz.toFixed(2);
-    scoreNum.style.color = sz > Z_SCORE_THRESHOLD ? '#FF6B6B' : '#A8F5C3';
+    floatNum.textContent = sz.toFixed(2);
+    
+    // เปลี่ยนสีตามขีดความเสี่ยงของ Z-Score
+    if (sz > Z_SCORE_THRESHOLD) {
+      floatReadout.className = 'state-danger';
+    } else {
+      floatReadout.className = '';
+    }
 
     document.getElementById('dbg-score').textContent = score.toFixed(4);
     document.getElementById('dbg-mean').textContent  = mean.toFixed(4);
@@ -865,14 +881,11 @@ faceMesh.onResults(results => {
     const remain = Math.ceil((ACTION_DURATION_MS - elapsed) / 1000);
 
     if (sz > Z_SCORE_THRESHOLD) {
-      statusMsg.textContent      = FL.asymDetect + Math.max(remain,0) + 's)';
-      dashboard.style.background = 'var(--col-red)';
+      statusMsg.textContent = FL.asymDetect + Math.max(remain,0) + 's)';
     } else {
-      statusMsg.textContent      = FL.holdSmile + Math.max(remain,0) + 's)';
-      dashboard.style.background = 'var(--col-green)';
+      statusMsg.textContent = FL.holdSmile + Math.max(remain,0) + 's)';
     }
 
-    // จบ action phase → สรุปผล
     if (elapsed >= ACTION_DURATION_MS) {
       phase = 'FACE_DONE';
       finishFace();
@@ -880,11 +893,6 @@ faceMesh.onResults(results => {
   }
 });
 
-// ═══════════════════════════════════════════════════
-// FAST INTEGRATION — สรุปผล face + score + navigation
-// ═══════════════════════════════════════════════════
-// แปลง Z-score → score 0-100
-// z=0 (สมมาตรดี) = 100, z=Z_SCORE_THRESHOLD(3.0) = 50, z=6+ = 0
 function zScoreToFaceScore(z) {
   const az = Math.abs(z);
   if (az <= 0) return 100;
@@ -893,7 +901,6 @@ function zScoreToFaceScore(z) {
 }
 
 function finishFace() {
-  // ใช้ percentile 75 ของ sz (ค่าที่แย่ค่อนข้างบ่อย ไม่ใช่ spike ครั้งเดียว)
   const sorted = [...actionZScores].sort((a,b) => a-b);
   const idx = Math.floor(sorted.length * 0.75);
   const repZ = sorted.length ? sorted[idx] : 0;
@@ -910,7 +917,6 @@ function finishFace() {
 
   const ok = !criticalDetected && riskLevel === 'ok';
   setUI({
-    color: ok ? 'var(--col-green)' : 'var(--col-red)',
     msg: ok ? FL.faceDone : FL.faceAbnormal,
     showReset: true,
   });
@@ -920,7 +926,6 @@ function finishFace() {
 
 function handleFaceFastFlow() {
   const mode = sessionStorage.getItem('fast_mode');
-  const lang = sessionStorage.getItem('fast_lang') || 'th';
   const allDone = ['fast_face','fast_arm','fast_speech'].every(k => sessionStorage.getItem(k));
   setTimeout(() => {
     const existing = document.getElementById('fast-nav-btn');
@@ -943,6 +948,7 @@ function handleFaceFastFlow() {
       }
     }
     document.getElementById('btn-row').appendChild(btn);
+    dashboard.classList.add('has-buttons'); // มั่นใจว่า Dashboard ปรับความสูงเมื่อมีปุ่มเพิ่มเข้ามา
   }, 400);
 }
 
@@ -957,12 +963,10 @@ function initCamera(stream) {
     });
     activeCamera.start();
     phase = 'BEFORE_START';
-    setUI({ color: 'var(--col-blue)', msg: FL.pressStart, showStart: true });
+    setUI({ msg: FL.pressStart, showStart: true });
   };
 }
 
-// ใช้ permission helper — รองรับ 3 ภาษา + แสดงวิธีแก้ถ้า block
-// เรียกหลังผู้ใช้กด "รับทราบ" disclaimer แล้ว (ไม่ใช่ตอนโหลดทันที)
 async function startCamera() {
   const permLang = sessionStorage.getItem('fast_lang') || 'th';
   const perm = await FastPermissions.request('camera', permLang);

@@ -56,7 +56,7 @@
   .rb-score{font-family:'Manrope',monospace;font-size:42px;font-weight:800;text-align:center;margin:6px 0;letter-spacing:-1px}
   .rb-sub{font-size:11px;color:var(--muted);line-height:1.5}
 
-  #debug-box{display:none;width:calc(100% - 44px);margin:0 22px 10px;background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 14px;font-family:monospace;font-size:12px;color:rgba(0,0,0,0.75);line-height:2;flex-shrink:0}
+  #debug-box{display:none;width:calc(100% - 44px);margin:0 22px 10px;background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 14px;font-family:monospace;font-size:12px;color:rgba(255,255,255,0.75);line-height:2;flex-shrink:0}
 
   #action-btn{width:calc(100% - 44px);margin:0 22px 28px;min-height:60px;border-radius:15px;border:none;font-family:'IBM Plex Sans Thai';font-size:17px;font-weight:600;cursor:pointer;color:#fff;background:var(--blue);flex-shrink:0;box-shadow:0 6px 18px rgba(43,125,233,0.28);transition:transform 0.12s}
   #action-btn:active{transform:scale(0.97)}
@@ -364,6 +364,21 @@ function runLoop() {
   for (let i = loIdx; i <= hiIdx; i++) eSum += freqArr[i];
   const vEnergy = eSum / ((hiIdx - loIdx + 1) * 255);
 
+  // ── Spectral Flatness: แยกเสียงพูดจากเสียงรบกวน ──
+  // เสียงพูด = มี formant peak ชัด → flatness ต่ำ (~0.1-0.4)
+  // เสียงพัดลม/ทีวี/แอร์ = กระจายแบนราบ → flatness สูง (~0.5-1.0)
+  // flatness = geometric mean / arithmetic mean ของ power ในย่าน vowel
+  let logSum = 0, arithSum = 0, nBins = 0;
+  for (let i = loIdx; i <= hiIdx; i++) {
+    const p = freqArr[i] + 1; // +1 กัน log(0)
+    logSum   += Math.log(p);
+    arithSum += p;
+    nBins++;
+  }
+  const geoMean   = Math.exp(logSum / nBins);
+  const arithMean = arithSum / nBins;
+  const flatness  = arithMean > 0 ? geoMean / arithMean : 1;
+
   const nowMs = performance.now();
 
   // ── PHASE 1: Noise Calibration ─────────────────────
@@ -394,7 +409,12 @@ function runLoop() {
   }
 
   // ── PHASE 2: Recording & Stream Tracking ───────────
-  const isVoice = vEnergy > dynThreshold;
+  // เสียงพูดต้องผ่าน 2 เงื่อนไข: (1) ดังพอ (2) มี formant peak (flatness ต่ำ)
+  // FLATNESS_MAX = 0.55: เกินนี้ถือว่าเป็น noise แม้จะดังก็ตาม
+  const FLATNESS_MAX = 0.55;
+  const isLoud  = vEnergy > dynThreshold;
+  const isToner = flatness < FLATNESS_MAX;
+  const isVoice = isLoud && isToner;
 
   if (isVoice) {
     if (!speechStartMs) speechStartMs = nowMs;
@@ -429,10 +449,10 @@ function runLoop() {
     `noiseFloor:&nbsp;&nbsp; ${noiseFloor.toFixed(5)}<br>` +
     `dynThreshold: ${dynThreshold.toFixed(5)}<br>` +
     `vEnergy:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${vEnergy.toFixed(5)}<br>` +
-    `→ state:&nbsp;&nbsp;&nbsp; ${isVoice ? '🔊 VOICE' : '🔇 silent'}<br>` +
-    `→ ratio:&nbsp;&nbsp;&nbsp; ${ratio.toFixed(2)}x noise<br>` +
+    `flatness:&nbsp;&nbsp;&nbsp; ${flatness.toFixed(3)} ${isToner ? '(tone✓)' : '(noise✗)'}<br>` +
+    `→ state:&nbsp;&nbsp;&nbsp; ${isVoice ? '🔊 VOICE' : (isLoud ? '🔇 noise' : '🔇 silent')}<br>` +
     `dur (live):&nbsp;&nbsp; ${durSec.toFixed(2)}s<br>` +
-    `historySize:&nbsp; ${voiceHistory.length}`;
+    `energyFrames: ${vowelEnergyBuf.length} | hist: ${voiceHistory.length}`;
 
   drawWave(freqArr, N);
   animationFrameId = requestAnimationFrame(runLoop);

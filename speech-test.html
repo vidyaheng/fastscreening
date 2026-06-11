@@ -411,21 +411,25 @@ function runLoop() {
   }
 
   // ── PHASE 2: Recording & Stream Tracking ───────────
-  // เสียงพูดต้องผ่าน 2 เงื่อนไข: (1) ดังพอ (2) มี formant peak (flatness ต่ำ)
-  // FLATNESS_MAX = 0.55: เกินนี้ถือว่าเป็น noise แม้จะดังก็ตาม
-  const FLATNESS_MAX = 0.55;
+  // isVoice ใช้ energy เป็นหลัก (จับเสียงพูดให้ได้แน่นอน)
+  // flatness ใช้แยกว่า frame นี้เป็น "เสียงพูดจริง" (tonal) หรือ "noise" (flat)
+  // FLATNESS_MAX ปรับสูงขึ้นเป็น 0.75 เพราะ Web Audio มือถือให้ค่าสูงกว่า desktop
+  const FLATNESS_MAX = 0.75;
   const isLoud  = vEnergy > dynThreshold;
   const isToner = flatness < FLATNESS_MAX;
-  const isVoice = isLoud && isToner;
+  const isVoice = isLoud; // เริ่ม/จับเสียงด้วย energy
 
   if (isVoice) {
     if (!speechStartMs) speechStartMs = nowMs;
     lastVoiceMs = nowMs;
-
-    // บันทึกประวัติเพื่อทำสถิติกรองสิ่งแปลกปลอมแบบย้อนหลัง
-    voiceHistory.push({ time: nowMs, energy: vEnergy });
     vowelEnergyBuf.push(vEnergy);
     if (vowelEnergyBuf.length > 500) vowelEnergyBuf.shift();
+
+    // voiceHistory เก็บเฉพาะ frame ที่เป็นเสียงพูดจริง (tonal)
+    // → getLastSpeechSegmentEnd จะหาจุดจบจากเสียงพูดจริง ไม่ใช่ noise
+    if (isToner) {
+      voiceHistory.push({ time: nowMs, energy: vEnergy });
+    }
   }
 
   // ล้างข้อมูลประวัติเสียงที่เก่ากว่า 5 วินาทีทิ้งไป เพื่อป้องกันเมมโมรี่บวม

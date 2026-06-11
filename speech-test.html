@@ -7,62 +7,83 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap');
   :root {
-    --bg:#F4F6F8; --surface:#FFFFFF; --surface-alt:#FAFBFC; --border:#D4DEE8;
-    --blue:#2B7DE9; --green:#1FA98F; --red:#E5544E; --amber:#E89B3C;
-    --text:#1B2A3A; --muted:#5A6B7B; --muted2:#94A3B2;
-    --shadow:0 2px 4px rgba(27,42,58,0.06), 0 8px 24px rgba(27,42,58,0.10);
+    --bg:#F7F9FC; /* ขาวนวล สบายตาแบบ Clinical Clean */
+    --surface:#FFFFFF; --surface-alt:#F1F3F7; --border:#DDE3EA;
+    --blue:#2B7DE9; --green:#16A34A; --red:#DC2626; --amber:#D97706;
+    --text:#1E293B; --muted:#64748B; --muted2:#94A3B8;
+    --shadow:0 4px 6px -1px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.03);
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{background:var(--bg);font-family:'IBM Plex Sans Thai','Manrope',-apple-system,sans-serif;color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden;-webkit-overflow-scrolling:touch}
   .num{font-family:'Manrope';font-variant-numeric:tabular-nums}
 
   #lang-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:32px 28px}
-  .title-lbl{font-size:12px;font-weight:600;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
-  .main-title{font-size:26px;font-weight:600;text-align:center}
+  .title-lbl{font-size:12px;font-weight:700;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
+  .main-title{font-size:26px;font-weight:700;text-align:center;color:var(--text)}
   .lang-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px}
-  .lang-btn{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;width:100%;color:var(--text);box-shadow:var(--shadow);transition:transform 0.12s}
-  .lang-btn:active{transform:scale(0.98)}
-  .lang-btn:active{border-color:var(--blue);background:rgba(59,130,246,.1)}
+  .lang-btn{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;width:100%;color:var(--text);box-shadow:var(--shadow);transition:transform 0.12s, border-color 0.2s}
+  .lang-btn:active{transform:scale(0.98);border-color:var(--blue);background:rgba(43,125,233,0.05)}
   .lang-flag{font-size:26px}.lang-text{font-size:15px;font-weight:600}
 
   #test-screen{flex:1;display:none;flex-direction:column;height:100%;overflow:hidden}
   #top-bar{padding:16px 22px 0;display:flex;align-items:center;justify-content:space-between}
-  .nav-btn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:4px 8px;border-radius:8px}
-  #mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:16px 24px;gap:14px;overflow-y:scroll;-webkit-overflow-scrolling:touch;width:100%}
+  .nav-btn{background:none;border:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:8px}
+  #mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:16px 24px;gap:14px;overflow-y:auto;-webkit-overflow-scrolling:touch;width:100%}
 
   .mic-box{position:relative;width:120px;height:120px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  .mic-circle{width:100px;height:100px;border-radius:50%;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;transition:all 0.3s}
-  .mic-circle.calibrating{border-color:var(--amber);background:rgba(245,158,11,0.08)}
-  .mic-circle.recording{border-color:var(--red);background:rgba(239,68,68,0.08);animation:pulse 1s infinite}
+  .mic-circle{width:100px;height:100px;border-radius:50%;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;transition:all 0.3s;box-shadow:var(--shadow)}
+  .mic-circle.calibrating{border-color:var(--amber);background:rgba(217,119,6,0.08)}
+  .mic-circle.recording{border-color:var(--red);background:rgba(220,38,38,0.08);animation:pulse 1s infinite}
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
   .mic-icon{font-size:38px}
   #freq-canvas{position:absolute;inset:0;width:120px;height:120px;border-radius:50%;pointer-events:none;transform:rotate(-90deg)}
 
-  .word-display{font-size:36px;font-weight:800;text-align:center;letter-spacing:-0.5px;color:var(--text)}
+  .word-display{font-size:34px;font-weight:800;text-align:center;letter-spacing:-0.5px;color:var(--text);margin:6px 0}
   .hint-lbl{font-size:15px;color:var(--muted);text-align:center;max-width:290px;line-height:1.6;font-weight:500}
-  #transcript-box{font-family:'Manrope',monospace;font-size:13px;color:var(--amber);background:rgba(255,255,255,0.03);padding:8px 16px;border-radius:10px;display:none;text-align:center;width:100%;max-width:280px}
+  
+  /* ตัวหนังสือกล่องคำพูดปรับเป็นสีน้ำเงินเข้มขรึมบนพื้นสว่าง */
+  #transcript-box{font-family:'IBM Plex Sans Thai', sans-serif;font-size:15px;font-weight:600;color:#1E3A8A;background:rgba(43,125,233,0.08);border:1px solid rgba(43,125,233,0.15);padding:10px 18px;border-radius:12px;display:none;text-align:center;width:100%;max-width:280px;box-shadow:inset 0 1px 2px rgba(0,0,0,0.02)}
 
-  #metrics-box{width:100%;max-width:280px;display:none;flex-direction:column;gap:10px}
-  .metric-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+  #metrics-box{width:100%;max-width:280px;display:none;flex-direction:column;gap:12px;background:var(--surface);padding:14px;border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow)}
+  .metric-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;font-weight:700}
   .metric-val{font-family:'Manrope',monospace;font-size:14px;font-weight:700;color:var(--text)}
-  .bar-track{height:8px;background:var(--surface-alt);border:1px solid var(--border);border-radius:5px;overflow:hidden}
+  .bar-track{height:8px;background:var(--surface-alt);border-radius:5px;overflow:hidden;margin-top:4px}
   .bar-fill{height:100%;width:0%;border-radius:4px;transition:width 0.3s}
 
-  #result-banner{display:none;width:100%;max-width:280px;border-radius:14px;padding:14px 16px;flex-direction:column;gap:4px}
-  #result-banner.ok{background:rgba(16,185,129,.1);border:1.5px solid rgba(16,185,129,.3)}
-  #result-banner.warn{background:rgba(245,158,11,.1);border:1.5px solid rgba(245,158,11,.3)}
-  #result-banner.bad{background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.3)}
-  .rb-title{font-size:18px;font-weight:700}
-  .rb-score{font-family:'Manrope',monospace;font-size:42px;font-weight:800;text-align:center;margin:6px 0;letter-spacing:-1px}
-  .rb-sub{font-size:11px;color:var(--muted);line-height:1.5}
+  /* ── แบนเนอร์ผลลัพธ์ปรับดีไซน์ให้อ่านง่าย ตัวหนังสือไม่กลืนกับพื้นหลัง ── */
+  #result-banner {
+    display: none; width: 100%; max-width: 280px;
+    border-radius: 16px; padding: 16px;
+    flex-direction: column; gap: 4px;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  /* กรณีปกติ (เขียวพาสเทล - ตัวหนังสือเข้มเด่นชัด) */
+  #result-banner.ok {
+    background: #DCFCE7; border: 1.5px solid #BBF7D0;
+  }
+  /* กรณีเฝ้าระวัง (ส้มพาสเทล - ตัวหนังสือเข้มเด่นชัด) */
+  #result-banner.warn {
+    background: #FEF3C7; border: 1.5px solid #FDE68A;
+  }
+  /* กรณีเสี่ยงสูง (แดงพาสเทล - ตัวหนังสือเข้มเด่นชัด) */
+  #result-banner.bad {
+    background: #FEE2E2; border: 1.5px solid #FCA5A5;
+  }
+  
+  .rb-title { font-size: 18px; font-weight: 800; }
+  .rb-score { font-family: 'Manrope', monospace; font-size: 44px; font-weight: 800; margin: 2px 0; letter-spacing: -1px; }
+  
+  /* ตัวหนังสือรายละเอียดข้างล่าง แก้ไขให้เป็นสีเข้มชัดเจน ไม่ขาวกลืนกับฉากหลังแล้ว */
+  .rb-sub { font-size: 13px; font-weight: 600; line-height: 1.5; color: #334155 !important; }
 
-  #debug-box{display:none;width:calc(100% - 44px);margin:0 22px 10px;background:rgba(255,255,255,0.05);border-radius:10px;padding:12px 14px;font-family:monospace;font-size:12px;color:rgba(255,255,255,0.75);line-height:2;flex-shrink:0}
+  /* กล่องดีบั๊กปรับเป็นโทนสว่างให้อ่านสบายตาขึ้น */
+  #debug-box{display:none;width:calc(100% - 44px);margin:0 22px 10px;background:#E2E8F0;border:1px solid #CBD5E1;border-radius:10px;padding:12px 14px;font-family:monospace;font-size:11px;color:#334155;line-height:1.8;flex-shrink:0}
 
-  #action-btn{width:calc(100% - 44px);margin:0 22px 28px;min-height:60px;border-radius:15px;border:none;font-family:'IBM Plex Sans Thai';font-size:17px;font-weight:600;cursor:pointer;color:#fff;background:var(--blue);flex-shrink:0;box-shadow:0 6px 18px rgba(43,125,233,0.28);transition:transform 0.12s}
-  #action-btn:active{transform:scale(0.97)}
-  #action-btn:active{opacity:.85;transform:scale(.98)}
-  #action-btn.red{background:var(--red)}
-  #action-btn.green{background:var(--green)}
+  #action-btn{width:calc(100% - 44px);margin:0 22px 28px;min-height:60px;border-radius:15px;border:none;font-family:'IBM Plex Sans Thai';font-size:17px;font-weight:700;cursor:pointer;color:#fff;background:var(--blue);flex-shrink:0;box-shadow:0 6px 18px rgba(43,125,233,0.25);transition:transform 0.12s, opacity 0.2s}
+  #action-btn:active{transform:scale(0.97);opacity:0.9}
+  #action-btn.red{background:var(--red);box-shadow:0 6px 18px rgba(220,38,38,0.25)}
+  #action-btn.green{background:var(--green);box-shadow:0 6px 18px rgba(22,163,74,0.25)}
 </style>
 </head>
 <body>
@@ -90,6 +111,7 @@
     <p class="hint-lbl" id="hint-text"></p>
     <h1 class="word-display" id="word-target"></h1>
     <div id="transcript-box"></div>
+    
     <div id="metrics-box">
       <div>
         <div class="metric-row"><span>Word Accuracy</span><span class="metric-val" id="val-word">—</span></div>
@@ -107,6 +129,7 @@
         <div style="text-align:right;font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px" id="score-stab"></div>
       </div>
     </div>
+    
     <div id="result-banner">
       <div class="rb-title" id="rb-title"></div>
       <div class="rb-score" id="rb-score"></div>
@@ -121,9 +144,6 @@
 <script>
 'use strict';
 
-// ═══════════════════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════════════════
 const CONFIG = {
   th: {
     langCode: 'th-TH',
@@ -151,45 +171,31 @@ const CONFIG = {
   },
 };
 
-// ═══════════════════════════════════════════════════
-// CONSTANTS
-// ═══════════════════════════════════════════════════
-const CALIBRATION_MS   = 300;  // เก็บ noise floor 300ms แรกก่อนพูด
-const NOISE_MULTIPLIER = 2.5;  // threshold = noiseFloor × 2.5
-const NOISE_FLOOR_CAP  = 0.08; // จำกัดเพดาน noise ป้องกันไมค์หลอน
-const NORMAL_MIN       = 2.5;  // เกณฑ์ความเร็วขั้นต่ำคนปกติ (syl/sec)
-const NORMAL_MAX       = 6.0;  // เกณฑ์ความเร็วสูงสุดคนปกติ (syl/sec)
+const CALIBRATION_MS   = 300;
+const NOISE_MULTIPLIER = 2.5;
+const NOISE_FLOOR_CAP  = 0.08;
+const NORMAL_MIN       = 2.5;
+const NORMAL_MAX       = 6.0;
 
-// ═══════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════
 const $ = id => document.getElementById(id);
 let T = null;
-let phase = 'IDLE'; // IDLE | CALIBRATING | RECORDING | DONE
+let phase = 'IDLE';
 
-// Web Audio
 let audioCtx = null, analyser = null, source = null, streamRef = null;
 let animationFrameId = null;
-
-// Speech Recognition
 let recognition = null;
 
-// Noise Floor Calibration
 let noiseFloor     = 0;      
 let noiseFrames    = [];     
 let calibStartMs   = null;
 let dynThreshold   = 0.04;   
 
-// Trailing Silence Audio Tracking State
 let vowelEnergyBuf = [];
-let voiceHistory   = [];     // เก็บประวัติเวลาและระดับพลังงานเสียงแบบสตรีมมิ่ง
+let voiceHistory   = [];
 let speechStartMs  = null;
 let speechEndMs    = null;
 let lastVoiceMs    = null;
 
-// ═══════════════════════════════════════════════════
-// UI CONTROL
-// ═══════════════════════════════════════════════════
 function selectLang(code) {
   T = CONFIG[code];
   $('lang-screen').style.display = 'none';
@@ -231,7 +237,6 @@ function resetUI() {
 function handleAction() {
   if      (phase === 'IDLE')      startRecording();
   else if (phase === 'RECORDING') {
-    // ผู้ใช้กดปุ่มหยุดบันทึกด้วยตัวเองแมนนวล
     speechEndMs = getLastSpeechSegmentEnd();
     evaluateSpeech('__manual__', 0);
   }
@@ -247,9 +252,6 @@ function setBar(key, pct, label) {
   if (scoreEl) scoreEl.textContent = pct > 0 ? `score: ${Math.round(p)}` : '';
 }
 
-// ═══════════════════════════════════════════════════
-// CORE AUDIO AUDIO CAPTURE
-// ═══════════════════════════════════════════════════
 async function startRecording() {
   phase = 'CALIBRATING';
   $('mic-circle').className        = 'mic-circle calibrating';
@@ -266,10 +268,9 @@ async function startRecording() {
     const permLang = sessionStorage.getItem('fast_lang') || 'th';
     const perm = await FastPermissions.request('mic', permLang);
     if (!perm.ok) {
-      // ใช้ UI helper แสดงวิธีแก้
       FastPermissions.requestWithUI('mic', permLang, (stream) => {
         streamRef = stream;
-        location.reload(); // เริ่มใหม่หลังได้ permission
+        location.reload();
       });
       phase = 'IDLE';
       return;
@@ -290,20 +291,17 @@ async function startRecording() {
     return;
   }
 
-  // ตั้งค่า Speech Recognition (ให้ยอมรอ ไม่ชิงปิดไมค์เอง)
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (SR) {
     recognition = new SR();
     recognition.lang           = T.langCode;
-    recognition.continuous     = true; // ล็อกระบบคลาวด์ไว้ ห้ามชิงปิดการรับฟังตอนคนไข้เว้นคำ
+    recognition.continuous     = true;
     recognition.interimResults = false;
     let gotResult = false;
     
     recognition.onresult = (e) => {
       gotResult = true;
-      // ประมวลผลย้อนเวลากลุ่มประวัติเสียงเพื่อตัดสัญญาณ Noise เคาะโต๊ะทิ้ง
       speechEndMs = getLastSpeechSegmentEnd();
-
       const text = e.results[0][0].transcript.toLowerCase().trim();
       const conf = e.results[0][0].confidence;
       setTimeout(() => evaluateSpeech(text, conf), 100);
@@ -325,7 +323,6 @@ async function startRecording() {
 
     recognition.start();
   } else {
-    // ฟอลแบ็กโหมดกรณีเบราว์เซอร์ไม่รองรับ
     setTimeout(() => {
       if (phase !== 'DONE') {
         speechEndMs = getLastSpeechSegmentEnd();
@@ -337,16 +334,13 @@ async function startRecording() {
 
 function stopAll() {
   if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
-  if (recognition)  { try { recognition.abort(); }   catch(e){} recognition = null; }
-  if (source)       { try { source.disconnect(); }   catch(e){} source = null; }
+  if (recognition)  { try { recognition.abort(); } catch(e){} recognition = null; }
+  if (source)       { try { source.disconnect(); } catch(e){} source = null; }
   if (streamRef)    { streamRef.getTracks().forEach(t => t.stop()); streamRef = null; }
-  if (audioCtx)     { try { audioCtx.close(); }      catch(e){} audioCtx = null; }
+  if (audioCtx)     { try { audioCtx.close(); } catch(e){} audioCtx = null; }
   analyser = null;
 }
 
-// ═══════════════════════════════════════════════════
-// REAL-TIME ENGINE LOOP
-// ═══════════════════════════════════════════════════
 function runLoop() {
   if ((phase !== 'CALIBRATING' && phase !== 'RECORDING') || !analyser) return;
 
@@ -359,18 +353,15 @@ function runLoop() {
   const loIdx  = Math.round(300  / binHz);
   const hiIdx  = Math.round(2000 / binHz);
 
-  // สกัดพลังงานย่านความถี่เสียงพูดมนุษย์ (300–2000Hz)
   let eSum = 0;
   for (let i = loIdx; i <= hiIdx; i++) eSum += freqArr[i];
   const vEnergy = eSum / ((hiIdx - loIdx + 1) * 255);
 
   const nowMs = performance.now();
 
-  // ── PHASE 1: Noise Calibration ─────────────────────
   if (phase === 'CALIBRATING') {
     noiseFrames.push(vEnergy);
     const elapsed = nowMs - calibStartMs;
-
     $('debug-box').innerHTML = `calibrating noise... ${Math.round(elapsed)}ms<br>vEnergy: ${vEnergy.toFixed(5)}`;
 
     if (elapsed >= CALIBRATION_MS) {
@@ -383,7 +374,7 @@ function runLoop() {
       phase = 'RECORDING';
       $('mic-circle').className       = 'mic-circle recording';
       $('mic-icon').textContent       = '👄';
-      $('action-btn').textContent     = '⏹ หยุดยั้ง';
+      $('action-btn').textContent     = '⏹ หยุด';
       $('action-btn').className       = 'red';
       $('transcript-box').textContent = '... กำลังฟังคำพูด ...';
     }
@@ -393,25 +384,20 @@ function runLoop() {
     return;
   }
 
-  // ── PHASE 2: Recording & Stream Tracking ───────────
   const isVoice = vEnergy > dynThreshold;
 
   if (isVoice) {
     if (!speechStartMs) speechStartMs = nowMs;
     lastVoiceMs = nowMs;
-
-    // บันทึกประวัติเพื่อทำสถิติกรองสิ่งแปลกปลอมแบบย้อนหลัง
     voiceHistory.push({ time: nowMs, energy: vEnergy });
     vowelEnergyBuf.push(vEnergy);
     if (vowelEnergyBuf.length > 500) vowelEnergyBuf.shift();
   }
 
-  // ล้างข้อมูลประวัติเสียงที่เก่ากว่า 5 วินาทีทิ้งไป เพื่อป้องกันเมมโมรี่บวม
   while (voiceHistory.length && (nowMs - voiceHistory[0].time > 5000)) {
     voiceHistory.shift();
   }
 
-  // แสดงพรีวิวสดแบบ Real-time บนบาร์กราฟหน้าจอ
   const previewEnd = lastVoiceMs ? lastVoiceMs : nowMs;
   const durSec = speechStartMs ? (previewEnd - speechStartMs) / 1000 : 0;
   if (durSec > 0.3) {
@@ -423,7 +409,6 @@ function runLoop() {
     setBar('stab', s, `${s}%`);
   }
 
-  // แสดงผลค่าดิบในช่องดีบั๊กพจนานุกรม
   $('debug-box').innerHTML =
     `noiseFloor:&nbsp;&nbsp; ${noiseFloor.toFixed(5)}<br>` +
     `dynThreshold: ${dynThreshold.toFixed(5)}<br>` +
@@ -435,34 +420,18 @@ function runLoop() {
   animationFrameId = requestAnimationFrame(runLoop);
 }
 
-// ═══════════════════════════════════════════════════
-// ALGORITHM: TRAILING SILENCE DETECTION
-// ═══════════════════════════════════════════════════
 function getLastSpeechSegmentEnd() {
   if (voiceHistory.length === 0) return lastVoiceMs || performance.now();
-
-  // GAP_MS = 800ms เผื่อผู้ป่วยเว้นวรรคระหว่างคำ
   const GAP_MS = 800;
-
-  // วิ่งจากท้าย→หน้า: หา gap แรกที่เจอแล้ว return ทันที
-  // แก้ overwrite bug — ambient noise ช่วงท้ายจะไม่ทับค่าที่ถูกต้อง
-  // ตัวอย่าง: [พูด][พูด][เงียบ800ms][เคาะโต๊ะ]
-  //   → วิ่งจากท้าย เจอ gap ที่ [เงียบ800ms] → return timestamp [พูด] ทันที
-  //   → [เคาะโต๊ะ] ถูกตัดทิ้งโดยอัตโนมัติ
   for (let i = voiceHistory.length - 1; i > 0; i--) {
     const gap = voiceHistory[i].time - voiceHistory[i - 1].time;
     if (gap > GAP_MS) {
       return voiceHistory[i - 1].time;
     }
   }
-
-  // ไม่พบ gap เลย = พูดต่อเนื่องตลอด → end คือ frame สุดท้าย
   return voiceHistory[voiceHistory.length - 1].time;
 }
 
-// ═══════════════════════════════════════════════════
-// MATH CALCULATIONS
-// ═══════════════════════════════════════════════════
 function rateToScore(rate) {
   if (rate <= 0) return 0;
   if (rate >= NORMAL_MIN && rate <= NORMAL_MAX) return 100;
@@ -482,7 +451,7 @@ function calcStab(buf) {
 function drawWave(freqArr, N) {
   const ctx = $('freq-canvas').getContext('2d');
   ctx.clearRect(0, 0, 120, 120);
-  ctx.strokeStyle = phase === 'CALIBRATING' ? 'rgba(245,158,11,0.5)' : 'rgba(59,130,246,0.6)';
+  ctx.strokeStyle = phase === 'CALIBRATING' ? 'rgba(217,119,6,0.5)' : 'rgba(43,125,233,0.6)';
   ctx.lineWidth = 2.5;
   ctx.beginPath();
   for (let i = 0; i < N; i += 3) {
@@ -496,9 +465,6 @@ function drawWave(freqArr, N) {
   ctx.stroke();
 }
 
-// ═══════════════════════════════════════════════════
-// METRICS EVALUATION
-// ═══════════════════════════════════════════════════
 function evaluateSpeech(text, confidence) {
   stopAll();
   phase = 'DONE';
@@ -512,7 +478,6 @@ function evaluateSpeech(text, confidence) {
     return cleanText.includes(k.toLowerCase().replace(/\s+/g, ''));
   }) : false;
 
-  // 1. คะแนน Word Accuracy (40%)
   let wordScore = 0, wordLabel = '—';
   const isManual = text === '__manual__' || text === '__no_api__';
   
@@ -528,12 +493,11 @@ function evaluateSpeech(text, confidence) {
     $('transcript-box').textContent = `"${text}"`;
   }
 
-  // 2. คะแนน Speech Rate (40%) - สกัดระยะเวลาบริสุทธิ์แบบไร้เสียง Noise แทรก
   let rateScore = 0, rateLabel = '—', syllPerSec = 0, durSec = 0;
 
   if (speechStartMs && speechEndMs && speechEndMs >= speechStartMs) {
     durSec = (speechEndMs - speechStartMs) / 1000;
-    if (durSec < 0.2) durSec = 0.4; // กันตัวหารเออเร่อ
+    if (durSec < 0.2) durSec = 0.4;
 
     if (wordMatched || isManual) {
       syllPerSec = T.syllables / durSec;
@@ -547,11 +511,9 @@ function evaluateSpeech(text, confidence) {
     rateLabel = 'ไม่พบช่วงสัญญาณเสียง';
   }
 
-  // 3. คะแนน Volume Stability (20%)
   const stabScore = calcStab(vowelEnergyBuf);
   const stabLabel = vowelEnergyBuf.length >= 10 ? `${stabScore}%` : 'ข้อมูลน้อยเกินไป';
 
-  // คะแนนรวมถ่วงน้ำหนักรวม
   const speechScore = Math.round(wordScore*0.40 + rateScore*0.40 + stabScore*0.20);
 
   setBar('word', wordScore, wordLabel);
@@ -565,7 +527,6 @@ function evaluateSpeech(text, confidence) {
     return (std/avg).toFixed(4);
   })() : '—';
 
-  // แสดงผลประวัติบันทึกสถิติสรุปส่งท้าย
   $('debug-box').innerHTML =
     `── Final (V3 Trailing) ──<br>` +
     `noiseFloor:&nbsp;&nbsp; ${noiseFloor.toFixed(5)}<br>` +
@@ -577,7 +538,6 @@ function evaluateSpeech(text, confidence) {
     `energyFrames: ${vowelEnergyBuf.length}<br>` +
     `<b>TOTAL:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${speechScore}</b>`;
 
-  // บรรยายผลลัพธ์แบนเนอร์ประเมินความเสี่ยงทางการแพทย์
   let cls, title, sub;
   if      (speechScore >= 70) { cls='ok';   title='ปกติ';          sub='การพูดอยู่ในเกณฑ์ปกติ'; }
   else if (speechScore >= 45) { cls='warn'; title='เฝ้าระวัง';    sub='พบความผิดปกติเล็กน้อย ควรทดสอบซ้ำ'; }
@@ -597,7 +557,6 @@ function evaluateSpeech(text, confidence) {
   $('rb-score').textContent = speechScore + ' / 100'; $('rb-score').style.color = col;
   $('rb-sub').textContent   = sub;
 
-  // ── บันทึกผลลง sessionStorage สำหรับ FAST integration ──
   const result = {
     score: speechScore,
     riskLevel: cls,
@@ -611,29 +570,21 @@ function evaluateSpeech(text, confidence) {
     rb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, 100);
 
-  // ── FAST flow navigation ──
   handleFastFlow(cls);
 }
 
-// ═══════════════════════════════════════════════════
-// FAST FLOW — จัดการ navigation ระหว่าง module
-// ═══════════════════════════════════════════════════
 function handleFastFlow(riskLevel) {
   const mode = sessionStorage.getItem('fast_mode');
   const lang = sessionStorage.getItem('fast_lang') || 'th';
+  const allDone = ['fast_face','fast_arm','fast_speech'].every(k => sessionStorage.getItem(k));
 
-  // ตรวจว่าทำครบ 3 module หรือยัง
-  const allDone = ['fast_face','fast_arm','fast_speech']
-    .every(k => sessionStorage.getItem(k));
-
-  // เพิ่มปุ่ม navigation ใต้ result banner
   setTimeout(() => {
     const existing = document.getElementById('fast-nav-btn');
     if (existing) existing.remove();
 
     const btn = document.createElement('button');
     btn.id = 'fast-nav-btn';
-    btn.style.cssText = 'width:calc(100% - 44px);margin:0 22px 16px;min-height:54px;border-radius:14px;border:none;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;color:#fff;background:var(--blue)';
+    btn.style.cssText = 'width:calc(100% - 44px);margin:0 22px 16px;min-height:54px;border-radius:14px;border:none;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;color:#fff;background:var(--blue);box-shadow:0 4px 12px rgba(43,125,233,0.2);';
 
     const L = {
       th: { result:'ดูผลรวม FAST →', home:'กลับหน้าหลัก', next:'ทดสอบต่อไป →', incomplete:'พบความผิดปกติ — ควรทดสอบให้ครบทั้ง 3 อาการ' },
@@ -641,7 +592,6 @@ function handleFastFlow(riskLevel) {
     }[lang];
 
     if (mode === 'full') {
-      // Full mode: speech เป็นอันสุดท้าย → ไป result
       if (allDone) {
         btn.textContent = L.result;
         btn.onclick = () => window.location.href = 'result.html';
@@ -650,15 +600,14 @@ function handleFastFlow(riskLevel) {
         btn.onclick = () => window.location.href = 'index.html';
       }
     } else {
-      // Individual mode
       if (allDone) {
         btn.textContent = L.result;
         btn.style.background = 'var(--green)';
+        btn.style.boxShadow = '0 4px 12px rgba(22,163,74,0.2)';
         btn.onclick = () => window.location.href = 'result.html';
       } else {
         btn.textContent = L.home;
         btn.onclick = () => window.location.href = 'index.html';
-        // ถ้าผิดปกติแต่ยังไม่ครบ แสดงข้อความเตือน
         if (riskLevel !== 'ok') {
           $('rb-sub').textContent = L.incomplete;
         }
@@ -670,7 +619,6 @@ function handleFastFlow(riskLevel) {
   }, 200);
 }
 
-// ── Auto-select ภาษาจาก FAST flow ──
 (function() {
   const savedLang = sessionStorage.getItem('fast_lang');
   const mode = sessionStorage.getItem('fast_mode');

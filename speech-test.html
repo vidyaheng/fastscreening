@@ -28,6 +28,7 @@
   #test-screen{flex:1;display:none;flex-direction:column;height:100%;overflow:hidden}
   #top-bar{padding:16px 22px 0;display:flex;align-items:center;justify-content:space-between}
   .nav-btn{background:none;border:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:8px}
+  
   #mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:16px 24px;gap:14px;overflow-y:auto;-webkit-overflow-scrolling:touch;width:100%}
 
   .mic-box{position:relative;width:120px;height:120px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -41,49 +42,81 @@
   .word-display{font-size:34px;font-weight:800;text-align:center;letter-spacing:-0.5px;color:var(--text);margin:6px 0}
   .hint-lbl{font-size:15px;color:var(--muted);text-align:center;max-width:290px;line-height:1.6;font-weight:500}
   
-  /* ตัวหนังสือกล่องคำพูดปรับเป็นสีน้ำเงินเข้มขรึมบนพื้นสว่าง */
   #transcript-box{font-family:'IBM Plex Sans Thai', sans-serif;font-size:15px;font-weight:600;color:#1E3A8A;background:rgba(43,125,233,0.08);border:1px solid rgba(43,125,233,0.15);padding:10px 18px;border-radius:12px;display:none;text-align:center;width:100%;max-width:280px;box-shadow:inset 0 1px 2px rgba(0,0,0,0.02)}
 
-  #metrics-box{width:100%;max-width:280px;display:none;flex-direction:column;gap:12px;background:var(--surface);padding:14px;border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow)}
+  /* ── กล่องพับเก็บรายละเอียดข้อมูลเพิ่มเติม (Collapsible Area) ── */
+  #details-collapse {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  #details-collapse.expanded {
+    max-height: 800px; /* ยืดหยุ่นความสูงเมื่อกางออก */
+    opacity: 1;
+    margin-top: 4px;
+  }
+
+  #metrics-box{width:100%;max-width:280px;display:flex;flex-direction:column;gap:12px;background:var(--surface);padding:14px;border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow)}
   .metric-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;font-weight:700}
   .metric-val{font-family:'Manrope',monospace;font-size:14px;font-weight:700;color:var(--text)}
   .bar-track{height:8px;background:var(--surface-alt);border-radius:5px;overflow:hidden;margin-top:4px}
   .bar-fill{height:100%;width:0%;border-radius:4px;transition:width 0.3s}
 
-  /* ── แบนเนอร์ผลลัพธ์ปรับดีไซน์ให้อ่านง่าย ตัวหนังสือไม่กลืนกับพื้นหลัง ── */
   #result-banner {
     display: none; width: 100%; max-width: 280px;
     border-radius: 16px; padding: 16px;
     flex-direction: column; gap: 4px;
     box-shadow: var(--shadow);
     text-align: center;
+    position: relative;
   }
-  /* กรณีปกติ (เขียวพาสเทล - ตัวหนังสือเข้มเด่นชัด) */
-  #result-banner.ok {
-    background: #DCFCE7; border: 1.5px solid #BBF7D0;
-  }
-  /* กรณีเฝ้าระวัง (ส้มพาสเทล - ตัวหนังสือเข้มเด่นชัด) */
-  #result-banner.warn {
-    background: #FEF3C7; border: 1.5px solid #FDE68A;
-  }
-  /* กรณีเสี่ยงสูง (แดงพาสเทล - ตัวหนังสือเข้มเด่นชัด) */
-  #result-banner.bad {
-    background: #FEE2E2; border: 1.5px solid #FCA5A5;
-  }
+  #result-banner.ok { background: #DCFCE7; border: 1.5px solid #BBF7D0; }
+  #result-banner.warn { background: #FEF3C7; border: 1.5px solid #FDE68A; }
+  #result-banner.bad { background: #FEE2E2; border: 1.5px solid #FCA5A5; }
   
   .rb-title { font-size: 18px; font-weight: 800; }
   .rb-score { font-family: 'Manrope', monospace; font-size: 44px; font-weight: 800; margin: 2px 0; letter-spacing: -1px; }
-  
-  /* ตัวหนังสือรายละเอียดข้างล่าง แก้ไขให้เป็นสีเข้มชัดเจน ไม่ขาวกลืนกับฉากหลังแล้ว */
-  .rb-sub { font-size: 13px; font-weight: 600; line-height: 1.5; color: #334155 !important; }
+  .rb-sub { font-size: 13px; font-weight: 600; line-height: 1.5; color: #334155 !important; margin-bottom: 6px; }
 
-  /* กล่องดีบั๊กปรับเป็นโทนสว่างให้อ่านสบายตาขึ้น */
-  #debug-box{display:none;width:calc(100% - 44px);margin:0 22px 10px;background:#E2E8F0;border:1px solid #CBD5E1;border-radius:10px;padding:12px 14px;font-family:monospace;font-size:11px;color:#334155;line-height:1.8;flex-shrink:0}
+  /* ปุ่มกดสำหรับ Toggle ดูรายละเอียดเพิ่มเติม */
+  #toggle-details-btn {
+    background: rgba(0,0,0,0.04);
+    border: none;
+    border-radius: 8px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    cursor: pointer;
+    align-self: center;
+    transition: background 0.2s;
+  }
+  #toggle-details-btn:active { background: rgba(0,0,0,0.08); }
 
-  #action-btn{width:calc(100% - 44px);margin:0 22px 28px;min-height:60px;border-radius:15px;border:none;font-family:'IBM Plex Sans Thai';font-size:17px;font-weight:700;cursor:pointer;color:#fff;background:var(--blue);flex-shrink:0;box-shadow:0 6px 18px rgba(43,125,233,0.25);transition:transform 0.12s, opacity 0.2s}
+  #debug-box{display:none;width:100%;max-width:280px;background:#E2E8F0;border:1px solid #CBD5E1;border-radius:10px;padding:12px 14px;font-family:monospace;font-size:11px;color:#334155;line-height:1.8;box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);}
+
+  /* ส่วนควบคุมปุ่มกดด้านล่าง */
+  #controls-area {
+    width: 100%;
+    padding: 0 22px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  #action-btn{width:100%;min-height:56px;border-radius:15px;border:none;font-family:'IBM Plex Sans Thai';font-size:17px;font-weight:700;cursor:pointer;color:#fff;background:var(--blue);box-shadow:0 6px 18px rgba(43,125,233,0.25);transition:transform 0.12s, opacity 0.2s}
   #action-btn:active{transform:scale(0.97);opacity:0.9}
   #action-btn.red{background:var(--red);box-shadow:0 6px 18px rgba(220,38,38,0.25)}
   #action-btn.green{background:var(--green);box-shadow:0 6px 18px rgba(22,163,74,0.25)}
+
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
@@ -112,32 +145,38 @@
     <h1 class="word-display" id="word-target"></h1>
     <div id="transcript-box"></div>
     
-    <div id="metrics-box">
-      <div>
-        <div class="metric-row"><span>Word Accuracy</span><span class="metric-val" id="val-word">—</span></div>
-        <div class="bar-track"><div class="bar-fill" id="bar-word"></div></div>
-        <div style="text-align:right;font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px" id="score-word"></div>
-      </div>
-      <div>
-        <div class="metric-row"><span>Speech Rate</span><span class="metric-val" id="val-rate">—</span></div>
-        <div class="bar-track"><div class="bar-fill" id="bar-rate"></div></div>
-        <div style="text-align:right;font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px" id="score-rate"></div>
-      </div>
-      <div>
-        <div class="metric-row"><span>Volume Stability</span><span class="metric-val" id="val-stab">—</span></div>
-        <div class="bar-track"><div class="bar-fill" id="bar-stab"></div></div>
-        <div style="text-align:right;font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px" id="score-stab"></div>
-      </div>
-    </div>
-    
     <div id="result-banner">
       <div class="rb-title" id="rb-title"></div>
       <div class="rb-score" id="rb-score"></div>
       <div class="rb-sub"  id="rb-sub"></div>
+      <button id="toggle-details-btn" onclick="toggleDetails()">ดูรายละเอียดเพิ่มเติม ▾</button>
+    </div>
+
+    <div id="details-collapse">
+      <div id="metrics-box">
+        <div>
+          <div class="metric-row"><span>Word Accuracy</span><span class="metric-val" id="val-word">—</span></div>
+          <div class="bar-track"><div class="bar-fill" id="bar-word"></div></div>
+          <div style="text-align:right;font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px" id="score-word"></div>
+        </div>
+        <div>
+          <div class="metric-row"><span>Speech Rate</span><span class="metric-val" id="val-rate">—</span></div>
+          <div class="bar-track"><div class="bar-fill" id="bar-rate"></div></div>
+          <div style="text-align:right;font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px" id="score-rate"></div>
+        </div>
+        <div>
+          <div class="metric-row"><span>Volume Stability</span><span class="metric-val" id="val-stab">—</span></div>
+          <div class="bar-track"><div class="bar-fill" id="bar-stab"></div></div>
+          <div style="text-align:right;font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px" id="score-stab"></div>
+        </div>
+      </div>
+      <div id="debug-box"></div>
     </div>
   </div>
-  <div id="debug-box"></div>
-  <button id="action-btn" onclick="handleAction()"></button>
+
+  <div id="controls-area">
+    <button id="action-btn" onclick="handleAction()"></button>
+  </div>
 </div>
 
 <script src="fast-permissions.js"></script>
@@ -152,6 +191,7 @@ const CONFIG = {
     keywords: ['วันนี้อากาศดี', 'อากาศดี', 'วันนี้'],
     hint: 'กดปุ่ม รอสัญญาณ แล้วพูดประโยคนี้ให้ชัดเจน',
     btnStart: 'เริ่มพูด', btnRetry: 'ทดสอบอีกครั้ง',
+    showMore: 'ดูรายละเอียดเพิ่มเติม ▾', hideMore: 'ซ่อนรายละเอียด ▴'
   },
   en: {
     langCode: 'en-US',
@@ -160,6 +200,7 @@ const CONFIG = {
     keywords: ['today is a sunny day', 'sunny day', 'today is sunny'],
     hint: 'Press the button, wait for the signal, then speak clearly.',
     btnStart: 'Start Speaking', btnRetry: 'Test Again',
+    showMore: 'View Details ▾', hideMore: 'Hide Details ▴'
   },
   ja: {
     langCode: 'ja-JP',
@@ -168,6 +209,7 @@ const CONFIG = {
     keywords: ['今日はいい天気です', 'いい天気', '今日はいい天気'],
     hint: 'ボタンを押して、合図を待ってから、はっきり話してください。',
     btnStart: '発言する', btnRetry: '再テスト',
+    showMore: '詳細を表示 ▾', hideMore: '詳細を閉じる ▴'
   },
 };
 
@@ -218,11 +260,14 @@ function resetUI() {
   $('mic-icon').textContent        = '🎤';
   $('transcript-box').style.display = 'none';
   $('transcript-box').textContent  = '';
-  $('metrics-box').style.display   = 'none';
   $('result-banner').style.display = 'none';
-  $('debug-box').style.display     = 'none';
+  $('details-collapse').classList.remove('expanded');
   $('action-btn').className        = '';
   $('action-btn').textContent      = T ? T.btnStart : '';
+  
+  const oldNav = $('fast-nav-btn');
+  if (oldNav) oldNav.remove();
+
   ['word','rate','stab'].forEach(k => {
     $('bar-'+k).style.width      = '0%';
     $('bar-'+k).style.background = 'var(--blue)';
@@ -232,6 +277,20 @@ function resetUI() {
   
   noiseFloor = 0; noiseFrames = []; calibStartMs = null; dynThreshold = 0.04;
   vowelEnergyBuf = []; voiceHistory = []; speechStartMs = null; speechEndMs = null; lastVoiceMs = null;
+}
+
+function toggleDetails() {
+  const area = $('details-collapse');
+  const btn = $('toggle-details-btn');
+  const isExpanded = area.classList.toggle('expanded');
+  btn.textContent = isExpanded ? T.hideMore : T.showMore;
+  
+  // เลื่อนหน้าจอให้เห็นกล่องข้อมูลที่กางออกมาแบบนุ่มนวล
+  if (isExpanded) {
+    setTimeout(() => {
+      area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 150);
+  }
 }
 
 function handleAction() {
@@ -260,7 +319,6 @@ async function startRecording() {
   $('action-btn').className        = '';
   $('transcript-box').style.display = 'block';
   $('transcript-box').textContent  = '🔇 วัดเสียงรบกวนรอบห้อง...';
-  $('metrics-box').style.display   = 'flex';
   $('debug-box').style.display     = 'block';
   $('debug-box').textContent       = 'calibrating noise floor...';
 
@@ -472,6 +530,7 @@ function evaluateSpeech(text, confidence) {
   $('mic-icon').textContent   = '📊';
   $('action-btn').textContent = T.btnRetry;
   $('action-btn').className   = 'green';
+  $('toggle-details-btn').textContent = T.showMore;
 
   const cleanText = text.trim().toLowerCase().replace(/\s+/g, '');
   const wordMatched = cleanText ? T.keywords.some(k => {
@@ -566,10 +625,6 @@ function evaluateSpeech(text, confidence) {
   sessionStorage.setItem('fast_speech', JSON.stringify(result));
   window.SPEECH_RESULT = result;
 
-  setTimeout(() => {
-    rb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, 100);
-
   handleFastFlow(cls);
 }
 
@@ -584,7 +639,7 @@ function handleFastFlow(riskLevel) {
 
     const btn = document.createElement('button');
     btn.id = 'fast-nav-btn';
-    btn.style.cssText = 'width:calc(100% - 44px);margin:0 22px 16px;min-height:54px;border-radius:14px;border:none;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;color:#fff;background:var(--blue);box-shadow:0 4px 12px rgba(43,125,233,0.2);';
+    btn.style.cssText = 'width:100%;min-height:54px;border-radius:14px;border:none;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;color:#fff;background:var(--blue);box-shadow:0 4px 12px rgba(43,125,233,0.2);';
 
     const L = {
       th: { result:'ดูผลรวม FAST →', home:'กลับหน้าหลัก', next:'ทดสอบต่อไป →', incomplete:'พบความผิดปกติ — ควรทดสอบให้ครบทั้ง 3 อาการ' },

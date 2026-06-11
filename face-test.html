@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>FAST · Face Screening</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Syne+Mono&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap');
 
   :root {
-    --col-blue:    #1A73E8;
-    --col-orange:  #E65100;
-    --col-green:   #00897B;
-    --col-red:     #C62828;
-    --col-warn:    #F57F17;
-    --col-yellow:  #F9A825;
-    --col-bg:      #080C10;
+    --col-blue:    #2B7DE9;
+    --col-orange:  #E89B3C;
+    --col-green:   #1FA98F;
+    --col-red:     #E5544E;
+    --col-warn:    #E89B3C;
+    --col-yellow:  #E89B3C;
+    --col-bg:      #0E1620;
     --radius-dash: 26px;
     --transition:  background 0.35s ease;
   }
@@ -23,7 +23,7 @@
 
   body {
     background: var(--col-bg);
-    font-family: 'Space Grotesk', -apple-system, sans-serif;
+    font-family: 'IBM Plex Sans Thai', 'Manrope', -apple-system, sans-serif;
     overflow: hidden;
     height: 100dvh;
     display: flex;
@@ -61,33 +61,33 @@
   }
   #disclaimer-overlay .disc-icon { font-size: 38px; }
   #disclaimer-overlay h2 {
-    color: #fff; font-size: 16px; font-weight: 700;
-    letter-spacing: 1px; text-align: center;
-    text-transform: uppercase;
+    color: #fff; font-size: 21px; font-weight: 800;
+    letter-spacing: 0.3px; text-align: center;
   }
   #disclaimer-overlay p {
-    color: rgba(255,255,255,0.72); font-size: 13px;
-    text-align: center; line-height: 1.7; max-width: 340px;
+    color: rgba(255,255,255,0.8); font-size: 15px; font-weight:500;
+    text-align: center; line-height: 1.65; max-width: 320px;
   }
-  #disclaimer-overlay p strong { color: #FFD54F; }
+  #disclaimer-overlay p strong { color: #FFB84D; font-weight:700; }
   #understand-btn {
-    margin-top: 4px;
-    background: #fff; color: #080C10;
-    border: none; border-radius: 12px;
-    padding: 13px 36px; font-family: inherit;
-    font-size: 14px; font-weight: 700;
-    cursor: pointer; letter-spacing: 0.5px;
-    transition: opacity 0.2s;
+    margin-top: 8px;
+    background: var(--col-blue); color: #fff;
+    border: none; border-radius: 14px;
+    padding: 16px 44px; font-family: inherit;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.3px;
+    transition: transform 0.12s;
+    box-shadow: 0 6px 18px rgba(43,125,233,0.4);
   }
-  #understand-btn:hover { opacity: 0.88; }
+  #understand-btn:active { transform: scale(0.97); }
 
   #no-face-banner {
     display: none;
     position: absolute; top: 14px; left: 50%;
     transform: translateX(-50%);
-    background: rgba(211, 47, 47, 0.92);
-    color: #fff; padding: 7px 18px;
-    border-radius: 20px; font-size: 13px;
+    background: rgba(229, 84, 78, 0.95);
+    color: #fff; padding: 9px 20px;
+    border-radius: 20px; font-size: 14px; font-weight:600;
     font-weight: 700; white-space: nowrap; z-index: 10;
     backdrop-filter: blur(4px);
   }
@@ -126,7 +126,7 @@
     transition: left .08s, width .08s, background .15s;
   }
   .pose-val {
-    font-family: 'Syne Mono', monospace;
+    font-family: 'Manrope', monospace;
     color: #fff; font-size: 10px; font-weight: 700;
   }
 
@@ -154,32 +154,32 @@
     letter-spacing: 3px; text-transform: uppercase;
   }
   #status-msg {
-    color: #fff; font-size: 15px; font-weight: 600;
-    text-align: center; line-height: 1.55;
-    max-width: 520px; position: relative;
+    color: #fff; font-size: 18px; font-weight: 600;
+    text-align: center; line-height: 1.5;
+    max-width: 340px; position: relative;
   }
 
   #countdown-box { text-align: center; display: none; }
   #countdown-label {
-    color: rgba(255,255,255,0.65); font-size: 10px;
-    font-weight: 700; letter-spacing: 2px;
+    color: rgba(255,255,255,0.7); font-size: 12px;
+    font-weight: 700; letter-spacing: 1.5px;
     text-transform: uppercase; display: block;
   }
   #countdown-num {
-    font-family: 'Syne Mono', monospace;
-    color: #fff; font-size: 48px;
-    font-weight: 700; line-height: 1;
+    font-family: 'Manrope', monospace;
+    color: #fff; font-size: 60px;
+    font-weight: 800; line-height: 1;
   }
 
   #score-box { text-align: center; display: none; }
   #score-label {
-    color: rgba(255,255,255,0.65); font-size: 10px;
-    font-weight: 700; letter-spacing: 2px;
+    color: rgba(255,255,255,0.7); font-size: 12px;
+    font-weight: 700; letter-spacing: 1.5px;
     text-transform: uppercase; display: block;
   }
   #score-num {
-    font-family: 'Syne Mono', monospace;
-    font-size: 42px; font-weight: 700; line-height: 1;
+    font-family: 'Manrope', monospace;
+    font-size: 52px; font-weight: 800; line-height: 1;
   }
   #score-threshold {
     color: rgba(255,255,255,0.45); font-size: 11px;
@@ -188,23 +188,26 @@
 
   #btn-row { display: flex; gap: 10px; margin-top: 4px; position: relative; }
   .action-btn {
-    background: rgba(0,0,0,0.20);
-    border: 1.5px solid rgba(255,255,255,0.30);
-    color: #fff; border-radius: 12px;
-    padding: 11px 26px;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 13px; font-weight: 700;
-    letter-spacing: 0.5px; cursor: pointer;
-    transition: background 0.18s, border-color 0.18s;
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    color: #fff; border-radius: 13px;
+    padding: 14px 32px;
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-size: 16px; font-weight: 700;
+    letter-spacing: 0.3px; cursor: pointer;
+    transition: transform 0.12s, background 0.18s;
   }
-  .action-btn:hover  { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.55); }
-  .action-btn:active { background: rgba(255,255,255,0.22); }
+  .action-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.22); }
+  #start-btn {
+    background: var(--col-blue); border-color: var(--col-blue);
+    box-shadow: 0 6px 18px rgba(43,125,233,0.4);
+  }
 
   /* ── แก้ไข: สีข้อความเตือน pose ให้อ่านออกบนพื้นเหลือง ── */
   #pose-warn-msg {
     display: none;
-    color: #1A237E;          /* น้ำเงินเข้ม อ่านง่ายบนพื้นเหลือง */
-    font-size: 14px;
+    color: #1A237E;
+    font-size: 15px;
     font-weight: 700;
     text-align: center;
     text-shadow: 0 1px 0 rgba(255,255,255,0.4);
@@ -227,7 +230,7 @@
     text-transform: uppercase; width: 70px;
   }
   .dbg-val {
-    font-family: 'Syne Mono', monospace;
+    font-family: 'Manrope', monospace;
     color: #FFD54F; font-size: 11px; font-weight: 700;
   }
 

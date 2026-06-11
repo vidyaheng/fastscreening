@@ -187,6 +187,7 @@ let voiceHistory   = [];     // เก็บประวัติเวลาแ
 let speechStartMs  = null;
 let speechEndMs    = null;
 let lastVoiceMs    = null;
+let flatMin = 1, flatMax = 0, tonerCount = 0, loudCount = 0; // diagnostic
 
 // ═══════════════════════════════════════════════════
 // UI CONTROL
@@ -228,6 +229,7 @@ function resetUI() {
   
   noiseFloor = 0; noiseFrames = []; calibStartMs = null; dynThreshold = 0.04;
   vowelEnergyBuf = []; voiceHistory = []; speechStartMs = null; speechEndMs = null; lastVoiceMs = null;
+  flatMin = 1; flatMax = 0; tonerCount = 0; loudCount = 0;
 }
 
 function handleAction() {
@@ -418,6 +420,14 @@ function runLoop() {
   const isLoud  = vEnergy > dynThreshold;
   const isToner = flatness < FLATNESS_MAX;
   const isVoice = isLoud; // เริ่ม/จับเสียงด้วย energy
+
+  // diagnostic: เก็บช่วง flatness ตอนเสียงดัง (เพื่อดูว่าเสียงพูด flatness เท่าไหร่)
+  if (isLoud) {
+    loudCount++;
+    if (flatness < flatMin) flatMin = flatness;
+    if (flatness > flatMax) flatMax = flatness;
+    if (isToner) tonerCount++;
+  }
 
   if (isVoice) {
     if (!speechStartMs) speechStartMs = nowMs;
@@ -635,6 +645,17 @@ function evaluateSpeech(text, confidence) {
   };
   sessionStorage.setItem('fast_speech', JSON.stringify(result));
   window.SPEECH_RESULT = result;
+
+  // diagnostic ค้างไว้ให้ดูหลังพูดจบ
+  $('debug-box').style.display = 'block';
+  $('debug-box').innerHTML =
+    `[ผลวินิจฉัย VAD]<br>` +
+    `duration: ${durSec.toFixed(2)}s<br>` +
+    `flatness ตอนเสียงดัง:<br>&nbsp;&nbsp;min ${flatMin.toFixed(3)} / max ${flatMax.toFixed(3)}<br>` +
+    `frames ดัง: ${loudCount}<br>` +
+    `frames tonal(พูดจริง): ${tonerCount}<br>` +
+    `tonal ratio: ${loudCount>0?(tonerCount/loudCount*100).toFixed(0):0}%<br>` +
+    `FLATNESS_MAX ปัจจุบัน: 0.75`;
 
   setTimeout(() => {
     rb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

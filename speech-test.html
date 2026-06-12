@@ -415,8 +415,8 @@ function runLoop() {
   // ── PHASE 2: Recording & Stream Tracking ───────────
   // isVoice ใช้ energy เป็นหลัก (จับเสียงพูดให้ได้แน่นอน)
   // flatness ใช้แยกว่า frame นี้เป็น "เสียงพูดจริง" (tonal) หรือ "noise" (flat)
-  // FLATNESS_MAX ปรับสูงขึ้นเป็น 0.75 เพราะ Web Audio มือถือให้ค่าสูงกว่า desktop
-  const FLATNESS_MAX = 0.75;
+  // FLATNESS_MAX = 0.88: จากการวัดจริง เสียงพูด flatness 0.48-0.85, noise 0.9-1.0
+  const FLATNESS_MAX = 0.88;
   const isLoud  = vEnergy > dynThreshold;
   const isToner = flatness < FLATNESS_MAX;
   const isVoice = isLoud; // เริ่ม/จับเสียงด้วย energy
@@ -655,7 +655,7 @@ function evaluateSpeech(text, confidence) {
     `frames ดัง: ${loudCount}<br>` +
     `frames tonal(พูดจริง): ${tonerCount}<br>` +
     `tonal ratio: ${loudCount>0?(tonerCount/loudCount*100).toFixed(0):0}%<br>` +
-    `FLATNESS_MAX ปัจจุบัน: 0.75`;
+    `FLATNESS_MAX ปัจจุบัน: 0.88`;
 
   setTimeout(() => {
     rb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

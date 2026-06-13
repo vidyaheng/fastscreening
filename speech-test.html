@@ -133,11 +133,6 @@ const CONFIG = {
     keywords: ['วันนี้อากาศดี', 'อากาศดี', 'วันนี้'],
     hint: 'กดปุ่ม รอสัญญาณ แล้วพูดประโยคนี้ให้ชัดเจน',
     btnStart: 'เริ่มพูด', btnRetry: 'ทดสอบอีกครั้ง',
-    btnStop: '⏹ หยุด', listening: '... กำลังฟัง ...',
-    noiseTitle: 'เสียงรบกวนมากเกินไป',
-    noiseDesc: 'ห้องนี้มีเสียงรบกวนสูง อาจทำให้ผลคลาดเคลื่อน',
-    noiseMove: 'ย้ายไปที่เงียบกว่า', noiseGo: 'วัดต่อ',
-    noisyTag: '⚠ วัดในที่มีเสียงรบกวน ผลอาจคลาดเคลื่อน',
   },
   en: {
     langCode: 'en-US',
@@ -146,11 +141,6 @@ const CONFIG = {
     keywords: ['today is a sunny day', 'sunny day', 'today is sunny'],
     hint: 'Press the button, wait for the signal, then speak clearly.',
     btnStart: 'Start Speaking', btnRetry: 'Test Again',
-    btnStop: '⏹ Stop', listening: '... listening ...',
-    noiseTitle: 'Too much noise',
-    noiseDesc: 'This room is noisy, results may be inaccurate.',
-    noiseMove: 'Move somewhere quieter', noiseGo: 'Measure anyway',
-    noisyTag: '⚠ Measured in noise, result may be inaccurate',
   },
   ja: {
     langCode: 'ja-JP',
@@ -159,11 +149,6 @@ const CONFIG = {
     keywords: ['今日はいい天気です', 'いい天気', '今日はいい天気'],
     hint: 'ボタンを押して、合図を待ってから、はっきり話してください。',
     btnStart: '発言する', btnRetry: '再テスト',
-    btnStop: '⏹ 停止', listening: '... 聞き取り中 ...',
-    noiseTitle: '騒音が多すぎます',
-    noiseDesc: 'この部屋は騒がしく、結果が不正確になる可能性があります。',
-    noiseMove: '静かな場所へ移動', noiseGo: 'このまま測定',
-    noisyTag: '⚠ 騒音下で測定、結果は不正確な可能性',
   },
 };
 
@@ -175,9 +160,6 @@ const NOISE_MULTIPLIER = 2.5;  // threshold = noiseFloor × 2.5
 const NOISE_FLOOR_CAP  = 0.08; // จำกัดเพดาน noise ป้องกันไมค์หลอน
 const NORMAL_MIN       = 2.5;  // เกณฑ์ความเร็วขั้นต่ำคนปกติ (syl/sec)
 const NORMAL_MAX       = 6.0;  // เกณฑ์ความเร็วสูงสุดคนปกติ (syl/sec)
-// SNR gate: ถ้า noise floor สูงเกินเกณฑ์ = ห้องดังเกินไป (อ้างอิง SNR ≥10dB, ANSI S3.1)
-const NOISE_FLOOR_WARN = 0.025; // noiseFloor เกินนี้ = เตือนว่าเสียงรบกวนมาก
-let   noisyAck         = false; // ผู้ใช้กดยอมรับวัดต่อทั้งที่เสียงดัง
 
 // ═══════════════════════════════════════════════════
 // STATE
@@ -246,8 +228,6 @@ function resetUI() {
   $('freq-canvas').getContext('2d').clearRect(0,0,120,120);
   
   noiseFloor = 0; noiseFrames = []; calibStartMs = null; dynThreshold = 0.04;
-  noisyAck = false; window.MEASURED_NOISY = false;
-  if ($('noise-overlay')) $('noise-overlay').style.display = 'none';
   vowelEnergyBuf = []; voiceHistory = []; speechStartMs = null; speechEndMs = null; lastVoiceMs = null;
   flatMin = 1; flatMax = 0; tonerCount = 0; loudCount = 0;
 }
@@ -260,37 +240,6 @@ function handleAction() {
     evaluateSpeech('__manual__', 0);
   }
   else if (phase === 'DONE')      { phase = 'IDLE'; resetUI(); }
-}
-
-// ── SNR Gate: แสดง/จัดการคำเตือนเสียงรบกวน ──
-function showNoiseWarning() {
-  $('mic-circle').className = 'mic-circle';
-  $('noise-title').textContent = T.noiseTitle;
-  $('noise-desc').textContent  = T.noiseDesc;
-  $('noise-move-btn').textContent = T.noiseMove;
-  $('noise-go-btn').textContent   = T.noiseGo;
-  $('noise-overlay').style.display = 'flex';
-}
-
-function noiseMoveLocation() {
-  // ย้ายที่ → ปิด overlay, calibrate ใหม่ (ผู้ใช้ไปที่เงียบกว่าแล้วกดเริ่มใหม่)
-  $('noise-overlay').style.display = 'none';
-  noisyAck = false;
-  phase = 'IDLE';
-  resetUI();
-}
-
-function noiseMeasureAnyway() {
-  // วัดต่อ → ติดธง ack แล้วเริ่ม recording ทันที (ไม่ calibrate ใหม่)
-  $('noise-overlay').style.display = 'none';
-  noisyAck = true;
-  window.MEASURED_NOISY = true;
-  phase = 'RECORDING';
-  $('mic-circle').className       = 'mic-circle recording';
-  $('mic-icon').textContent       = '👄';
-  $('action-btn').textContent     = T.btnStop;
-  $('action-btn').className       = 'red';
-  $('transcript-box').textContent = T.listening;
 }
 
 function setBar(key, pct, label) {
@@ -450,21 +399,12 @@ function runLoop() {
       noiseFloor   = Math.min(avg + std, NOISE_FLOOR_CAP);
       dynThreshold = noiseFloor * NOISE_MULTIPLIER;
 
-      // ── SNR Gate: ถ้าเสียงรบกวนสูงเกินเกณฑ์ และผู้ใช้ยังไม่ยอมรับ → เตือน ──
-      if (noiseFloor > NOISE_FLOOR_WARN && !noisyAck) {
-        phase = 'NOISY_WARN';
-        showNoiseWarning();
-        return;
-      }
-
       phase = 'RECORDING';
       $('mic-circle').className       = 'mic-circle recording';
       $('mic-icon').textContent       = '👄';
-      $('action-btn').textContent     = T.btnStop || '⏹ หยุด';
+      $('action-btn').textContent     = '⏹ หยุดยั้ง';
       $('action-btn').className       = 'red';
-      $('transcript-box').textContent = T.listening || '... กำลังฟัง ...';
-      // ติดธงว่าวัดในที่มี noise (สำหรับติดป้ายผลลัพธ์)
-      window.MEASURED_NOISY = (noiseFloor > NOISE_FLOOR_WARN);
+      $('transcript-box').textContent = '... กำลังฟังคำพูด ...';
     }
 
     drawWave(freqArr, N);
@@ -476,7 +416,7 @@ function runLoop() {
   // isVoice ใช้ energy เป็นหลัก (จับเสียงพูดให้ได้แน่นอน)
   // flatness ใช้แยกว่า frame นี้เป็น "เสียงพูดจริง" (tonal) หรือ "noise" (flat)
   // FLATNESS_MAX = 0.88: จากการวัดจริง เสียงพูด flatness 0.48-0.85, noise 0.9-1.0
-  const FLATNESS_MAX = 0.78;
+  const FLATNESS_MAX = 0.88;
   const isLoud  = vEnergy > dynThreshold;
   const isToner = flatness < FLATNESS_MAX;
   const isVoice = isLoud; // เริ่ม/จับเสียงด้วย energy
@@ -694,16 +634,14 @@ function evaluateSpeech(text, confidence) {
   rb.style.display = 'flex';
   $('rb-title').textContent = title; $('rb-title').style.color = col;
   $('rb-score').textContent = speechScore + ' / 100'; $('rb-score').style.color = col;
-  // ติดป้ายเตือนถ้าวัดในที่มีเสียงรบกวน
-  $('rb-sub').textContent   = window.MEASURED_NOISY ? (sub + ' · ' + T.noisyTag) : sub;
+  $('rb-sub').textContent   = sub;
 
   // ── บันทึกผลลง sessionStorage สำหรับ FAST integration ──
   const result = {
     score: speechScore,
     riskLevel: cls,
     breakdown: { wordScore, rateScore, stabScore },
-    raw: { transcript: text, syllablesPerSec: syllPerSec, durationSec: durSec },
-    measuredNoisy: !!window.MEASURED_NOISY
+    raw: { transcript: text, syllablesPerSec: syllPerSec, durationSec: durSec }
   };
   sessionStorage.setItem('fast_speech', JSON.stringify(result));
   window.SPEECH_RESULT = result;
@@ -717,7 +655,7 @@ function evaluateSpeech(text, confidence) {
     `frames ดัง: ${loudCount}<br>` +
     `frames tonal(พูดจริง): ${tonerCount}<br>` +
     `tonal ratio: ${loudCount>0?(tonerCount/loudCount*100).toFixed(0):0}%<br>` +
-    `FLATNESS_MAX ปัจจุบัน: 0.78`;
+    `FLATNESS_MAX ปัจจุบัน: 0.88`;
 
   setTimeout(() => {
     rb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -791,17 +729,5 @@ function handleFastFlow(riskLevel) {
   }
 })();
 </script>
-<div id="noise-overlay" style="display:none;position:fixed;inset:0;background:rgba(27,42,58,0.75);backdrop-filter:blur(6px);z-index:100;align-items:center;justify-content:center;padding:28px">
-  <div style="background:#fff;border-radius:20px;padding:28px 24px;max-width:340px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.25)">
-    <div style="width:64px;height:64px;margin:0 auto 16px;border-radius:18px;background:#FCF3E6;display:flex;align-items:center;justify-content:center">
-      <svg viewBox="0 0 24 24" style="width:34px;height:34px;stroke:#E89B3C;fill:none;stroke-width:2"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-    </div>
-    <div id="noise-title" style="font-size:19px;font-weight:700;color:#1B2A3A;margin-bottom:8px"></div>
-    <div id="noise-desc" style="font-size:14px;color:#5A6B7B;line-height:1.6;margin-bottom:22px"></div>
-    <button id="noise-move-btn" onclick="noiseMoveLocation()" style="width:100%;min-height:52px;border:none;border-radius:14px;background:#2B7DE9;color:#fff;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:10px"></button>
-    <button id="noise-go-btn" onclick="noiseMeasureAnyway()" style="width:100%;min-height:46px;border:1px solid #D4DEE8;border-radius:12px;background:#fff;color:#5A6B7B;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer"></button>
-  </div>
-</div>
-
 </body>
 </html>

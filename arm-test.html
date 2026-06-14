@@ -125,13 +125,37 @@
     </div>
   </div>
   <div id="result-row">
-    <div class="rcard" id="card-right"><span class="rcard-arm" id="lbl-r-arm">RIGHT</span><span class="rcard-icon" id="ico-right">—</span><span class="rcard-lbl" id="lbl-right">Pending</span></div>
     <div class="rcard" id="card-left"><span class="rcard-arm" id="lbl-l-arm">LEFT</span><span class="rcard-icon" id="ico-left">—</span><span class="rcard-lbl" id="lbl-left">Pending</span></div>
+    <div class="rcard" id="card-right"><span class="rcard-arm" id="lbl-r-arm">RIGHT</span><span class="rcard-icon" id="ico-right">—</span><span class="rcard-lbl" id="lbl-right">Pending</span></div>
   </div>
   <div id="mid">
     <div class="arm-wrap">
       <div class="arm-ring-outer" id="arm-ring"></div>
       <div class="arm-circle" id="arm-circle"><span class="arm-icon" id="arm-icon">🤚</span></div>
+    </div>
+    <div id="pose-guide" style="display:none;margin:4px auto 0;max-width:240px">
+      <svg viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+        <!-- พื้นหลังนวล -->
+        <rect x="0" y="0" width="240" height="150" rx="14" fill="#F4F6F8"/>
+        <!-- เส้นพื้น -->
+        <line x1="30" y1="132" x2="210" y2="132" stroke="#D4DEE8" stroke-width="2" stroke-linecap="round"/>
+        <!-- หัว -->
+        <circle cx="70" cy="44" r="13" fill="none" stroke="#2B7DE9" stroke-width="3"/>
+        <!-- ลำตัว -->
+        <line x1="70" y1="57" x2="70" y2="100" stroke="#2B7DE9" stroke-width="3" stroke-linecap="round"/>
+        <!-- ขา -->
+        <line x1="70" y1="100" x2="60" y2="130" stroke="#2B7DE9" stroke-width="3" stroke-linecap="round"/>
+        <line x1="70" y1="100" x2="80" y2="130" stroke="#2B7DE9" stroke-width="3" stroke-linecap="round"/>
+        <!-- แขนเหยียดตรงไปข้างหน้า (ระดับไหล่) -->
+        <line x1="70" y1="68" x2="150" y2="68" stroke="#1FA98F" stroke-width="4" stroke-linecap="round"/>
+        <!-- มือถือตั้งขึ้นในมือ -->
+        <rect x="150" y="50" width="22" height="36" rx="4" fill="#fff" stroke="#1FA98F" stroke-width="3"/>
+        <line x1="161" y1="80" x2="161" y2="83" stroke="#1FA98F" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- ลูกศรชี้ว่าเหยียดตรง -->
+        <path d="M178 68 h16 m-5 -5 l5 5 l-5 5" fill="none" stroke="#E89B3C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- เครื่องหมายระดับ (แขนตรง) -->
+        <path d="M95 60 q10 -6 20 0" fill="none" stroke="#1FA98F" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+      </svg>
     </div>
     <div id="warn-banner"><span class="warn-title" id="warn-title"></span><span class="warn-sub" id="warn-sub"></span></div>
     <p id="instr">Ready</p>
@@ -174,7 +198,7 @@ const LANG = {
     warnWrong_left:'Use your LEFT hand',     warnWrongSub_left:'Screen should face RIGHT',
     finalOk:'Both arms normal',              finalOkSub:'No significant drift detected.',
     finalBad:'Possible weakness detected',   finalBadSub:'One or both arms drifted. Please see a doctor promptly.',
-    btnStart:'Start Test', btnNext:'Continue — Left Arm', btnRetry:'Test Again',
+    btnStart:'Start Test', btnNext:'Continue — Right Arm', btnRetry:'Test Again',
     vWait_right:'Extend your right arm. Screen faces left. Hold still.',
     vWait_left: 'Now extend your left arm. Screen faces right. Hold still.',
     vCalibRetry:'Hold as still as you can.',
@@ -201,7 +225,7 @@ const LANG = {
     warnWrong_left:'กรุณาใช้มือซ้ายค่ะ',    warnWrongSub_left:'หน้าจอควรหันขวา',
     finalOk:'แขนทั้งสองข้างปกติ',           finalOkSub:'ไม่พบการเอียงที่ผิดปกติ',
     finalBad:'อาจพบความผิดปกติ',            finalBadSub:'แขนมีการเอียง กรุณาพบแพทย์โดยเร็วนะคะ',
-    btnStart:'เริ่มทดสอบ', btnNext:'ต่อไป — แขนซ้าย', btnRetry:'ทดสอบอีกครั้ง',
+    btnStart:'เริ่มทดสอบ', btnNext:'ต่อไป — แขนขวา', btnRetry:'ทดสอบอีกครั้ง',
     vWait_right:'เหยียดแขนขวาออกตรง หน้าจอหันซ้าย แล้วถือนิ่งๆ นะคะ',
     vWait_left: 'เยี่ยมค่ะ เหยียดแขนซ้ายออกตรง หน้าจอหันขวา แล้วถือนิ่งๆ นะคะ',
     vCalibRetry:'ถือนิ่งๆ ได้เลยนะคะ',
@@ -228,7 +252,7 @@ const LANG = {
     warnWrong_left:'左腕で持ってください',  warnWrongSub_left:'画面は右向きにしてください',
     finalOk:'両腕ともに正常です',          finalOkSub:'有意なずれは検出されませんでした。',
     finalBad:'異常の可能性があります',     finalBadSub:'腕にずれが検出されました。医師に相談してください。',
-    btnStart:'テスト開始', btnNext:'次へ — 左腕', btnRetry:'再テスト',
+    btnStart:'テスト開始', btnNext:'次へ — 右腕', btnRetry:'再テスト',
     vWait_right:'右腕をまっすぐ前に伸ばし、画面を左に向けて静止してください。',
     vWait_left: 'お疲れ様でした。左腕をまっすぐ前に伸ばし、画面を右に向けて静止してください。',
     vCalibRetry:'できるだけ静止してください。',
@@ -299,7 +323,7 @@ function speakNow(txt, onDone) {
 
 let T       = null;
 let phase   = 'IDLE'; 
-let arm     = 'right';
+let arm     = 'left';
 let results = { right:null, left:null };
 
 let betaNow   = 0, gammaNow = 0;
@@ -448,7 +472,7 @@ function startWait() {
   phase = 'WAIT_VOICE';
   betaWindow = []; stableCount = 0; driftMax = 0; lastWarnKey = '';
 
-  setDot(arm==='right'?0:1, 'active');
+  setDot(arm==='left'?0:1, 'active');
   cardState(arm, 'active', '🤚', T.pending);
   $('arm-circle').className = 'arm-circle waiting';
   $('arm-ring').className   = 'arm-ring-outer';
@@ -461,6 +485,7 @@ function startWait() {
   $('instr').textContent     = T['instrWait_'+arm];
   $('sub-instr').textContent = T['subWait_'+arm];
   $('action-btn').disabled   = true;
+  if ($('pose-guide')) $('pose-guide').style.display = 'block';
 
   speakNow(T['vWait_'+arm], () => {
     if (phase === 'WAIT_VOICE') {
@@ -477,6 +502,7 @@ function startWait() {
 function startMeasure() {
   phase = 'MEASURE';
   mElapsed = 0; voiced4 = false; voiced7 = false;
+  if ($('pose-guide')) $('pose-guide').style.display = 'none';
 
   $('instr').textContent     = T.instrMeasure;
   $('sub-instr').textContent = T.subMeasure;
@@ -509,7 +535,7 @@ function finishArm() {
   beep(587, 0.5); vibe(passed ? 200 : [300,100,300]);
   speakNow(T.vDone); 
 
-  setDot(arm==='right'?0:1, 'done');
+  setDot(arm==='left'?0:1, 'done');
   cardState(arm, passed?'pass':'fail', passed?'✅':'⚠️', passed?T.passLbl:T.failLbl);
   $('instr').textContent     = T['instrDone_'+arm];
   $('sub-instr').textContent = '';
@@ -518,7 +544,7 @@ function finishArm() {
   $('arm-circle').className = 'arm-circle '+(passed?'stable':'drifting');
   $('arm-ring').className   = 'arm-ring-outer';
 
-  if (arm==='right') {
+  if (arm==='left') {
     $('action-btn').textContent = T.btnNext;
     $('action-btn').className   = '';
     $('action-btn').disabled    = false;
@@ -572,11 +598,11 @@ function showFinal() {
 function handleBtn() {
   initAudio();
   if (phase==='IDLE') {
-    arm='right'; cardState('right','active','🤚',T.pending);
+    arm='left'; cardState('left','active','🤚',T.pending);
     $('action-btn').disabled=true;
     if (!sensorOk) requestSensor(()=>startWait()); else startWait();
-  } else if (phase==='BETWEEN' && arm==='right') {
-    arm='left'; $('action-btn').disabled=true; startWait();
+  } else if (phase==='BETWEEN' && arm==='left') {
+    arm='right'; $('action-btn').disabled=true; startWait();
   } else if (phase==='DONE') {
     resetAll();
   }
@@ -594,7 +620,7 @@ function navToLangScreen() {
 }
 
 function resetAll() {
-  phase='IDLE'; arm='right'; results={right:null,left:null};
+  phase='IDLE'; arm='left'; results={right:null,left:null};
   driftMax=0; mElapsed=0; betaWindow=[]; stableCount=0; driftValues={right:null,left:null};
   if (measureTimer)  { clearInterval(measureTimer);  measureTimer=null; }
   if (retryTimer)    { clearInterval(retryTimer);     retryTimer=null; }

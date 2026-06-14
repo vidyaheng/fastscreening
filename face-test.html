@@ -16,7 +16,7 @@
     --col-yellow:  #E89B3C;
     --col-bg:      #0E1620;
     --radius-dash: 26px;
-    --transition:  all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition:  background 0.35s ease;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -46,30 +46,31 @@
   #canvas {
     position: absolute; top: 0; left: 0;
     width: 100%; height: 100%;
-    transform: scaleX(-1);
     pointer-events: none;
+    /* ไม่ใช้ transform scaleX(-1) บน canvas แล้ว
+       แต่จะ flip ctx ด้วย JavaScript แทน เพื่อให้ขนาด canvas
+       ตรงกับ video intrinsic pixels และ landmark coordinates ถูกต้อง */
   }
 
-  /* ── หน้า Disclaimer: ปรับเป็น Clinical Clean ขาวนวล ── */
   #disclaimer-overlay {
     position: absolute; inset: 0;
-    background: rgba(247, 249, 252, 0.94);
+    background: rgba(8, 12, 16, 0.93);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     gap: 18px; padding: 28px;
     z-index: 30;
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(6px);
   }
   #disclaimer-overlay .disc-icon { font-size: 38px; }
   #disclaimer-overlay h2 {
-    color: #1A2530; font-size: 21px; font-weight: 800;
+    color: #fff; font-size: 21px; font-weight: 800;
     letter-spacing: 0.3px; text-align: center;
   }
   #disclaimer-overlay p {
-    color: #4A5568; font-size: 15px; font-weight:500;
+    color: rgba(255,255,255,0.8); font-size: 15px; font-weight:500;
     text-align: center; line-height: 1.65; max-width: 320px;
   }
-  #disclaimer-overlay p strong { color: #D97706; font-weight:700; }
+  #disclaimer-overlay p strong { color: #FFB84D; font-weight:700; }
   #understand-btn {
     margin-top: 8px;
     background: var(--col-blue); color: #fff;
@@ -78,7 +79,7 @@
     font-size: 16px; font-weight: 700;
     cursor: pointer; letter-spacing: 0.3px;
     transition: transform 0.12s;
-    box-shadow: 0 6px 18px rgba(43,125,233,0.3);
+    box-shadow: 0 6px 18px rgba(43,125,233,0.4);
   }
   #understand-btn:active { transform: scale(0.97); }
 
@@ -88,42 +89,10 @@
     transform: translateX(-50%);
     background: rgba(229, 84, 78, 0.95);
     color: #fff; padding: 9px 20px;
-    border-radius: 20px; font-size: 14px; font-weight: 700;
-    white-space: nowrap; z-index: 10;
+    border-radius: 20px; font-size: 14px; font-weight:600;
+    font-weight: 700; white-space: nowrap; z-index: 10;
     backdrop-filter: blur(4px);
   }
-
-  /* ── ชุดตัวเลขแสดงผลลอยด้านซ้ายบน (Floating Display) ── */
-  #float-readout {
-    display: none;
-    position: absolute; top: 14px; left: 14px;
-    background: rgba(8, 12, 16, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 10px 16px; border-radius: 16px;
-    backdrop-filter: blur(8px);
-    z-index: 10;
-    flex-direction: column; min-width: 120px;
-    transition: var(--transition);
-  }
-  #float-label {
-    color: rgba(255, 255, 255, 0.6); font-size: 9px;
-    font-weight: 700; letter-spacing: 1.2px;
-    text-transform: uppercase; margin-bottom: 2px;
-  }
-  #float-num-wrap {
-    display: flex; align-items: baseline; gap: 2px;
-    color: #fff;
-  }
-  #float-num {
-    font-family: 'Manrope', monospace;
-    font-size: 38px; font-weight: 800; line-height: 1;
-    color: #1FA98F;
-  }
-  #float-unit { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.7); }
-
-  /* คลาสพิเศษปรับสีตามสถานะแจ้งเตือน */
-  #float-readout.state-warn #float-num { color: #E89B3C; }
-  #float-readout.state-danger #float-num { color: #E5544E; }
 
   #pose-hud {
     display: none;
@@ -163,64 +132,87 @@
     color: #fff; font-size: 10px; font-weight: 700;
   }
 
-  /* ── Dashboard: ปรับให้ไม่มีพื้นหลัง เตี้ยลง และยืดหยุ่นตามปุ่มกด ── */
   #dashboard {
-    flex: none;
-    height: 90px; /* เตี้ยลง 60% ตอนเริ่มแรกที่ไม่มีปุ่ม */
+    flex: 1; min-height: 200px;
+    border-radius: var(--radius-dash) var(--radius-dash) 0 0;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    padding: 12px 24px; gap: 6px;
-    background: transparent; /* โปร่งใส ตัวหนังสือลอย */
+    padding: 16px 24px 20px; gap: 8px;
+    transition: var(--transition);
+    background: var(--col-blue);
     position: relative;
     overflow: hidden;
-    transition: var(--transition);
-    z-index: 15;
   }
-  
-  /* ขยายความสูงขึ้นเล็กน้อยเมื่อมีปุ่มกดปรากฏขึ้น */
-  #dashboard.has-buttons {
-    height: 135px;
+  #dashboard::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; opacity: 0.35;
   }
 
   #app-title {
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.6);
     font-size: 10px; font-weight: 700;
     letter-spacing: 3px; text-transform: uppercase;
   }
   #status-msg {
-    color: #fff; font-size: 16px; font-weight: 600;
-    text-align: center; line-height: 1.4;
+    color: #fff; font-size: 18px; font-weight: 600;
+    text-align: center; line-height: 1.5;
     max-width: 340px; position: relative;
+  }
+
+  #countdown-box { text-align: center; display: none; }
+  #countdown-label {
+    color: rgba(255,255,255,0.7); font-size: 12px;
+    font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; display: block;
+  }
+  #countdown-num {
+    font-family: 'Manrope', monospace;
+    color: #fff; font-size: 60px;
+    font-weight: 800; line-height: 1;
+  }
+
+  #score-box { text-align: center; display: none; }
+  #score-label {
+    color: rgba(255,255,255,0.7); font-size: 12px;
+    font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; display: block;
+  }
+  #score-num {
+    font-family: 'Manrope', monospace;
+    font-size: 52px; font-weight: 800; line-height: 1;
+  }
+  #score-threshold {
+    color: rgba(255,255,255,0.45); font-size: 11px;
+    margin-top: 2px; display: block;
   }
 
   #btn-row { display: flex; gap: 10px; margin-top: 4px; position: relative; }
   .action-btn {
-    background: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.12);
     border: 1.5px solid rgba(255,255,255,0.35);
     color: #fff; border-radius: 13px;
-    padding: 12px 28px;
+    padding: 14px 32px;
     font-family: 'IBM Plex Sans Thai', sans-serif;
-    font-size: 15px; font-weight: 700;
+    font-size: 16px; font-weight: 700;
     letter-spacing: 0.3px; cursor: pointer;
     transition: transform 0.12s, background 0.18s;
   }
-  .action-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.25); }
+  .action-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.22); }
   #start-btn {
     background: var(--col-blue); border-color: var(--col-blue);
-    box-shadow: 0 6px 18px rgba(43,125,233,0.3);
+    box-shadow: 0 6px 18px rgba(43,125,233,0.4);
   }
 
-  /* กล่องเตือน Pose ปรับแต่งให้อ่านง่ายลอยอยู่เหนือแผง */
+  /* ── แก้ไข: สีข้อความเตือน pose ให้อ่านออกบนพื้นเหลือง ── */
   #pose-warn-msg {
     display: none;
-    color: #fff;
-    background: rgba(232, 155, 60, 0.95);
-    font-size: 14px;
+    color: #1A237E;
+    font-size: 15px;
     font-weight: 700;
     text-align: center;
-    padding: 6px 16px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
   }
 
   #debug-panel {
@@ -236,7 +228,7 @@
   .dbg-row { display: flex; gap: 8px; align-items: baseline; }
   .dbg-lbl {
     color: rgba(255,255,255,0.40); font-size: 9px;
-    font-weight: 700; letter-spacing: 1 Barb;
+    font-weight: 700; letter-spacing: 1px;
     text-transform: uppercase; width: 70px;
   }
   .dbg-val {
@@ -244,34 +236,47 @@
     color: #FFD54F; font-size: 11px; font-weight: 700;
   }
 
+  /* ── ปุ่มเปลี่ยนภาษามุมบนขวา (fixed, ทุกหน้า) ── */
+  #lang-switcher {
+    position: fixed; top: 12px; right: 12px; z-index: 100;
+    display: flex; gap: 5px;
+  }
+  .lang-sw-btn {
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.28);
+    color: #fff; border-radius: 8px;
+    padding: 5px 10px; font-size: 11px;
+    font-weight: 700; cursor: pointer;
+    font-family: 'Manrope', sans-serif;
+    letter-spacing: 0.5px;
+    transition: background 0.15s, border-color 0.15s;
+    backdrop-filter: blur(4px);
+  }
+  .lang-sw-btn:active { background: rgba(43,125,233,0.7); border-color: #2B7DE9; }
+  .lang-sw-btn.active { background: #2B7DE9; border-color: #2B7DE9; }
+
   .hidden { display: none !important; }
 
   @keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 0.9; }
-    50%       { transform: scale(1.02); opacity: 1; }
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.035); }
   }
-  .pulse { animation: pulse 1s ease-in-out infinite; }
+  .pulse { animation: pulse 0.9s ease-in-out infinite; }
 </style>
 <script src="fast-permissions.js"></script>
 </head>
 <body>
 
+<div id="lang-switcher">
+  <button class="lang-sw-btn" id="lsw-th" onclick="switchFaceLang('th')">TH</button>
+  <button class="lang-sw-btn" id="lsw-en" onclick="switchFaceLang('en')">EN</button>
+  <button class="lang-sw-btn" id="lsw-ja" onclick="switchFaceLang('ja')">JA</button>
+</div>
+
 <div id="video-container">
   <video id="video" autoplay playsinline muted></video>
   <canvas id="canvas"></canvas>
-  <div id="face-lang-switch" style="position:absolute;top:14px;right:14px;z-index:25;display:flex;gap:5px">
-    <button onclick="switchFaceLang('th')" style="background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer">TH</button>
-    <button onclick="switchFaceLang('en')" style="background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer">EN</button>
-    <button onclick="switchFaceLang('ja')" style="background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer">JA</button>
-  </div>
 
-  <div id="float-readout">
-    <span id="float-label">RECORDING</span>
-    <div id="float-num-wrap">
-      <span id="float-num">5</span>
-      <span id="float-unit">s</span>
-    </div>
-  </div>
 
   <div id="disclaimer-overlay">
     <div class="disc-icon">⚕️</div>
@@ -310,12 +315,12 @@
   </div>
 
   <div id="debug-panel">
-    <span class="dbg-row"><span class="dbg-lbl">raw score</span><span class="dbg-val" id="dbg-score">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">baseline μ</span><span class="dbg-val" id="dbg-mean">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">baseline σ</span><span class="dbg-val" id="dbg-std">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">z (raw)</span><span class="dbg-val" id="dbg-z">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">z (smooth)</span><span class="dbg-val" id="dbg-sz">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">samples</span><span class="dbg-val" id="dbg-n">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">asym raw</span><span class="dbg-val" id="dbg-score">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">riseL/riseR</span><span class="dbg-val" id="dbg-mean">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">avgRise</span><span class="dbg-val" id="dbg-std">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">asym smooth</span><span class="dbg-val" id="dbg-z">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">frames</span><span class="dbg-val" id="dbg-sz">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">rest samples</span><span class="dbg-val" id="dbg-n">—</span></span>
   </div>
 </div>
 
@@ -323,6 +328,17 @@
   <span id="app-title">🚨 FAST · Face Screening</span>
   <p id="status-msg"></p>
   <p id="pose-warn-msg"></p>
+
+  <div id="countdown-box">
+    <span id="countdown-label"></span>
+    <span id="countdown-num">5</span><span style="color:#fff;font-size:20px;font-weight:700;">s</span>
+  </div>
+
+  <div id="score-box">
+    <span id="score-label">Asymmetry</span>
+    <span id="score-num">—</span>
+    <span id="score-threshold">Threshold 0.40</span>
+  </div>
 
   <div id="btn-row">
     <button class="action-btn hidden" id="start-btn"></button>
@@ -347,8 +363,7 @@ const FACE_I18N = {
     understand: 'รับทราบและเริ่มใช้งาน',
     noFace: '⚠️ ไม่พบใบหน้า — วางใบหน้าให้อยู่กลางกรอบ',
     loading: 'กำลังเปิดกล้องและโหลดระบบ...',
-    calibLabel: 'บันทึกค่าเริ่มต้น',
-    scoreLabel: 'Z-Score',
+    calibLabel: 'กำลังบันทึกค่าเริ่มต้น',
     threshold: 'เกณฑ์ ±3.0',
     startBtn: '▶\u00A0 เริ่มทดสอบ',
     resetBtn: '↺\u00A0 ทดสอบใหม่',
@@ -368,6 +383,8 @@ const FACE_I18N = {
     holdSmile: 'ยิ้มค้างไว้... (',
     faceDone: '✅ การทดสอบใบหน้าเสร็จสิ้น',
     faceAbnormal: '⚠️ พบความผิดปกติของใบหน้า',
+    asymLabel: 'ความไม่สมมาตร',
+    asymThreshold: 'เกณฑ์ 0.40',
     navResult: 'ดูผลรวม FAST →',
     navNext: 'ทดสอบแขนต่อ →',
     navHome: 'กลับหน้าหลัก',
@@ -378,8 +395,7 @@ const FACE_I18N = {
     understand: 'I Understand, Start',
     noFace: '⚠️ No face detected — center your face in the frame',
     loading: 'Opening camera and loading...',
-    calibLabel: 'Baseline',
-    scoreLabel: 'Z-Score',
+    calibLabel: 'Recording baseline',
     threshold: 'Threshold ±3.0',
     startBtn: '▶\u00A0 Start Test',
     resetBtn: '↺\u00A0 Retry',
@@ -399,6 +415,8 @@ const FACE_I18N = {
     holdSmile: 'Hold your smile... (',
     faceDone: '✅ Face test complete',
     faceAbnormal: '⚠️ Facial abnormality detected',
+    asymLabel: 'Asymmetry',
+    asymThreshold: 'Threshold 0.40',
     navResult: 'View FAST Score →',
     navNext: 'Continue to Arms →',
     navHome: 'Back to Home',
@@ -409,8 +427,7 @@ const FACE_I18N = {
     understand: '了解して開始',
     noFace: '⚠️ 顔が検出されません — 顔を枠の中央に合わせてください',
     loading: 'カメラを起動しています...',
-    calibLabel: '基準値',
-    scoreLabel: 'Zスコア',
+    calibLabel: '基準値を記録中',
     threshold: 'しきい値 ±3.0',
     startBtn: '▶\u00A0 テスト開始',
     resetBtn: '↺\u00A0 再テスト',
@@ -430,6 +447,8 @@ const FACE_I18N = {
     holdSmile: '笑顔を保ってください... (',
     faceDone: '✅ 顔のテスト完了',
     faceAbnormal: '⚠️ 顔の異常を検出',
+    asymLabel: '非対称度',
+    asymThreshold: 'しきい値 0.40',
     navResult: 'FASTスコアを見る →',
     navNext: '腕のテストへ →',
     navHome: 'ホームに戻る',
@@ -445,36 +464,48 @@ function applyFaceLang() {
   setHTML('disc-body', FL.discBody);
   setText('understand-btn', FL.understand);
   setText('no-face-banner', FL.noFace);
+  setText('countdown-label', FL.calibLabel);
+  setText('score-threshold', FL.threshold);
   setText('start-btn', FL.startBtn);
   setText('reset-btn', FL.resetBtn);
-  
+  // status-msg เริ่มต้น
   const sm = document.getElementById('status-msg');
   if (sm && !sm.textContent.trim()) sm.textContent = FL.loading;
-
-  // รีเฟรช label บนกล่องลอยตัวเลขตามเฟสปัจจุบัน
-  const flb = document.getElementById('float-label');
-  if (flb) {
-    if (phase === 'RESTING_PHASE') flb.textContent = FL.calibLabel;
-    else if (phase === 'ACTION_PHASE') flb.textContent = FL.scoreLabel;
-  }
 }
 
-const Z_SCORE_THRESHOLD    = 3.0;
-const ACTION_DURATION_MS   = 6000;   
+// ═══════════════════════════════════════════════════
+// CONFIG — Inter-side Movement Symmetry
+// ═══════════════════════════════════════════════════
+// เปลี่ยนจาก Z-score baseline เป็น inter-side movement symmetry
+// หลักการ: วัดว่าปากซ้าย/ขวายกขึ้นเท่าไหร่ตอนยิ้ม เทียบสองข้าง
+// ไม่พึ่ง baseline อดีต → แก้ false negative คนหน้าเบี้ยวอยู่แล้ว
+
+const ACTION_DURATION_MS   = 6000;   // ยิ้มค้าง 6 วิ
 let actionStartMs          = null;
-let actionZScores          = [];     
-const CALIBRATION_SECONDS  = 5;
-const SMOOTHING_WINDOW     = 15;
+let actionAsymScores       = [];     // เก็บ asymmetry ratio ตลอด action phase
+
+const CALIBRATION_SECONDS  = 5;      // นิ่ง 5 วิ เก็บ resting position ปาก
+const SMOOTHING_WINDOW     = 10;
 const MAX_HISTORY          = 300;
 
+// Resting phase: เก็บตำแหน่งปากตอนนิ่ง (ต่อข้าง)
+// เพื่อวัดว่า "ยกขึ้นเท่าไหร่" ตอนยิ้ม
+// y ใน MediaPipe: 0=บน 1=ล่าง → ยกขึ้น = y ลด
 const REST_FIRE_WINDOW     = 8;
-const CRITICAL_THRESHOLD   = 0.28;
+const CRITICAL_THRESHOLD   = 0.28;   // asymmetry ratio > 0.28 ตอนนิ่ง → สัญญาณอันตราย
+
+// Asymmetry threshold สำหรับ action phase
+// asym = |leftRise - rightRise| / avg(leftRise, rightRise)
+// 0 = สมมาตรสมบูรณ์, >0.6 = ไม่สมมาตรชัดเจน (เทียบ Nature 2025)
+const ASYM_THRESHOLD       = 0.40;  // >0.40 = warn/bad
+const ASYM_CRITICAL        = 0.70;  // >0.70 = bad ทันที
 
 const MAX_ALLOWED_YAW      = 28;
 const MAX_ALLOWED_PITCH    = 18;
 const MAX_ALLOWED_ROLL     = 18;
 
 const MIN_MOUTH_EYE_RATIO  = 0.15;
+const MIN_RISE_TO_SCORE    = 0.005; // ต้องยกขึ้นอย่างน้อยนี้จึงนับ (กรองเฟรมไม่ยิ้ม)
 
 const IDX_L_EYE   = 133, IDX_R_EYE = 362;
 const IDX_NOSE    = 4,   IDX_FOREHEAD = 10;
@@ -482,18 +513,21 @@ const IDX_CHIN    = 152;
 const IDX_ML      = 61,  IDX_MR    = 291;
 const IDX_LIP_TOP = 13,  IDX_LIP_BOT = 14;
 
-let phase           = 'BEFORE_START';
-let baselineScores  = [];
-let baselineStats   = { mean: 0, std: 1 };
-let recentZScores   = [];
-let recentRestScores = [];
-let criticalFired   = false;
-let noFaceCount     = 0;
-let countdownVal    = CALIBRATION_SECONDS;
-let countdownTimer  = null;
-let activeCamera    = null;
-let activeStream    = null;
-let countdownPaused = false;
+let phase             = 'BEFORE_START';
+// Resting baseline per-side (y coordinates เฉลี่ยตอนนิ่ง)
+let restSamplesL      = [];  // y ของปากซ้าย (61) ตอน RESTING_PHASE
+let restSamplesR      = [];  // y ของปากขวา (291) ตอน RESTING_PHASE
+let restBaseL         = null; // mean y ปากซ้าย ตอนนิ่ง
+let restBaseR         = null; // mean y ปากขวา ตอนนิ่ง
+let recentAsymScores  = [];  // smooth buffer
+let recentRestAsym    = [];  // detect critical asym ตอนนิ่ง
+let criticalFired     = false;
+let noFaceCount       = 0;
+let countdownVal      = CALIBRATION_SECONDS;
+let countdownTimer    = null;
+let activeCamera      = null;
+let activeStream      = null;
+let countdownPaused   = false;
 
 let pitchNeutralSamples = [];
 let pitchNeutralRatio   = null;
@@ -507,24 +541,37 @@ const statusMsg      = document.getElementById('status-msg');
 const poseWarnMsg    = document.getElementById('pose-warn-msg');
 const startBtn       = document.getElementById('start-btn');
 const resetBtn       = document.getElementById('reset-btn');
+const countdownBox   = document.getElementById('countdown-box');
+const countdownNum   = document.getElementById('countdown-num');
+const scoreBox       = document.getElementById('score-box');
+const scoreNum       = document.getElementById('score-num');
 const noFaceBanner   = document.getElementById('no-face-banner');
 const poseHud        = document.getElementById('pose-hud');
 const disclaimerEl   = document.getElementById('disclaimer-overlay');
 const understandBtn  = document.getElementById('understand-btn');
 
-// ชี้เป้าแผงลอยมุมซ้ายบน
-const floatReadout   = document.getElementById('float-readout');
-const floatLabel     = document.getElementById('float-label');
-const floatNum       = document.getElementById('float-num');
-const floatUnit      = document.getElementById('float-unit');
-
 function switchFaceLang(code) {
   if (!FACE_I18N[code]) return;
+  // ห้ามเปลี่ยนภาษาระหว่างวัด (RESTING_PHASE / ACTION_PHASE)
+  if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE') return;
   FL = FACE_I18N[code];
   sessionStorage.setItem('fast_lang', code);
   applyFaceLang();
+  // อัปเดต active button
+  ['th','en','ja'].forEach(c => {
+    const btn = document.getElementById('lsw-' + c);
+    if (btn) btn.classList.toggle('active', c === code);
+  });
 }
+// init: apply lang + highlight active button
 applyFaceLang();
+{
+  const _initLang = sessionStorage.getItem('fast_lang') || 'th';
+  ['th','en','ja'].forEach(c => {
+    const btn = document.getElementById('lsw-' + c);
+    if (btn) btn.classList.toggle('active', c === _initLang);
+  });
+}
 const debugPanel     = document.getElementById('debug-panel');
 const debugBtn       = document.getElementById('debug-btn');
 
@@ -537,7 +584,7 @@ debugBtn.addEventListener('click', () => {
 
 understandBtn.addEventListener('click', () => {
   disclaimerEl.style.display = 'none';
-  startCamera(); 
+  startCamera(); // ขอกล้องหลังผู้ใช้รับทราบ disclaimer แล้ว
 });
 
 function computeStats(v) {
@@ -549,6 +596,11 @@ function computeStats(v) {
   return { mean: m, std: Math.max(rawStd, STD_FLOOR) + 1e-6 };
 }
 
+// ═══════════════════════════════════════════════════
+// computeScore → ส่งคืน mouthL.y, mouthR.y (normalized)
+// พร้อม roll/yaw/pitch สำหรับ gate และ de-rotate
+// ใช้ mirrorPt เพราะ video flip → landmark x ต้อง mirror กลับ
+// ═══════════════════════════════════════════════════
 function computeScore(lm) {
   function mirrorPt(pt) { return { x: 1.0 - pt.x, y: pt.y, z: pt.z }; }
 
@@ -566,6 +618,7 @@ function computeScore(lm) {
   const cx    = (lEye.x + rEye.x) / 2;
   const cy    = (lEye.y + rEye.y) / 2;
 
+  // de-rotate ตาม roll → ได้ y ที่ปรับ head tilt แล้ว
   function rot(p) {
     const dx = p.x - cx, dy = p.y - cy;
     const c = Math.cos(-roll), s = Math.sin(-roll);
@@ -575,8 +628,6 @@ function computeScore(lm) {
   const mRr = rot(mR);
 
   const eyeDist   = Math.sqrt(eyeDx ** 2 + eyeDy ** 2) + 1e-6;
-  const eyeWidthX = Math.abs(eyeDx) + 1e-6;
-  const normalizer = eyeWidthX;
 
   const rollDeg   = roll * 180 / Math.PI;
   const noseMidDx = nose.x - cx;
@@ -585,15 +636,16 @@ function computeScore(lm) {
   const faceLength = Math.abs(chin.y - forehead.y) + 1e-6;
   const pitchDeg   = getPitchDeg(nose.y, forehead.y, faceLength);
 
-  const yawRad        = Math.abs(yawDeg) * Math.PI / 180;
-  const yawCorrection = Math.sin(yawRad) * eyeDist * 0.08;
-  const rawDiff       = Math.abs(mLr.y - mRr.y);
-  const correctedDiff = Math.max(0, rawDiff - yawCorrection);
-  const score         = correctedDiff / normalizer;
-
-  return { score, rollDeg, yawDeg, pitchDeg };
+  // ส่งคืน y ของปากแต่ละข้างหลัง de-rotate (ใช้ normalized coords)
+  // y ต่ำ = สูงขึ้น (MediaPipe: y=0 บน y=1 ล่าง)
+  return { mLy: mLr.y, mRy: mRr.y, rollDeg, yawDeg, pitchDeg };
 }
 
+// ── แก้ไข: pitch sign convention ──
+// ใน normalized coords ของ MediaPipe: y=0 บน, y=1 ล่าง
+// ก้มหน้าลง  → จมูกลงต่ำ → noseY เพิ่ม → currentRatio เพิ่ม → pitchDeg > 0  ✓
+// เงยหน้าขึ้น → จมูกขึ้นสูง → noseY ลด   → currentRatio ลด   → pitchDeg < 0  ✓
+// ดังนั้น sign ถูกต้องอยู่แล้ว แต่ข้อความเตือนเดิมสลับกัน (แก้ตรง warning block แทน)
 function getPitchDeg(noseY, foreheadY, faceLength) {
   if (pitchNeutralRatio === null) return 0;
   const currentRatio = (noseY - foreheadY) / faceLength;
@@ -633,82 +685,80 @@ function updatePoseBar(barId, valId, deg, maxDeg) {
   val.style.color       = bad ? '#FF6B6B' : '#A8F5C3';
 }
 
-function setUI({ msg, poseWarn = '', showCD = false, showScore = false,
+function setUI({ color, msg, poseWarn = '', showCD = false, showScore = false,
                  showStart = false, showReset = false, showHud = false, pulse = false }) {
+  dashboard.style.background = color;
   statusMsg.textContent      = msg;
   statusMsg.style.display    = msg ? 'block' : 'none';
 
   poseWarnMsg.textContent    = poseWarn;
   poseWarnMsg.style.display  = poseWarn ? 'block' : 'none';
 
-  // สลับการเปิดปิดของแผงลอยตามบริบทใช้งาน
-  floatReadout.style.display = (showCD || showScore) ? 'flex' : 'none';
-
+  countdownBox.style.display = showCD    ? 'block' : 'none';
+  scoreBox.style.display     = showScore ? 'block' : 'none';
   startBtn.classList.toggle('hidden', !showStart);
   resetBtn.classList.toggle('hidden', !showReset);
   debugBtn.classList.toggle('hidden', !showReset);
   poseHud.style.display      = showHud   ? 'flex'  : 'none';
   dashboard.classList.toggle('pulse', pulse);
-
-  // ตรวจจับว่า ณ ขณะนั้นแสดงปุ่มกดหรือไม่ เพื่อปรับระดับความสูงของ Dashboard
-  const hasButtonsVisible = showStart || showReset || !debugBtn.classList.contains('hidden');
-  dashboard.classList.toggle('has-buttons', hasButtonsVisible);
 }
 
 function finaliseBaseline() {
-  if (!baselineScores.length) {
+  if (!restSamplesL.length || !restSamplesR.length) {
     phase = 'BEFORE_START';
     setUI({
+      color: 'var(--col-warn)',
       msg: FL.noFaceBaseline,
       showStart: true,
     });
     return;
   }
-  baselineStats = computeStats(baselineScores);
+  // คำนวณ y เฉลี่ยของปากแต่ละข้างตอนนิ่ง
+  restBaseL = restSamplesL.reduce((a, b) => a + b, 0) / restSamplesL.length;
+  restBaseR = restSamplesR.reduce((a, b) => a + b, 0) / restSamplesR.length;
   phase = 'ACTION_PHASE';
-  actionStartMs = performance.now();
-  actionZScores = [];
-
-  // สลับป้ายแผงลอยเป็นคะแนน Z-Score
-  floatLabel.textContent = FL.scoreLabel;
-  floatUnit.textContent = '';
-  floatNum.textContent = '0.00';
-  floatReadout.className = '';
-
+  actionStartMs  = performance.now();
+  actionAsymScores = [];
+  recentAsymScores = [];
   setUI({
+    color: 'var(--col-green)',
     msg: FL.step2,
     showScore: true, showReset: true, showHud: true,
   });
+  // อัปเดต score label
+  const sl = document.getElementById('score-label');
+  if (sl) sl.textContent = FL.asymLabel || 'Asymmetry';
+  const st = document.getElementById('score-threshold');
+  if (st) st.textContent = FL.asymThreshold || 'Threshold 0.40';
 }
 
 function startScreening() {
-  baselineScores       = [];
-  recentZScores        = [];
-  recentRestScores     = [];
+  restSamplesL         = [];
+  restSamplesR         = [];
+  restBaseL            = null;
+  restBaseR            = null;
+  recentAsymScores     = [];
+  recentRestAsym       = [];
   pitchNeutralSamples  = [];
   pitchNeutralRatio    = null;
   criticalFired        = false;
   noFaceCount          = 0;
   countdownVal         = CALIBRATION_SECONDS;
   countdownPaused      = false;
-  baselineStats        = { mean: 0, std: 1 };
   actionStartMs        = null;
-  actionZScores        = [];
-  
-  // รีเซ็ตแผงลอยกลับมาโหมดนับถอยหลัง
-  floatLabel.textContent = FL.calibLabel;
-  floatUnit.textContent = 's';
-  floatNum.textContent = countdownVal;
-  floatReadout.className = '';
-
+  actionAsymScores     = [];
+  scoreNum.textContent            = '—';
   noFaceBanner.style.display      = 'none';
   poseWarnMsg.style.display       = 'none';
+  countdownNum.textContent        = countdownVal;
 
+  // ลบปุ่ม navigation เก่า (กรณี retry หลังทดสอบจบ)
   const oldNav = document.getElementById('fast-nav-btn');
   if (oldNav) oldNav.remove();
 
   phase = 'RESTING_PHASE';
   setUI({
+    color: 'var(--col-orange)',
     msg: FL.step1,
     showCD: true, showHud: true,
   });
@@ -717,7 +767,7 @@ function startScreening() {
   countdownTimer = setInterval(() => {
     if (countdownPaused) return;
     countdownVal--;
-    floatNum.textContent = countdownVal;
+    countdownNum.textContent = countdownVal;
     if (countdownVal <= 0) {
       clearInterval(countdownTimer);
       countdownTimer = null;
@@ -740,9 +790,14 @@ faceMesh.setOptions({
 });
 
 faceMesh.onResults(results => {
-  canvasEl.width  = videoEl.videoWidth  || canvasEl.offsetWidth;
-  canvasEl.height = videoEl.videoHeight || canvasEl.offsetHeight;
-  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  // ── Fix mesh overlay ──
+  // ใช้ intrinsic pixel size ของ video (ไม่ใช่ CSS display size)
+  // เพื่อให้ landmark coordinates ที่เป็น normalized 0-1 map ตรงกับ pixels บน canvas
+  const vw = videoEl.videoWidth  || videoEl.offsetWidth;
+  const vh = videoEl.videoHeight || videoEl.offsetHeight;
+  if (canvasEl.width !== vw)  canvasEl.width  = vw;
+  if (canvasEl.height !== vh) canvasEl.height = vh;
+  ctx.clearRect(0, 0, vw, vh);
 
   if (!results.multiFaceLandmarks || !results.multiFaceLandmarks.length) {
     if (++noFaceCount > 10) noFaceBanner.style.display = 'block';
@@ -752,8 +807,15 @@ faceMesh.onResults(results => {
   noFaceBanner.style.display = 'none';
 
   const lm = results.multiFaceLandmarks[0];
-  const w  = canvasEl.width;
-  const h  = canvasEl.height;
+  const w  = vw;
+  const h  = vh;
+
+  // video ใช้ scaleX(-1) CSS → ภาพกลับซ้าย-ขวา
+  // canvas ไม่ใช้ CSS transform แต่ flip ด้วย ctx แทน
+  // เพื่อให้เส้น mesh ซ้อนทับตรงกับ video ที่กลับแล้ว
+  ctx.save();
+  ctx.translate(w, 0);
+  ctx.scale(-1, 1);
 
   if (typeof drawConnectors !== 'undefined' && (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE')) {
     if (window.FACEMESH_TESSELATION) drawConnectors(ctx, lm, window.FACEMESH_TESSELATION, { color: 'rgba(0,200,180,0.08)', lineWidth: 1 });
@@ -768,9 +830,11 @@ faceMesh.onResults(results => {
     ctx.fill();
   });
 
+  ctx.restore();
+
   if (phase !== 'RESTING_PHASE' && phase !== 'ACTION_PHASE') return;
 
-  const { score, rollDeg, yawDeg, pitchDeg } = computeScore(lm);
+  const { mLy, mRy, rollDeg, yawDeg, pitchDeg } = computeScore(lm);
 
   updatePoseBar('bar-yaw',   'val-yaw',   yawDeg,   45);
   updatePoseBar('bar-pitch', 'val-pitch', pitchDeg, 30);
@@ -779,6 +843,7 @@ faceMesh.onResults(results => {
   const mouthCheck = checkMouthVisibility(lm);
   if (!mouthCheck.ok) {
     countdownPaused = true;
+    dashboard.style.background = 'var(--col-yellow)';
     poseWarnMsg.textContent    = mouthCheck.reason;
     poseWarnMsg.style.display  = 'block';
     statusMsg.style.display    = 'none';
@@ -800,6 +865,7 @@ faceMesh.onResults(results => {
       } else if (pitchBad) {
         warnText = pitchDeg > 0 ? FL.lookUp : FL.lookDown;
       }
+      dashboard.style.background = 'var(--col-yellow)';
       poseWarnMsg.textContent    = warnText;
       poseWarnMsg.style.display  = 'block';
       statusMsg.style.display    = 'none';
@@ -809,6 +875,7 @@ faceMesh.onResults(results => {
 
   countdownPaused = false;
 
+  // Pitch calibration (เก็บ neutral ratio ตอน resting phase)
   if (phase === 'RESTING_PHASE' && pitchNeutralRatio === null) {
     const faceLength = Math.abs(lm[IDX_CHIN].y - lm[IDX_FOREHEAD].y) + 1e-6;
     const rawRatio = (lm[IDX_NOSE].y - lm[IDX_FOREHEAD].y) / faceLength;
@@ -821,69 +888,85 @@ faceMesh.onResults(results => {
   poseWarnMsg.style.display = 'none';
   statusMsg.style.display   = 'block';
 
+  // ── RESTING PHASE: เก็บตำแหน่งปากตอนนิ่ง ──
   if (phase === 'RESTING_PHASE') {
-    recentRestScores = [...recentRestScores.slice(-(REST_FIRE_WINDOW - 1)), score];
+    // เก็บ y ปากแต่ละข้าง
+    restSamplesL.push(mLy);
+    restSamplesR.push(mRy);
+    if (restSamplesL.length > MAX_HISTORY) restSamplesL.shift();
+    if (restSamplesR.length > MAX_HISTORY) restSamplesR.shift();
 
-    if (recentRestScores.length >= REST_FIRE_WINDOW) {
-      const avgRestScore = recentRestScores.reduce((a, b) => a + b, 0) / recentRestScores.length;
-
-      if (avgRestScore > CRITICAL_THRESHOLD && !criticalFired && Math.abs(rollDeg) < 20) {
+    // Critical check: ตอนนิ่งสองข้างต่างกันมาก = หน้าเบี้ยวอยู่แล้ว (stroke risk)
+    // ใช้ raw |mLy - mRy| / eyeWidth เทียบ threshold
+    const rawRestAsym = Math.abs(mLy - mRy);
+    recentRestAsym = [...recentRestAsym.slice(-(REST_FIRE_WINDOW - 1)), rawRestAsym];
+    if (recentRestAsym.length >= REST_FIRE_WINDOW) {
+      const avgRest = recentRestAsym.reduce((a, b) => a + b, 0) / recentRestAsym.length;
+      if (avgRest > CRITICAL_THRESHOLD && !criticalFired && Math.abs(rollDeg) < 20) {
         criticalFired = true;
         if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
         phase = 'CRITICAL_ASYMMETRY';
-        setUI({
-          msg: FL.critical,
-          showReset: true, pulse: true,
-        });
-        actionZScores = actionZScores.length ? actionZScores : [Z_SCORE_THRESHOLD * 2];
+        setUI({ color: 'var(--col-red)', msg: FL.critical, showReset: true, pulse: true });
+        actionAsymScores = [ASYM_CRITICAL + 0.1];
         finishFace();
         return;
       }
     }
 
-    baselineScores = [...baselineScores.slice(-(MAX_HISTORY - 1)), score];
-
-    document.getElementById('dbg-score').textContent = score.toFixed(4);
+    // debug
+    document.getElementById('dbg-score').textContent = rawRestAsym.toFixed(4);
     document.getElementById('dbg-mean').textContent  = '(calibrating)';
-    document.getElementById('dbg-std').textContent   = '(calibrating)';
+    document.getElementById('dbg-std').textContent   = mLy.toFixed(4) + '/' + mRy.toFixed(4);
     document.getElementById('dbg-z').textContent     = '—';
     document.getElementById('dbg-sz').textContent    = '—';
-    document.getElementById('dbg-n').textContent     = baselineScores.length;
+    document.getElementById('dbg-n').textContent     = restSamplesL.length;
 
     statusMsg.textContent = FL.step1;
+    dashboard.style.background = 'var(--col-orange)';
     return;
   }
 
+  // ── ACTION PHASE: วัด inter-side movement symmetry ──
   if (phase === 'ACTION_PHASE') {
-    const { mean, std } = baselineStats;
-    const z = (score - mean) / std;
-    recentZScores = [...recentZScores.slice(-(SMOOTHING_WINDOW - 1)), z];
-    const sz = recentZScores.reduce((a, b) => a + b, 0) / recentZScores.length;
-    actionZScores.push(sz);
+    if (restBaseL === null || restBaseR === null) return; // ยังไม่ได้ baseline
 
-    floatNum.textContent = sz.toFixed(2);
-    
-    // เปลี่ยนสีตามขีดความเสี่ยงของ Z-Score
-    if (sz > Z_SCORE_THRESHOLD) {
-      floatReadout.className = 'state-danger';
-    } else {
-      floatReadout.className = '';
+    // การยกขึ้นของแต่ละข้าง (y ลด = ยกขึ้น)
+    // ใช้ max(0, ...) เพราะต้องการเฉพาะการยกขึ้น ไม่ใช่ลง
+    const riseL = Math.max(0, restBaseL - mLy);  // ปากซ้ายยกขึ้นกี่ normalized units
+    const riseR = Math.max(0, restBaseR - mRy);  // ปากขวายกขึ้นกี่ normalized units
+    const avgRise = (riseL + riseR) / 2;
+
+    let asym = 0;
+    if (avgRise > MIN_RISE_TO_SCORE) {
+      // asymmetry ratio: 0=สมมาตร, 1=ข้างหนึ่งไม่ยกเลย
+      asym = Math.abs(riseL - riseR) / (avgRise + 1e-6);
     }
+    // smooth
+    recentAsymScores = [...recentAsymScores.slice(-(SMOOTHING_WINDOW - 1)), asym];
+    const smoothAsym = recentAsymScores.reduce((a, b) => a + b, 0) / recentAsymScores.length;
+    actionAsymScores.push(smoothAsym);
 
-    document.getElementById('dbg-score').textContent = score.toFixed(4);
-    document.getElementById('dbg-mean').textContent  = mean.toFixed(4);
-    document.getElementById('dbg-std').textContent   = std.toFixed(4);
-    document.getElementById('dbg-z').textContent     = z.toFixed(3);
-    document.getElementById('dbg-sz').textContent    = sz.toFixed(3);
-    document.getElementById('dbg-n').textContent     = baselineScores.length;
+    // แสดงผลตัวเลข (0.00 = ดี, >0.40 = ผิดปกติ)
+    scoreNum.textContent = smoothAsym.toFixed(2);
+    scoreNum.style.color = smoothAsym > ASYM_THRESHOLD ? '#FF6B6B' : '#A8F5C3';
+
+    // debug
+    document.getElementById('dbg-score').textContent = asym.toFixed(4);
+    document.getElementById('dbg-mean').textContent  = riseL.toFixed(4) + '/' + riseR.toFixed(4);
+    document.getElementById('dbg-std').textContent   = avgRise.toFixed(4);
+    document.getElementById('dbg-z').textContent     = smoothAsym.toFixed(3);
+    document.getElementById('dbg-sz').textContent    = actionAsymScores.length.toString();
+    document.getElementById('dbg-n').textContent     = restSamplesL.length;
 
     const elapsed = performance.now() - actionStartMs;
     const remain = Math.ceil((ACTION_DURATION_MS - elapsed) / 1000);
 
-    if (sz > Z_SCORE_THRESHOLD) {
-      statusMsg.textContent = FL.asymDetect + Math.max(remain,0) + 's)';
+    if (smoothAsym > ASYM_THRESHOLD) {
+      statusMsg.textContent      = FL.asymDetect + Math.max(remain, 0) + 's)';
+      dashboard.style.background = 'var(--col-red)';
     } else {
-      statusMsg.textContent = FL.holdSmile + Math.max(remain,0) + 's)';
+      statusMsg.textContent      = FL.holdSmile + Math.max(remain, 0) + 's)';
+      dashboard.style.background = 'var(--col-green)';
     }
 
     if (elapsed >= ACTION_DURATION_MS) {
@@ -893,18 +976,25 @@ faceMesh.onResults(results => {
   }
 });
 
-function zScoreToFaceScore(z) {
-  const az = Math.abs(z);
-  if (az <= 0) return 100;
-  if (az < Z_SCORE_THRESHOLD) return Math.round(100 - (az / Z_SCORE_THRESHOLD) * 50);
-  return Math.round(Math.max(0, 50 - ((az - Z_SCORE_THRESHOLD) / Z_SCORE_THRESHOLD) * 50));
+// ═══════════════════════════════════════════════════
+// FAST INTEGRATION — สรุปผล face + score + navigation
+// ═══════════════════════════════════════════════════
+// แปลง asymmetry ratio → score 0-100
+// asym=0 (สมมาตรดี) = 100
+// asym=ASYM_THRESHOLD(0.40) = 50 (borderline)
+// asym=ASYM_CRITICAL(0.70)+ = 0
+function asymToFaceScore(asym) {
+  if (asym <= 0) return 100;
+  if (asym < ASYM_THRESHOLD) return Math.round(100 - (asym / ASYM_THRESHOLD) * 50);
+  return Math.round(Math.max(0, 50 - ((asym - ASYM_THRESHOLD) / (ASYM_CRITICAL - ASYM_THRESHOLD)) * 50));
 }
 
 function finishFace() {
-  const sorted = [...actionZScores].sort((a,b) => a-b);
+  // ใช้ percentile 75 ของ smooth asym (ค่าที่แย่ค่อนข้างบ่อย ไม่ใช่ spike)
+  const sorted = [...actionAsymScores].sort((a, b) => a - b);
   const idx = Math.floor(sorted.length * 0.75);
-  const repZ = sorted.length ? sorted[idx] : 0;
-  const faceScore = zScoreToFaceScore(repZ);
+  const repAsym = sorted.length ? sorted[idx] : 0;
+  const faceScore = asymToFaceScore(repAsym);
   const riskLevel = faceScore >= 70 ? 'ok' : faceScore >= 45 ? 'warn' : 'bad';
   const criticalDetected = criticalFired;
 
@@ -912,11 +1002,17 @@ function finishFace() {
     score: criticalDetected ? Math.min(faceScore, 30) : faceScore,
     riskLevel: criticalDetected ? 'bad' : riskLevel,
     passed: !criticalDetected && riskLevel === 'ok',
-    breakdown: { representativeZ: repZ, criticalAsymmetry: criticalDetected }
+    breakdown: {
+      representativeAsym: repAsym,
+      restBaseL, restBaseR,
+      criticalAsymmetry: criticalDetected,
+      method: 'inter_side_movement_symmetry',
+    }
   }));
 
   const ok = !criticalDetected && riskLevel === 'ok';
   setUI({
+    color: ok ? 'var(--col-green)' : 'var(--col-red)',
     msg: ok ? FL.faceDone : FL.faceAbnormal,
     showReset: true,
   });
@@ -926,6 +1022,7 @@ function finishFace() {
 
 function handleFaceFastFlow() {
   const mode = sessionStorage.getItem('fast_mode');
+  const lang = sessionStorage.getItem('fast_lang') || 'th';
   const allDone = ['fast_face','fast_arm','fast_speech'].every(k => sessionStorage.getItem(k));
   setTimeout(() => {
     const existing = document.getElementById('fast-nav-btn');
@@ -936,19 +1033,18 @@ function handleFaceFastFlow() {
     btn.style.cssText = 'background:#1A73E8;border-color:#1A73E8;color:#fff;font-weight:700';
     if (mode === 'full') {
       btn.textContent = FL.navNext;
-      btn.onclick = () => window.location.href = 'arm-test.html';
+      btn.onclick = () => window.location.href = 'arm-test5.html';
     } else {
       if (allDone) {
         btn.textContent = FL.navResult;
         btn.style.background = '#00897B';
-        btn.onclick = () => window.location.href = 'result.html';
+        btn.onclick = () => window.location.href = 'result3.html';
       } else {
         btn.textContent = FL.navHome;
-        btn.onclick = () => window.location.href = 'index.html';
+        btn.onclick = () => window.location.href = 'index3.html';
       }
     }
     document.getElementById('btn-row').appendChild(btn);
-    dashboard.classList.add('has-buttons'); // มั่นใจว่า Dashboard ปรับความสูงเมื่อมีปุ่มเพิ่มเข้ามา
   }, 400);
 }
 
@@ -963,10 +1059,12 @@ function initCamera(stream) {
     });
     activeCamera.start();
     phase = 'BEFORE_START';
-    setUI({ msg: FL.pressStart, showStart: true });
+    setUI({ color: 'var(--col-blue)', msg: FL.pressStart, showStart: true });
   };
 }
 
+// ใช้ permission helper — รองรับ 3 ภาษา + แสดงวิธีแก้ถ้า block
+// เรียกหลังผู้ใช้กด "รับทราบ" disclaimer แล้ว (ไม่ใช่ตอนโหลดทันที)
 async function startCamera() {
   const permLang = sessionStorage.getItem('fast_lang') || 'th';
   const perm = await FastPermissions.request('camera', permLang);

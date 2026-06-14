@@ -161,9 +161,29 @@
   .btn-secondary:active{transform:scale(0.98)}
 
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* ── ปุ่มภาษา fixed ── */
+  #lang-sw-fixed {
+    position: fixed; top: 10px; right: 10px; z-index: 200;
+    display: flex; gap: 4px;
+  }
+  .lsf-btn {
+    background: rgba(27,42,58,0.07);
+    border: 1px solid rgba(27,42,58,0.16);
+    color: var(--ink-soft); border-radius: 8px;
+    padding: 5px 9px; font-size: 11px; font-weight: 700;
+    cursor: pointer; font-family: 'Manrope', sans-serif;
+  }
+  .lsf-btn.active { background: var(--clinical); color: #fff; border-color: var(--clinical); }
 </style>
 </head>
 <body>
+
+<div id="lang-sw-fixed">
+  <button class="lsf-btn" id="lsf-th" onclick="resultSwitchLang('th')">TH</button>
+  <button class="lsf-btn" id="lsf-en" onclick="resultSwitchLang('en')">EN</button>
+  <button class="lsf-btn" id="lsf-ja" onclick="resultSwitchLang('ja')">JA</button>
+</div>
 
 <header>
   <div class="brand">
@@ -224,7 +244,8 @@
 <script>
 'use strict';
 
-const lang = sessionStorage.getItem('fast_lang') || 'th';
+// lang อ่านจาก sessionStorage ทุกครั้ง buildResult เรียก (รองรับการเปลี่ยนภาษา)
+function getLang() { return sessionStorage.getItem('fast_lang') || 'th'; }
 
 // น้ำหนักตามงานวิจัย: face และ arm เป็นตัวทำนาย stroke อิสระ (Santa Clara, n=359)
 const WEIGHTS = { face: 0.40, arm: 0.40, speech: 0.20 };
@@ -277,8 +298,6 @@ const LABELS = {
   },
 };
 
-const T = LABELS[lang];
-
 // SVG icons แทน emoji
 const ICONS = {
   face:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg>',
@@ -292,7 +311,7 @@ function getRiskClass(score) {
   return 'bad';
 }
 
-function applyStaticLabels() {
+function applyStaticLabels(T) {
   document.getElementById('eyebrow').textContent = T.eyebrow;
   document.getElementById('breakdown-title').textContent = T.breakdown;
   document.getElementById('suggest-title').textContent = T.suggest;
@@ -303,7 +322,8 @@ function applyStaticLabels() {
 }
 
 function buildResult() {
-  applyStaticLabels();
+  const T = LABELS[getLang()] || LABELS.th;
+  applyStaticLabels(T);
 
   const data = {
     face:   JSON.parse(sessionStorage.getItem('fast_face')   || 'null'),
@@ -394,10 +414,30 @@ function buildResult() {
 
 function retryAll() {
   ['fast_face','fast_arm','fast_speech'].forEach(k => sessionStorage.removeItem(k));
-  window.location.href = 'index.html';
+  window.location.href = 'index3.html';
+}
+
+function resultSwitchLang(code) {
+  if (!LABELS[code]) return;
+  sessionStorage.setItem('fast_lang', code);
+  // rebuild result with new language
+  buildResult();
+  // update active button
+  ['th','en','ja'].forEach(c => {
+    const b = document.getElementById('lsf-' + c);
+    if (b) b.classList.toggle('active', c === code);
+  });
 }
 
 buildResult();
+// init active lang button
+{
+  const curLang = sessionStorage.getItem('fast_lang') || 'th';
+  ['th','en','ja'].forEach(c => {
+    const b = document.getElementById('lsf-' + c);
+    if (b) b.classList.toggle('active', c === curLang);
+  });
+}
 </script>
 </body>
 </html>

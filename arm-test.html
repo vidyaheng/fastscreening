@@ -105,34 +105,10 @@
   #action-btn:active{transform:scale(.97)}
   #action-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
   #action-btn.green{background:var(--green)} #action-btn.red{background:var(--red)}
-
-  /* ── ปุ่มภาษามุมบนขวา (fixed) ── */
-  #lang-sw-fixed {
-    position: fixed; top: 10px; right: 10px; z-index: 200;
-    display: none; gap: 4px;
-  }
-  #lang-sw-fixed.show { display: flex; }
-  .lsf-btn {
-    background: rgba(27,42,58,0.08);
-    border: 1px solid rgba(27,42,58,0.18);
-    color: var(--text); border-radius: 8px;
-    padding: 5px 9px; font-size: 11px;
-    font-weight: 700; cursor: pointer;
-    font-family: 'Manrope', sans-serif;
-    transition: background 0.15s;
-  }
-  .lsf-btn:active { background: var(--blue); color: #fff; }
-  .lsf-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
 </style>
 <script src="fast-permissions.js"></script>
 </head>
 <body>
-
-<div id="lang-sw-fixed">
-  <button class="lsf-btn" id="lsf-th" onclick="armSwitchLang('th')">TH</button>
-  <button class="lsf-btn" id="lsf-en" onclick="armSwitchLang('en')">EN</button>
-  <button class="lsf-btn" id="lsf-ja" onclick="armSwitchLang('ja')">JA</button>
-</div>
 
 <div id="lang-screen">
   <span class="lang-logo">🚨 FAST · Arm Drift</span>
@@ -151,6 +127,8 @@
   <div id="top-bar">
     <span class="top-label" id="top-lbl">Arm Drift Test</span>
     <div class="top-right">
+      <!-- 🌐 ปุ่มย้อนกลับไปหน้าเลือกภาษา -->
+      <button class="back-lang-btn" onclick="navToLangScreen()">🌐 Language</button>
       <div class="step-dots"><div class="dot" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div></div>
     </div>
   </div>
@@ -691,40 +669,10 @@ function warnKey(key, title, sub, voiceTxt) {
   }
 }
 
-function armSwitchLang(code) {
-  // ห้ามสลับระหว่างวัด
-  if (phase === 'CALIB' || phase === 'PRE_MEASURE' || phase === 'MEASURE') return;
-  if (!LANG[code]) return;
-  T = LANG[code];
-  sessionStorage.setItem('fast_lang', code);
-  // refresh UI strings
-  $('top-lbl').textContent = T.topLbl;
-  $('cd-unit').textContent = T.cdUnit;
-  $('drift-lbl').textContent = T.driftLbl;
-  $('lbl-r-arm').textContent = T.armRight;
-  $('lbl-l-arm').textContent = T.armLeft;
-  if (phase === 'IDLE') {
-    $('action-btn').textContent = T.btnStart;
-    $('instr').textContent = T['instrWait_right'];
-    $('sub-instr').textContent = T['subWait_right'];
-  }
-  ['th','en','ja'].forEach(c => {
-    const b = $('lsf-' + c);
-    if (b) b.classList.toggle('active', c === code);
-  });
-}
-
 function selectLang(code) {
   T = LANG[code];
   $('lang-screen').style.display='none';
   $('test-screen').style.display='flex';
-  // แสดงปุ่มภาษา
-  const lsf = $('lang-sw-fixed');
-  if (lsf) { lsf.classList.add('show'); }
-  ['th','en','ja'].forEach(c => {
-    const b = $('lsf-' + c);
-    if (b) b.classList.toggle('active', c === code);
-  });
   $('top-lbl').textContent=T.topLbl; $('cd-unit').textContent=T.cdUnit;
   $('drift-lbl').textContent=T.driftLbl; $('lbl-r-arm').textContent=T.armRight;
   $('lbl-l-arm').textContent=T.armLeft;  $('lbl-right').textContent=T.pending;
@@ -760,12 +708,12 @@ function handleArmFastFlow() {
     if (mode === 'full') {
       // Full: arm เป็นอันที่ 2 → ไป speech ต่อ
       btn.textContent = L.next;
-      btn.onclick = () => window.location.href = 'speech-test11.html';
+      btn.onclick = () => window.location.href = 'speech-test.html';
     } else {
       if (allDone) {
         btn.textContent = L.result;
         btn.style.background = 'var(--green)';
-        btn.onclick = () => window.location.href = 'result3.html';
+        btn.onclick = () => window.location.href = 'result.html';
       } else {
         btn.textContent = L.home;
         btn.onclick = () => window.location.href = 'index.html';

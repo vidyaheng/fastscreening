@@ -70,6 +70,14 @@
 
   #pre-cd{display:none;font-family:'Manrope',monospace;font-size:80px;font-weight:800;color:var(--amber);line-height:1;animation:pop .4s ease}
   @keyframes pop{from{transform:scale(1.4);opacity:.3}to{transform:scale(1);opacity:1}}
+  /* แขนงอ → เหยียดตรง วนลูป (สื่อว่าต้องยกแขนขึ้นมาเหยียดตรง) */
+  @keyframes forearm-extend{
+    0%   {transform:rotate(-55deg)}
+    45%  {transform:rotate(0deg)}
+    75%  {transform:rotate(0deg)}
+    100% {transform:rotate(-55deg)}
+  }
+  #forearm-grp{animation:forearm-extend 2.4s ease-in-out infinite}
 
   #cd-wrap{display:none;flex-direction:column;align-items:center}
   .cd-svg-wrap{position:relative;width:86px;height:86px}
@@ -133,28 +141,23 @@
       <div class="arm-ring-outer" id="arm-ring"></div>
       <div class="arm-circle" id="arm-circle"><span class="arm-icon" id="arm-icon">🤚</span></div>
     </div>
-    <div id="pose-guide" style="display:none;margin:4px auto 0;max-width:240px">
-      <svg viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
-        <!-- พื้นหลังนวล -->
-        <rect x="0" y="0" width="240" height="150" rx="14" fill="#F4F6F8"/>
-        <!-- เส้นพื้น -->
-        <line x1="30" y1="132" x2="210" y2="132" stroke="#D4DEE8" stroke-width="2" stroke-linecap="round"/>
-        <!-- หัว -->
-        <circle cx="70" cy="44" r="13" fill="none" stroke="#2B7DE9" stroke-width="3"/>
-        <!-- ลำตัว -->
-        <line x1="70" y1="57" x2="70" y2="100" stroke="#2B7DE9" stroke-width="3" stroke-linecap="round"/>
-        <!-- ขา -->
-        <line x1="70" y1="100" x2="60" y2="130" stroke="#2B7DE9" stroke-width="3" stroke-linecap="round"/>
-        <line x1="70" y1="100" x2="80" y2="130" stroke="#2B7DE9" stroke-width="3" stroke-linecap="round"/>
-        <!-- แขนเหยียดตรงไปข้างหน้า (ระดับไหล่) -->
-        <line x1="70" y1="68" x2="150" y2="68" stroke="#1FA98F" stroke-width="4" stroke-linecap="round"/>
-        <!-- มือถือตั้งขึ้นในมือ -->
-        <rect x="150" y="50" width="22" height="36" rx="4" fill="#fff" stroke="#1FA98F" stroke-width="3"/>
-        <line x1="161" y1="80" x2="161" y2="83" stroke="#1FA98F" stroke-width="2.5" stroke-linecap="round"/>
-        <!-- ลูกศรชี้ว่าเหยียดตรง -->
-        <path d="M178 68 h16 m-5 -5 l5 5 l-5 5" fill="none" stroke="#E89B3C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- เครื่องหมายระดับ (แขนตรง) -->
-        <path d="M95 60 q10 -6 20 0" fill="none" stroke="#1FA98F" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <div id="pose-guide" style="display:none;margin:4px auto 0;max-width:220px">
+      <svg viewBox="0 0 220 140" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+        <rect x="0" y="0" width="220" height="140" rx="14" fill="#F4F6F8"/>
+        <!-- ไหล่ (จุดหมุน) -->
+        <circle cx="45" cy="70" r="6" fill="#2B7DE9"/>
+        <!-- ต้นแขน (คงที่) -->
+        <line x1="45" y1="70" x2="95" y2="70" stroke="#2B7DE9" stroke-width="9" stroke-linecap="round"/>
+        <!-- ข้อศอก + ปลายแขน + มือถือ (กลุ่มที่ animate งอ→ตรง) -->
+        <g id="forearm-grp" style="transform-origin:95px 70px">
+          <!-- ปลายแขน -->
+          <line x1="95" y1="70" x2="150" y2="70" stroke="#1FA98F" stroke-width="9" stroke-linecap="round"/>
+          <!-- ข้อศอก -->
+          <circle cx="95" cy="70" r="6" fill="#1FA98F"/>
+          <!-- มือถือตั้งขึ้นในมือ -->
+          <rect x="150" y="54" width="24" height="38" rx="5" fill="#fff" stroke="#1FA98F" stroke-width="3.5"/>
+          <line x1="162" y1="86" x2="162" y2="89" stroke="#1FA98F" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
       </svg>
     </div>
     <div id="warn-banner"><span class="warn-title" id="warn-title"></span><span class="warn-sub" id="warn-sub"></span></div>

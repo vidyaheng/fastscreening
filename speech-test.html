@@ -63,9 +63,31 @@
   #action-btn:active{opacity:.85;transform:scale(.98)}
   #action-btn.red{background:var(--red)}
   #action-btn.green{background:var(--green)}
+
+  /* ── ปุ่มภาษา fixed มุมบนขวา ── */
+  #lang-sw-fixed {
+    position: fixed; top: 10px; right: 10px; z-index: 200;
+    display: none; gap: 4px;
+  }
+  #lang-sw-fixed.show { display: flex; }
+  .lsf-btn {
+    background: rgba(27,42,58,0.08);
+    border: 1px solid rgba(27,42,58,0.18);
+    color: var(--text); border-radius: 8px;
+    padding: 5px 9px; font-size: 11px; font-weight: 700;
+    cursor: pointer; font-family: 'Manrope', sans-serif;
+    transition: background 0.15s;
+  }
+  .lsf-btn:active, .lsf-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
 </style>
 </head>
 <body>
+
+<div id="lang-sw-fixed">
+  <button class="lsf-btn" id="lsf-th" onclick="speechSwitchLang('th')">TH</button>
+  <button class="lsf-btn" id="lsf-en" onclick="speechSwitchLang('en')">EN</button>
+  <button class="lsf-btn" id="lsf-ja" onclick="speechSwitchLang('ja')">JA</button>
+</div>
 
 <div id="lang-screen">
   <span class="title-lbl">🗣️ FAST · Speech Test</span>
@@ -212,12 +234,26 @@ let flatMin = 1, flatMax = 0, tonerCount = 0, loudCount = 0; // diagnostic
 // ═══════════════════════════════════════════════════
 function selectLang(code) {
   T = CONFIG[code];
+  sessionStorage.setItem('fast_lang', code);
   $('lang-screen').style.display = 'none';
   $('test-screen').style.display = 'flex';
   $('word-target').textContent   = T.target;
   $('hint-text').textContent     = T.hint;
   $('action-btn').textContent    = T.btnStart;
+  // แสดงและ highlight ปุ่มภาษา
+  const lsf = $('lang-sw-fixed');
+  if (lsf) lsf.classList.add('show');
+  ['th','en','ja'].forEach(c => {
+    const b = $('lsf-' + c);
+    if (b) b.classList.toggle('active', c === code);
+  });
   resetUI();
+}
+
+function speechSwitchLang(code) {
+  if (phase === 'CALIBRATING' || phase === 'RECORDING') return; // ห้ามตอนวัด
+  if (!CONFIG[code]) return;
+  selectLang(code);
 }
 
 function goBack() {
@@ -225,6 +261,8 @@ function goBack() {
   phase = 'IDLE';
   $('test-screen').style.display = 'none';
   $('lang-screen').style.display = 'flex';
+  const lsf = $('lang-sw-fixed');
+  if (lsf) lsf.classList.remove('show');
 }
 
 function resetUI() {
@@ -759,20 +797,20 @@ function handleFastFlow(riskLevel) {
       // Full mode: speech เป็นอันสุดท้าย → ไป result
       if (allDone) {
         btn.textContent = L.result;
-        btn.onclick = () => window.location.href = 'result.html';
+        btn.onclick = () => window.location.href = 'result3.html';
       } else {
         btn.textContent = L.home;
-        btn.onclick = () => window.location.href = 'index.html';
+        btn.onclick = () => window.location.href = 'index3.html';
       }
     } else {
       // Individual mode
       if (allDone) {
         btn.textContent = L.result;
         btn.style.background = 'var(--green)';
-        btn.onclick = () => window.location.href = 'result.html';
+        btn.onclick = () => window.location.href = 'result3.html';
       } else {
         btn.textContent = L.home;
-        btn.onclick = () => window.location.href = 'index.html';
+        btn.onclick = () => window.location.href = 'index3.html';
         // ถ้าผิดปกติแต่ยังไม่ครบ แสดงข้อความเตือน
         if (riskLevel !== 'ok') {
           $('rb-sub').textContent = L.incomplete;

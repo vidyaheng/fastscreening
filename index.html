@@ -313,7 +313,7 @@ function startFull() {
   clearAll(true);
   sessionStorage.setItem('fast_mode','full');
   sessionStorage.setItem('fast_lang',lang);
-  location.href = 'face-test6.html';
+  location.href = 'face-test.html';
 }
 
 function toggleIndividual() {
@@ -328,10 +328,10 @@ function toggleIndividual() {
 function goTest(m) {
   sessionStorage.setItem('fast_mode','individual');
   sessionStorage.setItem('fast_lang',lang);
-  location.href = m + (m==='face'?'6':m==='arm'?'5':'11') + '.html';
+  location.href = m + '-test.html';
 }
 
-function goResult() { location.href = 'result3.html'; }
+function goResult() { location.href = 'result.html'; }
 
 function updateProgress() {
   const T = I18N[lang];

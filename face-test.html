@@ -21,38 +21,13 @@
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  /* ── Mobile portrait simulator ── */
-  /* ห่อทั้งหมดในกรอบมือถือ: กว้างสูงสุด 390px กลางจอ */
-  html {
-    background: #1a1a2e;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100dvh;
-  }
-
   body {
     background: var(--col-bg);
     font-family: 'IBM Plex Sans Thai', 'Manrope', -apple-system, sans-serif;
     overflow: hidden;
-    /* กรอบมือถือ */
-    width: 390px;
-    max-width: 100vw;
-    height: 844px;
-    max-height: 100dvh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
-    border-radius: 0;
-    position: relative;
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 24px 60px rgba(0,0,0,0.6);
-  }
-
-  /* บน desktop landscape: แสดงกรอบโทรศัพท์ */
-  @media (min-width: 500px) {
-    body {
-      border-radius: 40px;
-      height: min(844px, 100dvh);
-    }
   }
 
   #video-container {
@@ -242,42 +217,28 @@
 
   #debug-panel {
     display: none;
-    position: absolute;
-    top: 8px; left: 8px; right: 8px;
-    background: rgba(4,8,14,0.93);
-    border: 1px solid rgba(0,255,160,0.25);
-    border-radius: 10px; padding: 8px 10px;
-    flex-direction: column; gap: 2px; z-index: 20;
-    backdrop-filter: blur(8px);
-    max-height: calc(100% - 16px);
-    overflow-y: auto;
+    position: absolute; top: 14px; right: 12px;
+    background: rgba(8,12,16,0.82);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px; padding: 8px 12px;
+    flex-direction: column; gap: 3px; z-index: 20;
+    backdrop-filter: blur(6px);
   }
   #debug-panel.visible { display: flex; }
-  .dbg-section {
-    color: rgba(0,255,160,0.6); font-size: 8px;
-    font-weight: 700; letter-spacing: 1.5px;
-    text-transform: uppercase; margin-top: 4px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    padding-top: 4px;
-  }
-  .dbg-section:first-child { margin-top: 0; border-top: none; padding-top: 0; }
-  .dbg-row { display: flex; gap: 6px; align-items: baseline; }
+  .dbg-row { display: flex; gap: 8px; align-items: baseline; }
   .dbg-lbl {
-    color: rgba(255,255,255,0.35); font-size: 9px;
-    font-weight: 700; letter-spacing: 0.8px;
-    text-transform: uppercase; width: 82px; flex-shrink: 0;
+    color: rgba(255,255,255,0.40); font-size: 9px;
+    font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; width: 70px;
   }
   .dbg-val {
     font-family: 'Manrope', monospace;
-    color: #FFD54F; font-size: 10px; font-weight: 700;
+    color: #FFD54F; font-size: 11px; font-weight: 700;
   }
-  .dbg-val.good { color: #A8F5C3; }
-  .dbg-val.bad  { color: #FF6B6B; }
-  .dbg-val.warn { color: #FFD54F; }
 
-  /* ── ปุ่มเปลี่ยนภาษามุมบนขวา (absolute ใน phone frame) ── */
+  /* ── ปุ่มเปลี่ยนภาษามุมบนขวา (fixed, ทุกหน้า) ── */
   #lang-switcher {
-    position: absolute; top: 12px; right: 12px; z-index: 100;
+    position: fixed; top: 12px; right: 12px; z-index: 100;
     display: flex; gap: 5px;
   }
   .lang-sw-btn {
@@ -354,32 +315,12 @@
   </div>
 
   <div id="debug-panel">
-    <div class="dbg-section">📍 LANDMARK RAW Y (normalized 0-1, ยิ่งน้อย=สูงขึ้น)</div>
-    <span class="dbg-row"><span class="dbg-lbl">mouthL y (61)</span><span class="dbg-val" id="dbg-mly">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">mouthR y (291)</span><span class="dbg-val" id="dbg-mry">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">eyeL y (133)</span><span class="dbg-val" id="dbg-ely">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">eyeR y (362)</span><span class="dbg-val" id="dbg-ery">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">nose y (4)</span><span class="dbg-val" id="dbg-ny">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">forehead y (10)</span><span class="dbg-val" id="dbg-fy">—</span></span>
-
-    <div class="dbg-section">📐 POSE (de-rotated)</div>
-    <span class="dbg-row"><span class="dbg-lbl">roll°</span><span class="dbg-val" id="dbg-roll">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">yaw°</span><span class="dbg-val" id="dbg-yaw">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">pitch°</span><span class="dbg-val" id="dbg-pitch">—</span></span>
-
-    <div class="dbg-section">🎯 RESTING BASELINE</div>
-    <span class="dbg-row"><span class="dbg-lbl">restBaseL y</span><span class="dbg-val" id="dbg-rbl">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">restBaseR y</span><span class="dbg-val" id="dbg-rbr">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">samples</span><span class="dbg-val" id="dbg-n">—</span></span>
-
-    <div class="dbg-section">🏃 ACTION PHASE</div>
-    <span class="dbg-row"><span class="dbg-lbl">riseL (↑ = สูง)</span><span class="dbg-val" id="dbg-riseL">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">riseR</span><span class="dbg-val" id="dbg-riseR">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">avgRise</span><span class="dbg-val" id="dbg-std">—</span></span>
     <span class="dbg-row"><span class="dbg-lbl">asym raw</span><span class="dbg-val" id="dbg-score">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">riseL/riseR</span><span class="dbg-val" id="dbg-mean">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">avgRise</span><span class="dbg-val" id="dbg-std">—</span></span>
     <span class="dbg-row"><span class="dbg-lbl">asym smooth</span><span class="dbg-val" id="dbg-z">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">frames counted</span><span class="dbg-val" id="dbg-sz">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">phase</span><span class="dbg-val" id="dbg-phase">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">frames</span><span class="dbg-val" id="dbg-sz">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">rest samples</span><span class="dbg-val" id="dbg-n">—</span></span>
   </div>
 </div>
 
@@ -634,17 +575,11 @@ applyFaceLang();
 const debugPanel     = document.getElementById('debug-panel');
 const debugBtn       = document.getElementById('debug-btn');
 
-// เปิด debug panel ทันทีโดย default เพื่อ debug mode
-let debugVisible = true;
-debugPanel.classList.add('visible');
-debugBtn.style.opacity = '1';
-debugBtn.textContent = '🔬 Hide Debug';
-
+let debugVisible = false;
 debugBtn.addEventListener('click', () => {
   debugVisible = !debugVisible;
   debugPanel.classList.toggle('visible', debugVisible);
   debugBtn.style.opacity = debugVisible ? '1' : '0.6';
-  debugBtn.textContent = debugVisible ? '🔬 Hide Debug' : '🔬 Debug';
 });
 
 understandBtn.addEventListener('click', () => {
@@ -891,75 +826,15 @@ faceMesh.onResults(results => {
   [IDX_ML, IDX_MR].forEach(i => {
     ctx.fillStyle = '#FFD700';
     ctx.beginPath();
-    ctx.arc(lm[i].x * w, lm[i].y * h, 6, 0, Math.PI * 2);
-    ctx.fill();
-    // เส้นขอบให้ชัด
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-  });
-
-  // จุดตาซ้าย-ขวา (ฟ้า)
-  [IDX_L_EYE, IDX_R_EYE].forEach(i => {
-    ctx.fillStyle = '#4FC3F7';
-    ctx.beginPath();
-    ctx.arc(lm[i].x * w, lm[i].y * h, 4, 0, Math.PI * 2);
+    ctx.arc(lm[i].x * w, lm[i].y * h, 5, 0, Math.PI * 2);
     ctx.fill();
   });
-
-  // เส้นเชื่อมสองมุมปาก (แสดง level ต่าง)
-  ctx.beginPath();
-  ctx.moveTo(lm[IDX_ML].x * w, lm[IDX_ML].y * h);
-  ctx.lineTo(lm[IDX_MR].x * w, lm[IDX_MR].y * h);
-  ctx.strokeStyle = 'rgba(255,215,0,0.6)';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([4, 4]);
-  ctx.stroke();
-  ctx.setLineDash([]);
 
   ctx.restore();
 
-  if (phase !== 'RESTING_PHASE' && phase !== 'ACTION_PHASE') {
-    // อัปเดต phase display แม้ไม่ได้วัด
-    const dbgPhase = document.getElementById('dbg-phase');
-    if (dbgPhase) dbgPhase.textContent = phase;
-    return;
-  }
+  if (phase !== 'RESTING_PHASE' && phase !== 'ACTION_PHASE') return;
 
   const { mLy, mRy, rollDeg, yawDeg, pitchDeg } = computeScore(lm);
-
-  // ── Raw Debug Update (ทุก frame, ไม่ต้องรอเปิด debug panel) ──
-  // landmark y ดิบ (normalized 0-1)
-  const _set = (id, val, cls) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = typeof val === 'number' ? val.toFixed(4) : val;
-    el.className = 'dbg-val' + (cls ? ' ' + cls : '');
-  };
-  _set('dbg-mly', lm[IDX_ML].y);
-  _set('dbg-mry', lm[IDX_MR].y);
-  _set('dbg-ely', lm[IDX_L_EYE].y);
-  _set('dbg-ery', lm[IDX_R_EYE].y);
-  _set('dbg-ny',  lm[IDX_NOSE].y);
-  _set('dbg-fy',  lm[IDX_FOREHEAD].y);
-  // pose
-  _set('dbg-roll',  rollDeg,  Math.abs(rollDeg)  > MAX_ALLOWED_ROLL  ? 'bad' : 'good');
-  _set('dbg-yaw',   yawDeg,   Math.abs(yawDeg)   > MAX_ALLOWED_YAW   ? 'bad' : 'good');
-  _set('dbg-pitch', pitchDeg, Math.abs(pitchDeg) > MAX_ALLOWED_PITCH  ? 'bad' : 'good');
-  // baseline
-  _set('dbg-rbl', restBaseL !== null ? restBaseL : '(calibrating)');
-  _set('dbg-rbr', restBaseR !== null ? restBaseR : '(calibrating)');
-  _set('dbg-n', restSamplesL.length);
-  // phase
-  _set('dbg-phase', phase, phase === 'ACTION_PHASE' ? 'good' : 'warn');
-
-  // rise ตอน action phase
-  if (phase === 'ACTION_PHASE' && restBaseL !== null) {
-    const _rL = Math.max(0, restBaseL - mLy);
-    const _rR = Math.max(0, restBaseR - mRy);
-    _set('dbg-riseL', _rL, _rL > MIN_RISE_TO_SCORE ? 'good' : 'warn');
-    _set('dbg-riseR', _rR, _rR > MIN_RISE_TO_SCORE ? 'good' : 'warn');
-  }
 
   updatePoseBar('bar-yaw',   'val-yaw',   yawDeg,   45);
   updatePoseBar('bar-pitch', 'val-pitch', pitchDeg, 30);
@@ -1038,12 +913,13 @@ faceMesh.onResults(results => {
       }
     }
 
-    // debug — ตอน resting ใช้ raw diff ปาก
-    const rawRestAsymDbg = Math.abs(mLy - mRy);
-    _set('dbg-score', rawRestAsymDbg);
-    _set('dbg-std',   '—');
-    _set('dbg-z',     '—');
-    _set('dbg-sz',    '—');
+    // debug
+    document.getElementById('dbg-score').textContent = rawRestAsym.toFixed(4);
+    document.getElementById('dbg-mean').textContent  = '(calibrating)';
+    document.getElementById('dbg-std').textContent   = mLy.toFixed(4) + '/' + mRy.toFixed(4);
+    document.getElementById('dbg-z').textContent     = '—';
+    document.getElementById('dbg-sz').textContent    = '—';
+    document.getElementById('dbg-n').textContent     = restSamplesL.length;
 
     statusMsg.textContent = FL.step1;
     dashboard.style.background = 'var(--col-orange)';
@@ -1075,10 +951,12 @@ faceMesh.onResults(results => {
     scoreNum.style.color = smoothAsym > ASYM_THRESHOLD ? '#FF6B6B' : '#A8F5C3';
 
     // debug
-    _set('dbg-score', asym);
-    _set('dbg-std',   avgRise);
-    _set('dbg-z',     smoothAsym, smoothAsym > ASYM_THRESHOLD ? 'bad' : 'good');
-    _set('dbg-sz',    actionAsymScores.length);
+    document.getElementById('dbg-score').textContent = asym.toFixed(4);
+    document.getElementById('dbg-mean').textContent  = riseL.toFixed(4) + '/' + riseR.toFixed(4);
+    document.getElementById('dbg-std').textContent   = avgRise.toFixed(4);
+    document.getElementById('dbg-z').textContent     = smoothAsym.toFixed(3);
+    document.getElementById('dbg-sz').textContent    = actionAsymScores.length.toString();
+    document.getElementById('dbg-n').textContent     = restSamplesL.length;
 
     const elapsed = performance.now() - actionStartMs;
     const remain = Math.ceil((ACTION_DURATION_MS - elapsed) / 1000);
@@ -1155,7 +1033,7 @@ function handleFaceFastFlow() {
     btn.style.cssText = 'background:#1A73E8;border-color:#1A73E8;color:#fff;font-weight:700';
     if (mode === 'full') {
       btn.textContent = FL.navNext;
-      btn.onclick = () => window.location.href = 'arm-test5.html';
+      btn.onclick = () => window.location.href = 'arm-test.html';
     } else {
       if (allDone) {
         btn.textContent = FL.navResult;

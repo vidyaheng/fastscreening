@@ -658,8 +658,8 @@ function resetAll() {
   $('drift-fill').style.width='0%';       $('drift-num').textContent='0.0°';
   $('arm-circle').className='arm-circle'; $('arm-ring').className='arm-ring-outer';
   $('arm-icon').textContent='🤚'; hideWarn();
-  $('instr').textContent=T['instrWait_right'];
-  $('sub-instr').textContent=T['subWait_right'];
+  $('instr').textContent=T['instrWait_left'];
+  $('sub-instr').textContent=T['subWait_left'];
   $('action-btn').textContent=T.btnStart;
   $('action-btn').className=''; $('action-btn').disabled=false;
 }
@@ -716,8 +716,18 @@ function armSwitchLang(code) {
 
 function selectLang(code) {
   T = LANG[code];
+  
+  // ── 1. ปลดล็อกระบบเสียงของเบราว์เซอร์ล่วงหน้า (แก้ปัญหาแขนแรกไม่มีเสียง) ──
+  if (window.speechSynthesis) {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(' ');
+    u.lang = T.code;
+    speechSynthesis.speak(u);
+  }
+
   $('lang-screen').style.display='none';
   $('test-screen').style.display='flex';
+  
   // แสดงปุ่มภาษา
   const lsf = $('lang-sw-fixed');
   if (lsf) { lsf.classList.add('show'); }
@@ -725,12 +735,16 @@ function selectLang(code) {
     const b = $('lsf-' + c);
     if (b) b.classList.toggle('active', c === code);
   });
+  
   $('top-lbl').textContent=T.topLbl; $('cd-unit').textContent=T.cdUnit;
   $('drift-lbl').textContent=T.driftLbl; $('lbl-r-arm').textContent=T.armRight;
   $('lbl-l-arm').textContent=T.armLeft;  $('lbl-right').textContent=T.pending;
   $('lbl-left').textContent=T.pending;
-  $('instr').textContent=T['instrWait_right'];
-  $('sub-instr').textContent=T['subWait_right'];
+
+  // ── 2. แก้ไขให้เป็นแขนซ้าย (left) ตั้งแต่เริ่มโหลดหน้าจอ ──
+  arm = 'left'; // บังคับตัวแปรให้มั่นใจว่าเป็นแขนซ้ายอีกครั้ง
+  $('instr').textContent=T['instrWait_left'];     //  เปลี่ยนจาก _right เป็น _left
+  $('sub-instr').textContent=T['subWait_left'];  //  เปลี่ยนจาก _right เป็น _left
   
   $('action-btn').textContent=T.btnStart;
   $('action-btn').disabled=false;

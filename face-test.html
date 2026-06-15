@@ -70,7 +70,6 @@
     z-index: 2;
   }
 
-  /* ป๊อปอัปแจ้งเตือนก่อนเข้าใช้งาน */
   #disclaimer-overlay {
     position: absolute; inset: 0;
     background: rgba(14, 22, 32, 0.95);
@@ -221,6 +220,7 @@
     color: #fff; font-size: 17px; font-weight: 600;
     text-align: center; line-height: 1.45;
     max-width: 340px; position: relative;
+    white-space: pre-line;
   }
 
   #countdown-box { text-align: center; display: none; }
@@ -335,7 +335,7 @@
   }
   .pulse { animation: pulse 1.0s ease-in-out infinite; }
 </style>
-<script src="fast-permission.js"></script>
+<script src="fast-permissions.js"></script>
 </head>
 <body>
 
@@ -747,12 +747,11 @@ function computeScore(lm) {
   const yawDeg    = (noseMidDx / eyeDist) * 90;
 
   const faceLength = Math.abs(chin.y - forehead.y) + 1e-6;
-  const pitchDeg   = getPitchDeg(nose.y, foreheadY_global || forehead.y, faceLength);
+  const pitchDeg   = getPitchDeg(nose.y, forehead.y, faceLength);
 
   return { mLy: mLr.y, mRy: mRr.y, rollDeg, yawDeg, pitchDeg };
 }
 
-let foreheadY_global = null;
 function getPitchDeg(noseY, foreheadY, faceLength) {
   if (pitchNeutralRatio === null) return 0;
   const currentRatio = (noseY - foreheadY) / faceLength;
@@ -1210,12 +1209,11 @@ async function processCameraFrames() {
     if (videoEl.readyState >= 2 && !videoEl.paused && !videoEl.ended) {
       await faceMesh.send({ image: videoEl });
     }
-    // รอจนกระทั่งเบราว์เซอร์พร้อมส่งเฟรมภาพรอบถัดไป (ป้องกันสคริปต์ถมข้อมูลกันจนค้าง)
     await new Promise(requestAnimationFrame);
     processCameraFrames();
   } catch (err) {
     console.error("Frame loop error:", err);
-    setTimeout(processCameraFrames, 200); // หากผิดพลาดให้รอระยะสั้นๆ แล้วทำงานต่อ
+    setTimeout(processCameraFrames, 200);
   }
 }
 
@@ -1254,6 +1252,17 @@ function maybeShowSkipButton() {
 
 async function startCamera() {
   const permLang = sessionStorage.getItem('fast_lang') || 'th';
+  if (typeof FastPermissions === 'undefined') {
+    // fallback: ขอกล้องตรงๆ ถ้า helper ไม่โหลด
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+      initCamera(stream);
+    } catch (e) {
+      statusMsg.textContent = '⚠️ ไม่สามารถเข้าถึงกล้องได้ กรุณาอนุญาตการใช้กล้อง';
+      console.error('Camera access failed:', e);
+    }
+    return;
+  }
   const perm = await FastPermissions.request('camera', permLang);
   if (perm.ok) {
     initCamera(perm.stream);

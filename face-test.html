@@ -8,11 +8,12 @@
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap');
 
   :root {
-    --col-blue-glass:   rgba(43, 125, 233, 0.45);
-    --col-orange-glass: rgba(232, 155, 60, 0.55);
-    --col-green-glass:  rgba(31, 169, 143, 0.55);
-    --col-red-glass:    rgba(229, 84, 78, 0.55);
-    --col-yellow-glass: rgba(232, 155, 60, 0.55);
+    /* ปรับโทนสีให้เป็นแบบกระจกฝ้าสไตล์ iOS */
+    --col-blue-glass:   rgba(15, 32, 67, 0.55);
+    --col-orange-glass: rgba(214, 116, 17, 0.6);
+    --col-green-glass:  rgba(20, 108, 81, 0.6);
+    --col-red-glass:    rgba(186, 38, 38, 0.65);
+    --col-yellow-glass: rgba(204, 153, 0, 0.65);
     --col-bg:      #0E1620;
     --radius-dash: 32px;
     --transition:  background 0.4s cubic-bezier(0.25, 1, 0.5, 1);
@@ -21,7 +22,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   html {
-    background: #1a1a2e;
+    background: #10141d;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -50,7 +51,7 @@
     }
   }
 
-  /* ปรับให้กล้องขยายใหญ่เต็มหน้าจอเป็นพื้นหลัง */
+  /* เลเยอร์กล้องขยายใหญ่เต็มหน้าจอเป็นฉากหลัง */
   #video-container {
     position: absolute;
     inset: 0;
@@ -71,14 +72,16 @@
     z-index: 2;
   }
 
+  /* ป๊อปอัปแจ้งเตือนก่อนเข้าใช้งาน */
   #disclaimer-overlay {
     position: absolute; inset: 0;
-    background: rgba(8, 12, 16, 0.93);
+    background: rgba(14, 22, 32, 0.95);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     gap: 18px; padding: 28px;
     z-index: 130;
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
   #disclaimer-overlay .disc-icon { font-size: 38px; }
   #disclaimer-overlay h2 {
@@ -153,7 +156,7 @@
     color: #fff; font-size: 10px; font-weight: 700;
   }
 
-  /* ── หน้าจอหลักสไตล์ iPhone Glass Bubble ── */
+  /* ── พาเนลหลักด้านล่างสไตล์ iPhone Glass Bubble ── */
   #dashboard {
     position: absolute;
     bottom: 16px; left: 16px; right: 16px;
@@ -161,15 +164,15 @@
     border-radius: var(--radius-dash);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    padding: 24px 22px 28px; gap: 12px;
+    padding: 24px 22px 28px; gap: 14px;
     transition: var(--transition);
     background: var(--col-blue-glass);
     
-    /* เอฟเฟกต์กระจกฝ้ามัวๆ แบบ iOS */
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    /* เปิดฟีเจอร์เบลอกระจกฝ้าด้านหลังเพื่อให้เห็นเงากล้องเคลื่อนไหวลางๆ */
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
   }
 
   #app-title {
@@ -195,7 +198,7 @@
     font-weight: 800; line-height: 1;
   }
 
-  /* จัดการกล่องแสดงคะแนนใหม่ ไม่ให้ซ้อนทับกัน */
+  /* การจัดวางกล่องคะแนนและสถานะ (เลือกเปิดเฉพาะอันเดียวสวยๆ ไม่ซ้อนกันแล้ว) */
   #score-box { text-align: center; display: none; width: 100%; }
   #score-container {
     display: flex;
@@ -206,20 +209,20 @@
   }
   #score-num {
     font-family: 'Manrope', monospace;
-    font-size: 46px; font-weight: 800; line-height: 1;
+    font-size: 44px; font-weight: 800; line-height: 1;
   }
   #score-label {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
-    padding: 4px 14px;
-    border-radius: 10px;
+    padding: 5px 14px;
+    border-radius: 12px;
     background: rgba(255,255,255,0.15);
     color: #fff;
     border: 1px solid rgba(255,255,255,0.1);
   }
   #score-threshold {
-    color: rgba(255,255,255,0.5); font-size: 12px;
-    margin-top: 4px; display: block; font-weight: 500;
+    color: rgba(255,255,255,0.45); font-size: 12px;
+    margin-top: 6px; display: block; font-weight: 500;
   }
 
   #btn-row { 
@@ -227,16 +230,16 @@
     justify-content: center; align-items: center; flex-wrap: wrap;
   }
   .action-btn {
-    background: rgba(255,255,255,0.16);
-    border: 1px solid rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.3);
     color: #fff; border-radius: 14px;
-    padding: 13px 28px;
+    padding: 13px 26px;
     font-family: 'IBM Plex Sans Thai', sans-serif;
     font-size: 15px; font-weight: 700;
     letter-spacing: 0.3px; cursor: pointer;
     transition: transform 0.12s, background 0.18s;
   }
-  .action-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.26); }
+  .action-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.24); }
   #start-btn {
     background: #2B7DE9; border-color: rgba(255,255,255,0.2);
     box-shadow: 0 6px 16px rgba(43,125,233,0.35);
@@ -245,7 +248,7 @@
   #pose-warn-msg {
     display: none;
     color: #fff;
-    background: rgba(229, 84, 78, 0.85);
+    background: rgba(229, 84, 78, 0.9);
     padding: 6px 14px;
     border-radius: 10px;
     font-size: 14px;
@@ -285,9 +288,6 @@
     font-family: 'Manrope', monospace;
     color: #FFD54F; font-size: 10px; font-weight: 700;
   }
-  .dbg-val.good { color: #A8F5C3; }
-  .dbg-val.bad  { color: #FF6B6B; }
-  .dbg-val.warn { color: #FFD54F; }
 
   #lang-switcher {
     position: absolute; top: 14px; right: 14px; z-index: 100;
@@ -304,7 +304,6 @@
     transition: background 0.15s, border-color 0.15s;
     backdrop-filter: blur(4px);
   }
-  .lang-sw-btn:active { background: rgba(43,125,233,0.7); border-color: #2B7DE9; }
   .lang-sw-btn.active { background: #2B7DE9; border-color: #2B7DE9; }
 
   #back-home-btn {
@@ -316,9 +315,7 @@
     font-weight: 700; cursor: pointer;
     font-family: 'Manrope', sans-serif;
     backdrop-filter: blur(4px);
-    transition: background 0.15s;
   }
-  #back-home-btn:active { background: rgba(229,84,78,0.7); border-color: #E5544E; }
 
   .hidden { display: none !important; }
 
@@ -400,16 +397,7 @@
 
     <div class="dbg-section">🎯 RESTING BASELINE</div>
     <span class="dbg-row"><span class="dbg-lbl">restBaseL y</span><span class="dbg-val" id="dbg-rbl">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">restBaseR y</span><span class="dbg-val" id="dbg-rbr">—</span></span>
     <span class="dbg-row"><span class="dbg-lbl">samples</span><span class="dbg-val" id="dbg-n">—</span></span>
-
-    <div class="dbg-section">🏃 ACTION PHASE</div>
-    <span class="dbg-row"><span class="dbg-lbl">riseL</span><span class="dbg-val" id="dbg-riseL">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">riseR</span><span class="dbg-val" id="dbg-riseR">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">avgRise</span><span class="dbg-val" id="dbg-std">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">asym raw</span><span class="dbg-val" id="dbg-score">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">asym smooth</span><span class="dbg-val" id="dbg-z">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">frames counted</span><span class="dbg-val" id="dbg-sz">—</span></span>
     <span class="dbg-row"><span class="dbg-lbl">phase</span><span class="dbg-val" id="dbg-phase">—</span></span>
   </div>
 </div>
@@ -429,7 +417,7 @@
       <span id="score-num">—</span>
       <span id="score-label">ปกติ</span>
     </div>
-    <span id="score-threshold">เกณฑ์ ±3.0</span>
+    <span id="score-threshold">เกณฑ์ความไม่สมสมมาตรสูงสุด 0.40</span>
   </div>
 
   <div id="btn-row">
@@ -545,38 +533,37 @@ const FACE_I18N = {
     step2: 'ステップ2: 歯が見えるように大きく笑ってください! 😄',
     noFaceBaseline: '⚠️ 基準値の記録中に顔が検出されませんでした。もう一度お試しください。',
     mouthHidden: '👄 口がはっきり見えません — 顔全体を見せてください',
-    tiltLeft: '↙️ 首が左に傾きすぎています — 頭をまっすぐに',
-    tiltRight: '↘️ 首が右に傾きすぎています — 頭をまっすぐに',
-    turnRight: '➡️ 右を向きすぎています — 正面を向いてください',
-    turnLeft: '⬅️ 左を向きすぎています — 正面を向いてください',
-    lookUp: '⬇️ 下を向きすぎています — 少し顔を上げてください',
-    lookDown: '⬆️ 上を向きすぎています — 少し顔を下げてください',
-    critical: '🚨 重度の非対称が検出されました!\nすぐに医師の診察を受けてください',
+    tiltLeft: '首が左に傾きすぎています',
+    tiltRight: '首が右に傾きすぎています',
+    turnRight: '右を向きすぎています',
+    turnLeft: '左を向きすぎています',
+    lookUp: '下を向きすぎています',
+    lookDown: '上を向きすぎています',
+    critical: '🚨 重度の非対称が検出されました!',
     asymDetect: '⚠️ 非対称を検出... (',
     holdSmile: '笑顔を保ってください... (',
     faceDone: '✅ 顔のテスト完了',
     faceAbnormal: '⚠️ 顔の異常を検出',
     asymLabel: '非対称度',
-    navResult: 'FASTスコアを見る →',
+    navResult: 'FASTスコアを見る',
     navNext: '腕のテストへ →',
     navHome: 'ホームに戻る',
     smilePrompt: '😄 笑って!',
     smileVoice: '歯が見えるように大きく笑ってください',
-    noSmileWarn: '😐 まだ笑っていません — 歯が見えるように笑ってください',
+    noSmileWarn: '😐 まだ笑っていません',
     restVoice: '顔をまっすぐ静かに',
     abortReset: '↺ テスト停止、再開します...',
     backHome: '← ホームに戻る',
-    skipStep: 'このステップをスキップ →',
+    skipStep: 'スキップ →',
     resultScore: 'スコア',
     resultOk: '正常',
     resultWarn: '注意',
     resultBad: '異常',
-  },
+  }
 };
 
 let FL = FACE_I18N[sessionStorage.getItem('fast_lang') || 'th'] || FACE_I18N.th;
 
-// ── แก้ไขเรื่องภาษา: บังคับอัปเดตข้อความใน UI ทุกส่วนให้เปลี่ยนตามสิทธิ์ทางภาษาอย่างสมบูรณ์ ──
 function applyFaceLang() {
   const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
   const setHTML = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
@@ -612,7 +599,7 @@ function speakFace(text) {
 
 function goBackHome() {
   if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') {
-    const msg = { th: 'ออกจากการทดสอบ? ผลจะไม่ถูกบันทึก', en: 'Exit test? Result will not be saved.', ja: 'テストを終了しますか？結果は保存されません。' };
+    const msg = { th: 'ออกจากการทดสอบ? ผลจะไม่ถูกบันทึก', en: 'Exit test? Result will not be saved.', ja: '終了しますか？' };
     if (!confirm(msg[sessionStorage.getItem('fast_lang') || 'th'] || msg.th)) return;
   }
   if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
@@ -629,29 +616,24 @@ function skipFaceStep() {
 const ACTION_DURATION_MS   = 6000;   
 let actionStartMs          = null;
 let actionAsymScores       = [];     
-
 const CALIBRATION_SECONDS  = 5;      
 const SMOOTHING_WINDOW     = 10;
 const MAX_HISTORY          = 300;
-
 const REST_FIRE_WINDOW     = 8;
 const CRITICAL_THRESHOLD   = 0.28;   
-
 const ASYM_THRESHOLD       = 0.40;  
 const ASYM_CRITICAL        = 0.70;  
 
 const MAX_ALLOWED_YAW      = 28;
 const MAX_ALLOWED_PITCH    = 18;
 const MAX_ALLOWED_ROLL     = 18;
-
 const MIN_MOUTH_EYE_RATIO  = 0.15;
 const MIN_RISE_TO_SCORE    = 0.005; 
-
 const SMILE_RISE_MIN       = 0.012; 
 const NO_SMILE_GRACE_MS    = 2000;  
-let   smileStarted         = false; 
-let   smileWarningActive   = false;
 
+let smileStarted         = false; 
+let smileWarningActive   = false;
 const IDX_L_EYE   = 133, IDX_R_EYE = 362;
 const IDX_NOSE    = 4,   IDX_FOREHEAD = 10;
 const IDX_CHIN    = 152;
@@ -672,7 +654,6 @@ let countdownTimer    = null;
 let activeCamera      = null;
 let activeStream      = null;
 let countdownPaused   = false;
-
 let pitchNeutralSamples = [];
 let pitchNeutralRatio   = null;
 const PITCH_CALIB_FRAMES = 25;
@@ -715,11 +696,7 @@ applyFaceLang();
 }
 const debugPanel     = document.getElementById('debug-panel');
 const debugBtn       = document.getElementById('debug-btn');
-
 let debugVisible = false;
-debugPanel.classList.remove('visible');
-debugBtn.style.opacity = '0.6';
-debugBtn.textContent = '🔬 Debug';
 
 debugBtn.addEventListener('click', () => {
   debugVisible = !debugVisible;
@@ -728,21 +705,20 @@ debugBtn.addEventListener('click', () => {
   debugBtn.textContent = debugVisible ? '🔬 Hide Debug' : '🔬 Debug';
 });
 
+// ดักฟังเหตุการณ์เมื่อกดยอมรับข้อตกลง
 understandBtn.addEventListener('click', () => {
   disclaimerEl.style.display = 'none';
   startCamera(); 
 });
 
 function computeScore(lm) {
-  function mirrorPt(pt) { return { x: 1.0 - pt.x, y: pt.y, z: pt.z }; }
-
-  const lEye     = mirrorPt(lm[IDX_L_EYE]);
-  const rEye     = mirrorPt(lm[IDX_R_EYE]);
-  const nose     = mirrorPt(lm[IDX_NOSE]);
-  const forehead = mirrorPt(lm[IDX_FOREHEAD]);
-  const chin     = mirrorPt(lm[IDX_CHIN]);
-  const mL       = mirrorPt(lm[IDX_ML]);
-  const mR       = mirrorPt(lm[IDX_MR]);
+  const lEye     = lm[IDX_L_EYE];
+  const rEye     = lm[IDX_R_EYE];
+  const nose     = lm[IDX_NOSE];
+  const forehead = lm[IDX_FOREHEAD];
+  const chin     = lm[IDX_CHIN];
+  const mL       = lm[IDX_ML];
+  const mR       = lm[IDX_MR];
 
   const eyeDx = lEye.x - rEye.x;
   const eyeDy = lEye.y - rEye.y;
@@ -779,19 +755,10 @@ function getPitchDeg(noseY, foreheadY, faceLength) {
 function checkMouthVisibility(lm) {
   const lEye = lm[IDX_L_EYE], rEye = lm[IDX_R_EYE];
   const mL   = lm[IDX_ML],    mR   = lm[IDX_MR];
-  const lipT = lm[IDX_LIP_TOP], lipB = lm[IDX_LIP_BOT];
-
   const eyeWidth   = Math.sqrt((lEye.x - rEye.x) ** 2 + (lEye.y - rEye.y) ** 2) + 1e-6;
   const mouthWidth = Math.sqrt((mL.x   - mR.x)   ** 2 + (mL.y   - mR.y)   ** 2);
   const ratio      = mouthWidth / eyeWidth;
-
-  const outOfFrame = [mL, mR, lipT, lipB].some(
-    p => p.x < 0.02 || p.x > 0.98 || p.y < 0.02 || p.y > 0.98
-  );
-
-  if (outOfFrame || ratio < MIN_MOUTH_EYE_RATIO) {
-    return { ok: false, reason: FL.mouthHidden };
-  }
+  if (ratio < MIN_MOUTH_EYE_RATIO) return { ok: false, reason: FL.mouthHidden };
   return { ok: true, reason: '' };
 }
 
@@ -801,10 +768,9 @@ function updatePoseBar(barId, valId, deg, maxDeg) {
   const clip = Math.max(-maxDeg, Math.min(maxDeg, deg));
   const pct  = Math.abs(clip) / maxDeg * 50;
   const bad  = Math.abs(deg) > maxDeg * 0.6;
-  const color = bad ? 'rgba(255,107,107,0.95)' : 'rgba(168,245,195,0.95)';
   if (clip < 0) { bar.style.left = (50 - pct) + '%'; bar.style.width = pct + '%'; }
   else          { bar.style.left = '50%';              bar.style.width = pct + '%'; }
-  bar.style.background  = color;
+  bar.style.background  = bad ? 'rgba(255,107,107,0.95)' : 'rgba(168,245,195,0.95)';
   val.textContent       = (deg > 0 ? '+' : '') + deg.toFixed(0) + '°';
   val.style.color       = bad ? '#FF6B6B' : '#A8F5C3';
 }
@@ -818,12 +784,11 @@ function setUI({ glassColor, msg, poseWarn = '', showCD = false, showScore = fal
   }
   statusMsg.textContent      = msg;
   statusMsg.style.display    = msg ? 'block' : 'none';
-
   poseWarnMsg.textContent    = poseWarn;
   poseWarnMsg.style.display  = poseWarn ? 'block' : 'none';
-
   countdownBox.style.display = showCD    ? 'block' : 'none';
   scoreBox.style.display     = showScore ? 'block' : 'none';
+  
   startBtn.classList.toggle('hidden', !showStart);
   resetBtn.classList.toggle('hidden', !showReset);
   debugBtn.classList.toggle('hidden', !showReset);
@@ -833,16 +798,11 @@ function setUI({ glassColor, msg, poseWarn = '', showCD = false, showScore = fal
 function finaliseBaseline() {
   if (!restSamplesL.length || !restSamplesR.length) {
     phase = 'BEFORE_START';
-    setUI({
-      glassColor: 'var(--col-orange-glass)',
-      msg: FL.noFaceBaseline,
-      showStart: true,
-    });
+    setUI({ glassColor: 'var(--col-orange-glass)', msg: FL.noFaceBaseline, showStart: true });
     return;
   }
   restBaseL = restSamplesL.reduce((a, b) => a + b, 0) / restSamplesL.length;
   restBaseR = restSamplesR.reduce((a, b) => a + b, 0) / restSamplesR.length;
-  
   startActionPhase();
 }
 
@@ -854,15 +814,10 @@ function startActionPhase() {
   smileStarted   = false;
   smileWarningActive = false;
   
-  // ปรับให้ดึงค่าคำศัพท์แบบรีลไทม์
-  scoreLabel.textContent = FL.asymLabel || 'Asymmetry';
+  scoreLabel.textContent = FL.asymLabel;
   document.getElementById('score-threshold').textContent = FL.threshold;
 
-  setUI({
-    glassColor: 'var(--col-green-glass)',
-    msg: FL.step2,
-    showScore: true, showReset: true, showHud: true,
-  });
+  setUI({ glassColor: 'var(--col-green-glass)', msg: FL.step2, showScore: true, showReset: true, showHud: true });
   const sp = document.getElementById('smile-prompt');
   if (sp) {
     sp.querySelector('div').textContent = FL.smilePrompt;
@@ -924,12 +879,7 @@ function startScreening() {
   if (oldSkip) oldSkip.remove();
 
   phase = 'RESTING_PHASE';
-  setUI({
-    glassColor: 'var(--col-orange-glass)',
-    msg: FL.step1,
-    showCD: true, showHud: true,
-  });
-
+  setUI({ glassColor: 'var(--col-orange-glass)', msg: FL.step1, showCD: true, showHud: true });
   maybeShowSkipButton();
 
   if (countdownTimer) clearInterval(countdownTimer);
@@ -954,56 +904,89 @@ const faceMesh = new FaceMesh({
 faceMesh.setOptions({
   maxNumFaces: 1,
   refineLandmarks: false,
-  minDetectionConfidence: 0.6,
-  minTrackingConfidence:  0.6,
+  minDetectionConfidence: 0.55,
+  minTrackingConfidence:  0.55,
 });
 
+/* ปรับปรุงฟังก์ชันวาด Landmark ให้ตรงกับวิดีโอแบบเต็มจอ */
 faceMesh.onResults(results => {
-  const vw = videoEl.videoWidth  || videoEl.offsetWidth;
-  const vh = videoEl.videoHeight || videoEl.offsetHeight;
-  if (canvasEl.width !== vw)  canvasEl.width  = vw;
-  if (canvasEl.height !== vh) canvasEl.height = vh;
-  ctx.clearRect(0, 0, vw, vh);
+  const vw = videoEl.videoWidth;
+  const vh = videoEl.videoHeight;
+  if (!vw || !vh) return;
+
+  if (canvasEl.width !== canvasEl.clientWidth || canvasEl.height !== canvasEl.clientHeight) {
+    canvasEl.width = canvasEl.clientWidth;
+    canvasEl.height = canvasEl.clientHeight;
+  }
+  const displayW = canvasEl.width;
+  const displayH = canvasEl.height;
+  
+  ctx.clearRect(0, 0, displayW, displayH);
 
   if (!results.multiFaceLandmarks || !results.multiFaceLandmarks.length) {
-    if (++noFaceCount > 10) noFaceBanner.style.display = 'block';
+    if (++noFaceCount > 12) noFaceBanner.style.display = 'block';
     return;
   }
   noFaceCount = 0;
   noFaceBanner.style.display = 'none';
 
   const lm = results.multiFaceLandmarks[0];
-  const w  = vw;
-  const h  = vh;
 
-  if (lm[IDX_FOREHEAD]) foreheadY_global = lm[IDX_FOREHEAD].y;
+  // คำนวณอัตราส่วนการตัดของ Object-fit: Cover เพื่อจุดพิกัดที่แม่นยำขึ้น
+  const videoRatio = vw / vh;
+  const screenRatio = displayW / displayH;
+  let scaleX = 1, scaleY = 1;
+  let offsetX = 0, offsetY = 0;
+
+  if (videoRatio > screenRatio) {
+    scaleX = displayH * videoRatio / displayW;
+    offsetX = (1 - scaleX) / 2;
+  } else {
+    scaleY = displayW / videoRatio / displayH;
+    offsetY = (1 - scaleY) / 2;
+  }
+
+  // แปลงพิกัดจากระบบ MediaPipe Normalize (0-1) ให้พอดีกับหน้าจอมือถือจริง
+  const projectPoint = (pt) => {
+    return {
+      x: ((pt.x * scaleX) + offsetX) * displayW,
+      y: ((pt.y * scaleY) + offsetY) * displayH
+    };
+  };
 
   ctx.save();
-  ctx.translate(w, 0);
+  // จัดการการ Mirror ภาพกล้องหน้า
+  ctx.translate(displayW, 0);
   ctx.scale(-1, 1);
 
+  // วาดเส้นตารางใบหน้าเท่ๆ ลางๆ
   if (typeof drawConnectors !== 'undefined' && (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE')) {
-    if (window.FACEMESH_TESSELATION) drawConnectors(ctx, lm, window.FACEMESH_TESSELATION, { color: 'rgba(0,200,180,0.08)', lineWidth: 1 });
-    if (window.FACEMESH_FACE_OVAL) drawConnectors(ctx, lm, window.FACEMESH_FACE_OVAL, { color: 'rgba(0,220,200,0.35)', lineWidth: 2 });
-    if (window.FACEMESH_LIPS) drawConnectors(ctx, lm, window.FACEMESH_LIPS, { color: 'rgba(255,100,100,0.75)', lineWidth: 2 });
+    ctx.strokeStyle = 'rgba(0, 220, 200, 0.15)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < lm.length; i += 4) {
+      const p = projectPoint(lm[i]);
+      if(i===0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
   }
 
+  // วาดจุดมาร์กเกอร์มุมปากซ้าย-ขวา
   [IDX_ML, IDX_MR].forEach(i => {
+    const pt = projectPoint(lm[i]);
     ctx.fillStyle = '#FFD700';
     ctx.beginPath();
-    ctx.arc(lm[i].x * w, lm[i].y * h, 5, 0, Math.PI * 2);
+    ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
   });
-
   ctx.restore();
 
-  if (phase !== 'RESTING_PHASE' && phase !== 'ACTION_PHASE' && phase !== 'ACTION_WAIT_SMILE') {
-    return;
-  }
+  if (phase !== 'RESTING_PHASE' && phase !== 'ACTION_PHASE' && phase !== 'ACTION_WAIT_SMILE') return;
 
+  // ใช้ค่า Landmark แบบ Raw ดั้งเดิมในการประมวลผลอัลกอริทึม
   const { mLy, mRy, rollDeg, yawDeg, pitchDeg } = computeScore(lm);
 
   updatePoseBar('bar-yaw',   'val-yaw',   yawDeg,   45);
@@ -1012,42 +995,21 @@ faceMesh.onResults(results => {
 
   const mouthCheck = checkMouthVisibility(lm);
   if (!mouthCheck.ok) {
-    if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') {
-      abortAndRestart(mouthCheck.reason);
-      return;
-    }
-    countdownPaused = true;
-    const db = document.getElementById('dashboard');
-    if (db) db.style.background = 'var(--col-yellow-glass)';
-    poseWarnMsg.textContent    = mouthCheck.reason;
-    poseWarnMsg.style.display  = 'block';
-    statusMsg.style.display    = 'none';
+    abortAndRestart(mouthCheck.reason);
     return;
   }
 
-  {
-    const rollBad  = Math.abs(rollDeg)  > MAX_ALLOWED_ROLL;
-    const yawBad   = Math.abs(yawDeg)   > MAX_ALLOWED_YAW;
-    const pitchBad = pitchNeutralRatio !== null && Math.abs(pitchDeg) > MAX_ALLOWED_PITCH;
+  const rollBad  = Math.abs(rollDeg)  > MAX_ALLOWED_ROLL;
+  const yawBad   = Math.abs(yawDeg)   > MAX_ALLOWED_YAW;
+  const pitchBad = pitchNeutralRatio !== null && Math.abs(pitchDeg) > MAX_ALLOWED_PITCH;
 
-    if (rollBad || yawBad || pitchBad) {
-      let warnText = '';
-      if (rollBad) warnText = rollDeg > 0 ? FL.tiltLeft : FL.tiltRight;
-      else if (yawBad) warnText = yawDeg > 0 ? FL.turnRight : FL.turnLeft;
-      else if (pitchBad) warnText = pitchDeg > 0 ? FL.lookUp : FL.lookDown;
-      
-      if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') {
-        abortAndRestart(warnText);
-        return;
-      }
-      countdownPaused = true;
-      const db = document.getElementById('dashboard');
-      if (db) db.style.background = 'var(--col-yellow-glass)';
-      poseWarnMsg.textContent    = warnText;
-      poseWarnMsg.style.display  = 'block';
-      statusMsg.style.display    = 'none';
-      return;
-    }
+  if (rollBad || yawBad || pitchBad) {
+    let warnText = '';
+    if (rollBad) warnText = rollDeg > 0 ? FL.tiltLeft : FL.tiltRight;
+    else if (yawBad) warnText = yawDeg > 0 ? FL.turnRight : FL.turnLeft;
+    else if (pitchBad) warnText = pitchDeg > 0 ? FL.lookUp : FL.lookDown;
+    abortAndRestart(warnText);
+    return;
   }
 
   countdownPaused = false;
@@ -1103,7 +1065,6 @@ faceMesh.onResults(results => {
         phase = 'ACTION_PHASE';
       }
       smileStarted = true;
-      smileWarningActive = false;
     }
 
     const elapsedNow = performance.now() - actionStartMs;
@@ -1129,10 +1090,8 @@ faceMesh.onResults(results => {
     const smoothAsym = recentAsymScores.reduce((a, b) => a + b, 0) / recentAsymScores.length;
     actionAsymScores.push(smoothAsym);
 
-    // ระหว่างทดสอบให้โชว์เป็นค่า Realtime Asym แบบทศนิยม
     scoreNum.textContent = smoothAsym.toFixed(2);
     scoreNum.style.color = smoothAsym > ASYM_THRESHOLD ? '#FF6B6B' : '#A8F5C3';
-    scoreLabel.textContent = FL.asymLabel || 'Asymmetry';
 
     const elapsed = performance.now() - actionStartMs;
     const remain = Math.ceil((ACTION_DURATION_MS - elapsed) / 1000);
@@ -1177,27 +1136,18 @@ function finishFace() {
     score: finalScore,
     riskLevel: finalRisk,
     passed: !criticalDetected && riskLevel === 'ok',
-    breakdown: {
-      representativeAsym: repAsym,
-      restBaseL, restBaseR,
-      criticalAsymmetry: criticalDetected,
-      method: 'inter_side_movement_symmetry',
-    }
+    breakdown: { representativeAsym: repAsym, restBaseL, restBaseR, method: 'inter_side_movement_symmetry' }
   }));
 
   const ok = !criticalDetected && riskLevel === 'ok';
-  
-  // จัดทำระบบแปลภาษาตรงผลลัพธ์สุดท้ายให้ถูกต้องตามตัวแปรภาษา
   const riskText = finalRisk === 'ok' ? FL.resultOk : finalRisk === 'warn' ? FL.resultWarn : FL.resultBad;
-  const headMsg  = ok ? FL.faceDone : FL.faceAbnormal;
   
   setUI({
     glassColor: ok ? 'var(--col-green-glass)' : (finalRisk === 'warn' ? 'var(--col-orange-glass)' : 'var(--col-red-glass)'),
-    msg: headMsg,
+    msg: ok ? FL.faceDone : FL.faceAbnormal,
     showReset: true,
   });
   
-  // ปรับการแสดงผล: โชว์คะแนนดิบ และข้อความแปลตามระดับความเสี่ยง (ปกติ / ผิดปกติ) อยู่ในระดับเดียวกัน
   const sb = document.getElementById('score-box');
   if (sb) sb.style.display = 'block';
   
@@ -1208,7 +1158,6 @@ function finishFace() {
   scoreLabel.style.background = ok ? 'rgba(31, 169, 143, 0.4)' : (finalRisk === 'warn' ? 'rgba(232, 155, 60, 0.4)' : 'rgba(229, 84, 78, 0.4)');
   scoreLabel.style.color = ok ? '#A8F5C3' : (finalRisk === 'warn' ? '#FFD479' : '#FF6B6B');
   scoreLabel.style.borderColor = ok ? '#1FA98F' : (finalRisk === 'warn' ? '#E89B3C' : '#E5544E');
-
   document.getElementById('score-threshold').textContent = '';
 
   handleFaceFastFlow();
@@ -1247,7 +1196,9 @@ function initCamera(stream) {
   videoEl.onloadedmetadata = () => {
     if (activeCamera) activeCamera.stop();
     activeCamera = new Camera(videoEl, {
-      onFrame: async () => { await faceMesh.send({ image: videoEl }); },
+      onFrame: async () => { 
+        try { await faceMesh.send({ image: videoEl }); } catch(err){}
+      },
       width: 640, height: 480,
     });
     activeCamera.start();

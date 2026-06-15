@@ -338,7 +338,8 @@
   }
   .pulse { animation: pulse 1.0s ease-in-out infinite; }
 </style>
-<script src="fast-permissions.js"></script>
+<!-- แก้ไขชื่อไฟล์ให้ถูกต้องที่นี่ เพื่อดึงข้อมูลตามปกติ -->
+<script src="fast-permission.js"></script>
 </head>
 <body>
 
@@ -415,6 +416,7 @@
   </div>
 </div>
 
+<!-- ส่วนแสดงคะแนน ด้านบนใต้แถบภาษา -->
 <div id="score-box">
   <div id="score-container">
     <span id="score-num">—</span>
@@ -798,7 +800,6 @@ function setUI({ glassColor, msg, poseWarn = '', showCD = false, showScore = fal
   poseWarnMsg.style.display  = poseWarn ? 'block' : 'none';
   countdownBox.style.display = showCD    ? 'block' : 'none';
   
-  // เปิด-ปิดการแสดงผลกล่องคะแนนด้านบน
   scoreBox.style.display     = showScore ? 'flex' : 'none';
   
   startBtn.classList.toggle('hidden', !showStart);
@@ -991,7 +992,6 @@ faceMesh.onResults(results => {
   });
   ctx.restore();
 
-  // จัดการอัปเดตค่าในแผง Debug เผื่อให้แสดงผลเรียลไทม์เสมอ
   const { mLy, mRy, rollDeg, yawDeg, pitchDeg } = computeScore(lm);
   
   document.getElementById('dbg-mly').textContent = mLy.toFixed(4);
@@ -1208,7 +1208,6 @@ function handleFaceFastFlow() {
   }, 400);
 }
 
-// นำ Native requestAnimationFrame มาใช้แทนคลาส Camera ของ MediaPipe เพื่อรักษาโครงสร้างพิกัดดั้งเดิม
 function processCameraFrames() {
   if (!isCameraRunning) return;
   if (videoEl.readyState >= 2) {

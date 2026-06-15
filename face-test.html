@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>FAST · Face Screening</title>
-<!-- นำเข้า Google Material Icons สำหรับใช้ทำปุ่มสากล -->
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap');
@@ -153,7 +152,6 @@
     color: #fff; font-size: 10px; font-weight: 700;
   }
 
-  /* ── แผงความสูงมินิมอล ขยายฝั่งแสดงผลกว้างขึ้น สมดุลขึ้น ── */
   #dashboard {
     position: absolute;
     bottom: 12px; left: 12px; right: 12px;
@@ -173,7 +171,6 @@
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
   }
 
-  /* ขยายพื้นที่แสดงผลฝั่งซ้าย (Flex-grow: 1) */
   #status-container {
     display: flex;
     flex-direction: column;
@@ -204,7 +201,6 @@
   #score-num { font-family: 'Manrope', monospace; font-size: 24px; font-weight: 800; line-height: 1; color: #fff; }
   #score-label { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
 
-  /* บล็อกฝั่งขวา (ปุ่ม) กระชับพื้นที่ลง ไม่แย่งสายตา */
   #btn-row { 
     display: flex; 
     gap: 8px; 
@@ -214,7 +210,6 @@
     flex-shrink: 0;
   }
   
-  /* ปรับสไตล์ปุ่มแอคชันให้เป็นวงกลม/สี่เหลี่ยมมนสไตล์ไอคอนคอมแพค */
   .action-btn {
     background: rgba(255,255,255,0.14);
     border: 1px solid rgba(255,255,255,0.3);
@@ -233,7 +228,6 @@
   }
   .action-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.24); }
   
-  /* ปุ่มเริ่มต้น และ ปุ่มนำทางหลัก ให้สีเด่นชัดขึ้น */
   #start-btn, #fast-nav-btn { 
     background: #2B7DE9; 
     border-color: rgba(255,255,255,0.2); 
@@ -434,7 +428,6 @@
     </div>
   </div>
 
-  <!-- แผงปุ่มขนาดเล็กแบบ Icon ไม่ยาวเทอะทะและไม่แย่งพื้นที่ฝั่งซ้าย -->
   <div id="btn-row">
     <button class="action-btn hidden" id="start-btn" title="Start"><span class="material-icons">play_arrow</span></button>
     <button class="action-btn hidden" id="reset-btn" title="Retry"><span class="material-icons">refresh</span></button>
@@ -529,7 +522,6 @@ function applyFaceLang() {
   setHTML('understand-btn', FL.understand);
   setHTML('no-face-banner', FL.noFace);
   
-  // จัดการปรับปรุงการเปลี่ยนภาษาของข้อความแจ้งสถานะหลักให้ทำงานเรียลไทม์
   const sm = document.getElementById('status-msg');
   if (sm) {
     if (phase === 'BEFORE_START') sm.textContent = FL.pressStart;
@@ -538,7 +530,6 @@ function applyFaceLang() {
     else if (phase === 'DONE') sm.textContent = (scoreNum.textContent >= ASYM_THRESHOLD) ? FL.faceAbnormal : FL.faceDone;
   }
 
-  // จัดการเปลี่ยนป้ายกำกับคะแนน (ปกติ/ระวัง/ผิดปกติ) ตามภาษาที่เปลี่ยนไป
   if (phase === 'ACTION_PHASE' || phase === 'DONE') {
     scoreLabel.textContent = FL.asymLabel;
     const currentScore = parseFloat(scoreNum.textContent) || 0;
@@ -571,7 +562,7 @@ function goBackHome() {
   }
   if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
   try { speechSynthesis.cancel(); } catch(e) {}
-  window.location.href = 'index3.html';
+  window.location.href = 'index.html'; // เปลี่ยนให้ย้อนกลับไปที่หน้า index.html เรียบร้อยครับ
 }
 
 function skipFaceStep() {
@@ -596,7 +587,6 @@ const MAX_ALLOWED_PITCH    = 18;
 const MAX_ALLOWED_ROLL     = 18;
 const MIN_MOUTH_EYE_RATIO  = 0.15;
 const SMILE_RISE_MIN       = 0.012; 
-const NO_SMILE_GRACE_MS    = 2000;  
 
 let smileStarted         = false; 
 let smileWarningActive   = false;
@@ -663,11 +653,29 @@ debugBtn.addEventListener('click', () => {
   debugBtn.textContent = debugVisible ? '🔬 Hide Debug' : '🔬 Debug';
 });
 
+// แก้ไขจุดบกพร่อง: ดักจับอีเวนต์เมื่อกดรับทราบเพื่อเปิดใช้งานฟังก์ชันกล้องผ่านไฟล์กลาง fast-permission.js
+async function startCamera() {
+  const permLang = sessionStorage.getItem('fast_lang') || 'th';
+  if (typeof FastPermissions !== 'undefined') {
+    const perm = await FastPermissions.request('camera', permLang);
+    if (perm.ok) {
+      initCamera(perm.stream);
+    } else {
+      FastPermissions.requestWithUI('camera', permLang, (stream) => {
+        initCamera(stream);
+      });
+    }
+  } else {
+    // กรณีฉุกเฉินถ้าหาไฟล์ fast-permission.js ไม่เจอ ให้ใช้ Web API แบบมาตรฐานเปิดกล้องแทน
+    navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
+      .then(initCamera)
+      .catch(err => { alert('ไม่สามารถเข้าถึงกล้องได้: ' + err); });
+  }
+}
+
 understandBtn.addEventListener('click', () => {
   disclaimerEl.style.display = 'none';
-  if (typeof startCamera === 'function') {
-    startCamera();
-  }
+  startCamera(); // เรียกการเปิดกล้องอย่างสมบูรณ์แบบ
 });
 
 function computeScore(lm) {
@@ -1060,14 +1068,12 @@ function onFaceResults(results) {
         scoreLabel.style.color = '#86E2C3';
       }
 
-      // เปลี่ยนปุ่มดูผลรวม/ไปต่อให้เป็นโมเดลปุ่มแบบ Icon เพื่อความสมดุลกลมกลืน
       const mode = sessionStorage.getItem('fast_mode');
       const navBtn = document.createElement('button');
       navBtn.id = 'fast-nav-btn';
       navBtn.className = 'action-btn pulse';
       navBtn.title = (mode === 'full') ? 'Next Step' : 'View Result';
       
-      // ใช้ไอคอนลูกศรไปข้างหน้าสากล
       navBtn.innerHTML = `<span class="material-icons">arrow_forward</span>`;
       navBtn.onclick = () => {
         window.location.href = (mode === 'full') ? 'arm-test5.html' : 'result.html';

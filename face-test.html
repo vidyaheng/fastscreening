@@ -459,7 +459,7 @@ const FACE_I18N = {
     navHome: 'กลับหน้าหลัก',
     smilePrompt: '😄 ยิ้มกว้าง!',
     smileVoice: 'ยิ้มกว้าง ให้เห็นฟัน',
-    noSmileWarn: '😐 ยังไม่ได้ยิ้ม — กรุณายิ้มกว้างให้เห็นฟัน',
+    noSmileWarn: '😐 ยังไม่ได้ยิ้ม — กรุณยิ้มกว้างให้เห็นฟัน',
     restVoice: 'ทำหน้าตรง นิ่งๆ',
     abortReset: '↺ การทดสอบหยุด เริ่มใหม่...',
     backHome: '← กลับหน้าหลัก',
@@ -587,19 +587,19 @@ function speakFace(text) {
 }
 
 function goBackHome() {
-  if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE') {
+  if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') {
     const msg = { th: 'ออกจากการทดสอบ? ผลจะไม่ถูกบันทึก', en: 'Exit test? Result will not be saved.', ja: 'テストを終了しますか？結果は保存されません。' };
     if (!confirm(msg[sessionStorage.getItem('fast_lang') || 'th'] || msg.th)) return;
   }
   if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
   try { speechSynthesis.cancel(); } catch(e) {}
-  window.location.href = 'index.html';
+  window.location.href = 'index3.html';
 }
 
 function skipFaceStep() {
   if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
   try { speechSynthesis.cancel(); } catch(e) {}
-  window.location.href = 'arm-test.html';
+  window.location.href = 'arm-test5.html';
 }
 
 const ACTION_DURATION_MS   = 6000;   
@@ -626,6 +626,7 @@ const MIN_RISE_TO_SCORE    = 0.005;
 const SMILE_RISE_MIN       = 0.012; 
 const NO_SMILE_GRACE_MS    = 2000;  
 let   smileStarted         = false; 
+let   smileWarningActive   = false; // เพิ่มสถานะเช็กว่ากำลังอยู่ในโหมดเตือนให้ยิ้มหรือไม่
 
 const IDX_L_EYE   = 133, IDX_R_EYE = 362;
 const IDX_NOSE    = 4,   IDX_FOREHEAD = 10;
@@ -669,7 +670,7 @@ const disclaimerEl   = document.getElementById('disclaimer-overlay');
 const understandBtn  = document.getElementById('understand-btn');
 
 function switchFaceLang(code) {
-  if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE') return;
+  if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') return;
   FL = FACE_I18N[code];
   sessionStorage.setItem('fast_lang', code);
   applyFaceLang();
@@ -690,10 +691,11 @@ applyFaceLang();
 const debugPanel     = document.getElementById('debug-panel');
 const debugBtn       = document.getElementById('debug-btn');
 
-let debugVisible = true;
-debugPanel.classList.add('visible');
-debugBtn.style.opacity = '1';
-debugBtn.textContent = '🔬 Hide Debug';
+// ── แก้ไขข้อ 3: เริ่มต้นทำการซ่อนกล่อง Debug เสมอ ไม่ให้บังหน้าจอ ──
+let debugVisible = false;
+debugPanel.classList.remove('visible');
+debugBtn.style.opacity = '0.6';
+debugBtn.textContent = '🔬 Debug';
 
 debugBtn.addEventListener('click', () => {
   debugVisible = !debugVisible;
@@ -738,11 +740,12 @@ function computeScore(lm) {
   const yawDeg    = (noseMidDx / eyeDist) * 90;
 
   const faceLength = Math.abs(chin.y - forehead.y) + 1e-6;
-  const pitchDeg   = getPitchDeg(nose.y, forehead.y, faceLength);
+  const pitchDeg   = getPitchDeg(nose.y, foreheadY_global || forehead.y, faceLength);
 
   return { mLy: mLr.y, mRy: mRr.y, rollDeg, yawDeg, pitchDeg };
 }
 
+let foreheadY_global = null;
 function getPitchDeg(noseY, foreheadY, faceLength) {
   if (pitchNeutralRatio === null) return 0;
   const currentRatio = (noseY - foreheadY) / faceLength;
@@ -815,11 +818,18 @@ function finaliseBaseline() {
   }
   restBaseL = restSamplesL.reduce((a, b) => a + b, 0) / restSamplesL.length;
   restBaseR = restSamplesR.reduce((a, b) => a + b, 0) / restSamplesR.length;
+  
+  startActionPhase();
+}
+
+// แยกออกมาเป็นฟังก์ชันเดี่ยว เพื่อให้สามารถสั่งเริ่มเฟสยิ้มใหม่ได้โดยตรงโดยไม่ต้อง Calibrate ซ้ำ
+function startActionPhase() {
   phase = 'ACTION_PHASE';
   actionStartMs  = performance.now();
   actionAsymScores = [];
   recentAsymScores = [];
   smileStarted   = false;
+  smileWarningActive = false;
   setUI({
     color: 'var(--col-green)',
     msg: FL.step2,
@@ -837,17 +847,14 @@ function finaliseBaseline() {
   if (st) st.textContent = FL.asymThreshold || 'Threshold 0.40';
 }
 
+// ── แก้ไขข้อ 2: หันหัว/หลุดเฟรมปุ๊บ สั่งรีเซ็ตหยุดชั่วคราว ทว่าถ้าเป็นช่วงยิ้ม พอกลับมาเข้าที่ให้เริ่มนับ 1 ที่เฟสยิ้มต่อทันที ไม่ต้อง Calibrate ใหม่ ──
 function abortAndRestart(reasonText) {
-  if (phase !== 'RESTING_PHASE' && phase !== 'ACTION_PHASE') return;
+  if (phase !== 'RESTING_PHASE' && phase !== 'ACTION_PHASE' && phase !== 'ACTION_WAIT_SMILE') return;
   if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
   
-  // ── ปรับปรุง: ล้างค่าตัวแปรจับเวลายิ้มทิ้งทั้งหมดทันทีเพื่อให้เวลาหยุดเดินและเริ่มนับ 1 ใหม่ ──
-  actionStartMs = null;
-  actionAsymScores = [];
-  recentAsymScores = [];
-  smileStarted = false;
-  
+  const currentPhaseBeforeAbort = phase;
   phase = 'ABORTED';
+  
   const db = document.getElementById('dashboard');
   if (db) db.style.background = 'var(--col-yellow)';
   poseWarnMsg.style.display  = 'none';
@@ -857,7 +864,17 @@ function abortAndRestart(reasonText) {
   const sp = document.getElementById('smile-prompt');
   if (sp) sp.style.display = 'none';
 
-  setTimeout(() => { if (phase === 'ABORTED') startScreening(); }, 1300);
+  setTimeout(() => { 
+    if (phase === 'ABORTED') {
+      if (currentPhaseBeforeAbort === 'ACTION_PHASE' || currentPhaseBeforeAbort === 'ACTION_WAIT_SMILE') {
+        // มีค่า Baseline เดิมอยู่แล้ว -> เข้าสู่ช่วงเตรียมพร้อมยิ้มใหม่ได้ทันที ไม่ต้อง Calibrate ซ้ำ
+        startActionPhase();
+      } else {
+        // หลุดตั้งแต่เฟสแรก -> เริ่มล้างนับหน้านิ่งใหม่หมด
+        startScreening(); 
+      }
+    }
+  }, 1300);
 }
 
 function startScreening() {
@@ -875,6 +892,7 @@ function startScreening() {
   countdownPaused      = false;
   actionStartMs        = null;
   actionAsymScores     = [];
+  smileWarningActive   = false;
   scoreNum.textContent            = '—';
   noFaceBanner.style.display      = 'none';
   poseWarnMsg.style.display       = 'none';
@@ -892,7 +910,6 @@ function startScreening() {
     showCD: true, showHud: true,
   });
 
-  // ── ปรับปรุง: เรียกให้ตรวจสอบและสร้างปุ่มข้ามใหม่ทุกครั้งเมื่อสั่งรีสตาร์ทแรนนิ่ง ──
   maybeShowSkipButton();
 
   if (countdownTimer) clearInterval(countdownTimer);
@@ -939,11 +956,13 @@ faceMesh.onResults(results => {
   const w  = vw;
   const h  = vh;
 
+  if (lm[IDX_FOREHEAD]) foreheadY_global = lm[IDX_FOREHEAD].y;
+
   ctx.save();
   ctx.translate(w, 0);
   ctx.scale(-1, 1);
 
-  if (typeof drawConnectors !== 'undefined' && (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE')) {
+  if (typeof drawConnectors !== 'undefined' && (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE')) {
     if (window.FACEMESH_TESSELATION) drawConnectors(ctx, lm, window.FACEMESH_TESSELATION, { color: 'rgba(0,200,180,0.08)', lineWidth: 1 });
     if (window.FACEMESH_FACE_OVAL) drawConnectors(ctx, lm, window.FACEMESH_FACE_OVAL, { color: 'rgba(0,220,200,0.40)', lineWidth: 2 });
     if (window.FACEMESH_LIPS) drawConnectors(ctx, lm, window.FACEMESH_LIPS, { color: 'rgba(255,100,100,0.80)', lineWidth: 2 });
@@ -977,7 +996,7 @@ faceMesh.onResults(results => {
 
   ctx.restore();
 
-  if (phase !== 'RESTING_PHASE' && phase !== 'ACTION_PHASE') {
+  if (phase !== 'RESTING_PHASE' && phase !== 'ACTION_PHASE' && phase !== 'ACTION_WAIT_SMILE') {
     const dbgPhase = document.getElementById('dbg-phase');
     if (dbgPhase) dbgPhase.textContent = phase;
     return;
@@ -1003,9 +1022,9 @@ faceMesh.onResults(results => {
   _set('dbg-rbl', restBaseL !== null ? restBaseL : '(calibrating)');
   _set('dbg-rbr', restBaseR !== null ? restBaseR : '(calibrating)');
   _set('dbg-n', restSamplesL.length);
-  _set('dbg-phase', phase, phase === 'ACTION_PHASE' ? 'good' : 'warn');
+  _set('dbg-phase', phase, (phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') ? 'good' : 'warn');
 
-  if (phase === 'ACTION_PHASE' && restBaseL !== null) {
+  if ((phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') && restBaseL !== null) {
     const _rL = Math.max(0, restBaseL - mLy);
     const _rR = Math.max(0, restBaseR - mRy);
     _set('dbg-riseL', _rL, _rL > MIN_RISE_TO_SCORE ? 'good' : 'warn');
@@ -1018,7 +1037,7 @@ faceMesh.onResults(results => {
 
   const mouthCheck = checkMouthVisibility(lm);
   if (!mouthCheck.ok) {
-    if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE') {
+    if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') {
       abortAndRestart(mouthCheck.reason);
       return;
     }
@@ -1045,7 +1064,7 @@ faceMesh.onResults(results => {
       } else if (pitchBad) {
         warnText = pitchDeg > 0 ? FL.lookUp : FL.lookDown;
       }
-      if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE') {
+      if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') {
         abortAndRestart(warnText);
         return;
       }
@@ -1106,7 +1125,7 @@ faceMesh.onResults(results => {
     return;
   }
 
-  if (phase === 'ACTION_PHASE') {
+  if (phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') {
     if (restBaseL === null || restBaseR === null) return; 
 
     const riseL = Math.max(0, restBaseL - mLy);  
@@ -1114,10 +1133,24 @@ faceMesh.onResults(results => {
     const avgRise = (riseL + riseR) / 2;
 
     const maxRise = Math.max(riseL, riseR);
-    if (maxRise > SMILE_RISE_MIN) smileStarted = true;
+    
+    // ตรวจสอบเกณฑ์การเริ่มยิ้ม
+    if (maxRise > SMILE_RISE_MIN) {
+      // ── แก้ไขข้อ 1: หากเดิมติดหน้าจอเตือนให้ยิ้ม (เพราะยิ้มช้า) พอยิ้มจริงปุ๊บ ให้เริ่มนับเวลา 6 วินาทีใหม่ทันที! ──
+      if (phase === 'ACTION_WAIT_SMILE' || !smileStarted) {
+        actionStartMs = performance.now(); // สั่งรีเซ็ตจับเวลาเริ่มต้นใหม่ตรงนี้เลย!
+        actionAsymScores = [];             // ล้างคะแนนเศษเสี้ยววินาทีก่อนหน้าที่ไม่ได้ยิ้มออกไป
+        phase = 'ACTION_PHASE';
+      }
+      smileStarted = true;
+      smileWarningActive = false;
+    }
 
     const elapsedNow = performance.now() - actionStartMs;
+    
+    // ตรวจจับกรณีเลยเวลา 2 วินาทีแล้วผู้ใช้ยังนิ่งสนิท ไม่ยอมขยับปากยิ้ม
     if (!smileStarted && elapsedNow > NO_SMILE_GRACE_MS) {
+      phase = 'ACTION_WAIT_SMILE';
       const sp = document.getElementById('smile-prompt');
       if (sp) sp.querySelector('div').textContent = FL.smilePrompt;
       statusMsg.textContent      = FL.noSmileWarn;
@@ -1126,6 +1159,9 @@ faceMesh.onResults(results => {
       scoreNum.textContent       = '—';
       return; 
     }
+
+    // หากโดนเตือนค้างอยู่แต่ยังไม่ยิ้ม ให้ตัด Logic ด้านล่างออกไปก่อนจนกว่าจะยิ้มสำเร็จ
+    if (phase === 'ACTION_WAIT_SMILE') return;
 
     let asym = 0;
     if (avgRise > MIN_RISE_TO_SCORE) {
@@ -1202,7 +1238,6 @@ function finishFace() {
     showReset: true,
   });
   
-  // ── ปรับปรุง: ให้ช่องกล่องคะแนนตรงกลางจอแสดงคะแนนเต็มร้อย (เช่น 95/100) ค้างไว้ให้ชัดเจน ──
   const sb = document.getElementById('score-box');
   if (sb) sb.style.display = 'block';
   scoreNum.textContent = finalScore + '/100';
@@ -1227,15 +1262,15 @@ function handleFaceFastFlow() {
     btn.style.cssText = 'background:#1A73E8;border-color:#1A73E8;color:#fff;font-weight:700';
     if (mode === 'full') {
       btn.textContent = FL.navNext;
-      btn.onclick = () => window.location.href = 'arm-test.html';
+      btn.onclick = () => window.location.href = 'arm-test5.html';
     } else {
       if (allDone) {
         btn.textContent = FL.navResult;
         btn.style.background = '#00897B';
-        btn.onclick = () => window.location.href = 'result.html';
+        btn.onclick = () => window.location.href = 'result3.html';
       } else {
         btn.textContent = FL.navHome;
-        btn.onclick = () => window.location.href = 'index.html';
+        btn.onclick = () => window.location.href = 'index3.html';
       }
     }
     document.getElementById('btn-row').appendChild(btn);

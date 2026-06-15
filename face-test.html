@@ -157,104 +157,96 @@
   }
 
   /* ── พาเนลหลักด้านล่างสไตล์ iPhone Glass Bubble ── */
+  /* ── ปรับขนาดพาเนลหลักด้านล่างให้เตี้ยลงเป็นแบบสลิม ไม่บังคางและคอ ── */
   #dashboard {
     position: absolute;
-    bottom: 16px; left: 16px; right: 16px;
+    bottom: 12px; left: 12px; right: 12px;
     z-index: 5;
-    border-radius: var(--radius-dash);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    padding: 24px 22px 28px; gap: 14px;
+    border-radius: 20px; /* ลดความโค้งลงเล็กน้อยให้รับกับความเตี้ย */
+    display: flex; 
+    flex-direction: row; /* เปลี่ยนเป็นแนวนอนเพื่อให้เตี้ยลง */
+    align-items: center; 
+    justify-content: space-between; /* แยกข้อความอยู่ซ้าย ปุ่มอยู่ขวา */
+    padding: 12px 16px; /* ลด Padding ลงอย่างมากเพื่อให้พาเนลบางที่สุด */
+    gap: 12px;
     transition: var(--transition);
     background: var(--col-blue-glass);
-    
-    /* เปิดฟีเจอร์เบลอกระจกฝ้าด้านหลังเพื่อให้เห็นเงากล้องเคลื่อนไหวลางๆ */
     backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    height: auto;
+  }
+
+  /* จัดกลุ่มข้อความสเตตัสให้อยู่ฝั่งซ้าย */
+  #status-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    flex: 1;
+    min-width: 0;
   }
 
   #app-title {
-    color: rgba(255,255,255,0.65);
-    font-size: 10px; font-weight: 700;
-    letter-spacing: 2.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    font-size: 8px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 2px;
   }
+  
   #status-msg {
-    color: #fff; font-size: 17px; font-weight: 600;
-    text-align: center; line-height: 1.45;
-    max-width: 340px; position: relative;
+    color: #fff; font-size: 14px; font-weight: 600;
+    text-align: left; line-height: 1.3;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    width: 100%;
   }
 
-  #countdown-box { text-align: center; display: none; }
-  #countdown-label {
-    color: rgba(255,255,255,0.75); font-size: 11px;
-    font-weight: 700; letter-spacing: 1.5px;
-    text-transform: uppercase; display: block; margin-bottom: -2px;
-  }
-  #countdown-num {
-    font-family: 'Manrope', monospace;
-    color: #fff; font-size: 54px;
-    font-weight: 800; line-height: 1;
-  }
+  /* ปรับปรุงกล่องนับเวลาถอยหลังและคะแนนให้มาแทรกแถวเดียวกับข้อความ */
+  #countdown-box { text-align: left; display: none; }
+  #countdown-label { display: none; } /* ซ่อนเลเบลเพื่อประหยัดพื้นที่ */
+  #countdown-num-wrap { color: #fff; font-size: 22px; font-weight: 800; }
 
-  /* การจัดวางกล่องคะแนนและสถานะ (เลือกเปิดเฉพาะอันเดียวสวยๆ ไม่ซ้อนกันแล้ว) */
-  #score-box { text-align: center; display: none; width: 100%; }
+  #score-box { text-align: left; display: none; width: auto; }
   #score-container {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin-top: 2px;
+    gap: 6px;
   }
   #score-num {
     font-family: 'Manrope', monospace;
-    font-size: 44px; font-weight: 800; line-height: 1;
+    font-size: 24px; font-weight: 800; line-height: 1; color: #fff;
   }
   #score-label {
-    font-size: 16px;
-    font-weight: 700;
-    padding: 5px 14px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.15);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.1);
+    font-size: 12px; font-weight: 700;
+    padding: 2px 8px; border-radius: 8px;
   }
-  #score-threshold {
-    color: rgba(255,255,255,0.45); font-size: 12px;
-    margin-top: 6px; display: block; font-weight: 500;
-  }
+  #score-threshold { display: none; } /* ซ่อนเกณฑ์คำอธิบายเพื่อความคลีน */
 
+  /* จัดแถวปุ่มให้อยู่ฝั่งขวา */
   #btn-row { 
-    display: flex; gap: 10px; margin-top: 4px; position: relative; width: 100%;
-    justify-content: center; align-items: center; flex-wrap: wrap;
+    display: flex; gap: 8px; margin-top: 0; position: relative; width: auto;
+    justify-content: flex-end; align-items: center; flex-shrink: 0;
   }
+  
   .action-btn {
     background: rgba(255,255,255,0.14);
     border: 1px solid rgba(255,255,255,0.3);
-    color: #fff; border-radius: 14px;
-    padding: 13px 26px;
+    color: #fff; border-radius: 10px;
+    padding: 8px 16px; /* ลดความหนาของปุ่ม */
     font-family: 'IBM Plex Sans Thai', sans-serif;
-    font-size: 15px; font-weight: 700;
-    letter-spacing: 0.3px; cursor: pointer;
-    transition: transform 0.12s, background 0.18s;
-  }
-  .action-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.24); }
-  #start-btn {
-    background: #2B7DE9; border-color: rgba(255,255,255,0.2);
-    box-shadow: 0 6px 16px rgba(43,125,233,0.35);
+    font-size: 13px; font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
   }
 
   #pose-warn-msg {
-    display: none;
-    color: #fff;
-    background: rgba(229, 84, 78, 0.9);
-    padding: 6px 14px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 700;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    position: absolute;
+    bottom: 75px; left: 50%; /* ดีดขึ้นไปลอยเหนือพาเนลล่าง จะได้ไม่เบียดพื้นที่ */
+    transform: translateX(-50%);
+    width: calc(100% - 24px);
+    max-width: 360px;
+    font-size: 13px; padding: 6px 12px;
   }
 
   #debug-panel {
@@ -403,29 +395,30 @@
 </div>
 
 <div id="dashboard">
-  <span id="app-title">🚨 FAST · Face Screening</span>
-  <p id="status-msg"></p>
-  <p id="pose-warn-msg"></p>
-
-  <div id="countdown-box">
-    <span id="countdown-label">กำลังบันทึกค่าเริ่มต้น</span>
-    <div id="countdown-num-wrap"><span id="countdown-num">5</span><span style="color:#fff;font-size:20px;font-weight:700;">s</span></div>
-  </div>
-
-  <div id="score-box">
-    <div id="score-container">
-      <span id="score-num">—</span>
-      <span id="score-label">ปกติ</span>
+  <div id="status-container">
+    <span id="app-title">🚨 FAST · Face Screening</span>
+    <p id="status-msg"></p>
+    
+    <div id="countdown-box">
+      <div id="countdown-num-wrap"><span id="countdown-num">5</span><span style="color:#fff;font-size:14px;font-weight:700;">s</span></div>
     </div>
-    <span id="score-threshold">เกณฑ์ความไม่สมสมมาตรสูงสุด 0.40</span>
+
+    <div id="score-box">
+      <div id="score-container">
+        <span id="score-num">—</span>
+        <span id="score-label">ปกติ</span>
+      </div>
+    </div>
   </div>
 
   <div id="btn-row">
     <button class="action-btn hidden" id="start-btn"></button>
     <button class="action-btn hidden" id="reset-btn"></button>
-    <button class="action-btn hidden" id="debug-btn" style="font-size:11px;padding:11px 14px;opacity:0.6;">🔬 Debug</button>
+    <button class="action-btn hidden" id="debug-btn" style="font-size:10px;padding:8px 10px;opacity:0.6;">🔬 Debug</button>
   </div>
 </div>
+
+<p id="pose-warn-msg"></p>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -720,9 +713,15 @@ function computeScore(lm) {
   const mL       = lm[IDX_ML];
   const mR       = lm[IDX_MR];
 
-  const eyeDx = lEye.x - rEye.x;
-  const eyeDy = lEye.y - rEye.y;
-  const roll  = Math.atan2(eyeDy, eyeDx);
+  // คำนวณความต่างพิกัด (สลับฝั่งให้สัมพันธ์กับการสแกนกล้องหน้า)
+  const eyeDx = rEye.x - lEye.x;
+  const eyeDy = rEye.y - lEye.y;
+  
+  // ใช้ Math.atan2 และหมุนแกนชดเชยเพื่อให้หน้าตรงได้ค่าใกล้เคียง 0° เสมอ
+  let roll = Math.atan2(eyeDy, eyeDx);
+  if (roll > Math.PI / 2)  roll -= Math.PI;
+  if (roll < -Math.PI / 2) roll += Math.PI;
+
   const cx    = (lEye.x + rEye.x) / 2;
   const cy    = (lEye.y + rEye.y) / 2;
 
@@ -736,6 +735,8 @@ function computeScore(lm) {
 
   const eyeDist   = Math.sqrt(eyeDx ** 2 + eyeDy ** 2) + 1e-6;
   const rollDeg   = roll * 180 / Math.PI;
+  
+  // ปรับการคำนวณ Yaw ไม่ให้สลับซ้ายขวาตาม Roll
   const noseMidDx = nose.x - cx;
   const yawDeg    = (noseMidDx / eyeDist) * 90;
 

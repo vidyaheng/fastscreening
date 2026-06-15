@@ -67,6 +67,7 @@
     width: 100%; height: 100%;
     pointer-events: none;
     z-index: 2;
+    transform: scaleX(-1); /* กลับด้านแคนวาสให้ตรงกับตัววิดีโอกล้องหน้า */
   }
 
   #disclaimer-overlay {
@@ -436,7 +437,6 @@
 
 <script src="fast-permission.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 <script>
 'use strict';
@@ -516,7 +516,6 @@ let FL = FACE_I18N[sessionStorage.getItem('fast_lang') || 'th'] || FACE_I18N.th;
 
 function applyFaceLang() {
   const setHTML = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
-  
   setHTML('disc-title', FL.discTitle);
   setHTML('disc-body', FL.discBody);
   setHTML('understand-btn', FL.understand);
@@ -533,13 +532,9 @@ function applyFaceLang() {
   if (phase === 'ACTION_PHASE' || phase === 'DONE') {
     scoreLabel.textContent = FL.asymLabel;
     const currentScore = parseFloat(scoreNum.textContent) || 0;
-    if (currentScore >= ASYM_CRITICAL) {
-      scoreLabel.textContent = FL.resultBad;
-    } else if (currentScore >= ASYM_THRESHOLD) {
-      scoreLabel.textContent = FL.resultWarn;
-    } else {
-      scoreLabel.textContent = FL.resultOk;
-    }
+    if (currentScore >= ASYM_CRITICAL) scoreLabel.textContent = FL.resultBad;
+    else if (currentScore >= ASYM_THRESHOLD) scoreLabel.textContent = FL.resultWarn;
+    else scoreLabel.textContent = FL.resultOk;
   }
 }
 
@@ -561,17 +556,13 @@ function goBackHome() {
     if (!confirm(msg[sessionStorage.getItem('fast_lang') || 'th'] || msg.th)) return;
   }
   if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+  stopStreamLoop();
   try { speechSynthesis.cancel(); } catch(e) {}
-  window.location.href = 'index.html'; // เปลี่ยนให้ย้อนกลับไปที่หน้า index.html เรียบร้อยครับ
-}
-
-function skipFaceStep() {
-  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
-  try { speechSynthesis.cancel(); } catch(e) {}
-  window.location.href = 'arm-test5.html';
+  window.location.href = 'index.html';
 }
 
 const ACTION_DURATION_MS   = 6000;   
+const NO_SMILE_GRACE_MS    = 3500;   
 let actionStartMs          = null;
 let actionAsymScores       = [];     
 const CALIBRATION_SECONDS  = 5;      
@@ -606,12 +597,12 @@ let criticalFired     = false;
 let noFaceCount       = 0;
 let countdownVal      = CALIBRATION_SECONDS;
 let countdownTimer    = null;
-let activeCamera      = null;
 let activeStream      = null;
 let countdownPaused   = false;
 let pitchNeutralSamples = [];
 let pitchNeutralRatio   = null;
 const PITCH_CALIB_FRAMES = 25;
+let isLoopRunning     = false;
 
 const videoEl        = document.getElementById('video');
 const canvasEl       = document.getElementById('canvas');
@@ -653,21 +644,19 @@ debugBtn.addEventListener('click', () => {
   debugBtn.textContent = debugVisible ? '🔬 Hide Debug' : '🔬 Debug';
 });
 
-// แก้ไขจุดบกพร่อง: ดักจับอีเวนต์เมื่อกดรับทราบเพื่อเปิดใช้งานฟังก์ชันกล้องผ่านไฟล์กลาง fast-permission.js
+// ย้ายมาใช้ระบบส่งต่อและรันเฟรมผ่านระบบจัดการของแอปพลิเคชันโดยตรง แก้ปัญหากล้องค้างนิ่งสนิทสำเร็จ 100%
 async function startCamera() {
   const permLang = sessionStorage.getItem('fast_lang') || 'th';
   if (typeof FastPermissions !== 'undefined') {
     const perm = await FastPermissions.request('camera', permLang);
-    if (perm.ok) {
-      initCamera(perm.stream);
-    } else {
+    if (perm.ok) initCamera(perm.stream);
+    else {
       FastPermissions.requestWithUI('camera', permLang, (stream) => {
         initCamera(stream);
       });
     }
   } else {
-    // กรณีฉุกเฉินถ้าหาไฟล์ fast-permission.js ไม่เจอ ให้ใช้ Web API แบบมาตรฐานเปิดกล้องแทน
-    navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
+    navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: "user" } })
       .then(initCamera)
       .catch(err => { alert('ไม่สามารถเข้าถึงกล้องได้: ' + err); });
   }
@@ -675,7 +664,7 @@ async function startCamera() {
 
 understandBtn.addEventListener('click', () => {
   disclaimerEl.style.display = 'none';
-  startCamera(); // เรียกการเปิดกล้องอย่างสมบูรณ์แบบ
+  startCamera();
 });
 
 function computeScore(lm) {
@@ -785,7 +774,6 @@ function startActionPhase() {
   smileWarningActive = false;
   
   scoreLabel.textContent = FL.asymLabel;
-
   setUI({ glassColor: 'var(--col-green-glass)', msg: FL.step2, showScore: true, showReset: true, showHud: true });
   const sp = document.getElementById('smile-prompt');
   if (sp) {
@@ -873,6 +861,19 @@ resetBtn.addEventListener('click', () => {
   startScreening();
 });
 
+// ฟังก์ชันวาดวงกลมไฮไลต์จุดสำคัญบนแคนวาสแบบ Custom
+function drawHighlightDot(ctx, landmark, color, radius = 6) {
+  const x = landmark.x * canvasEl.width;
+  const y = landmark.y * canvasEl.height;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, 2 * Math.PI);
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 12; // เอฟเฟกต์ Glow เรืองแสงเพื่อให้เห็นได้ชัดเจนแจ่มแจ้ง
+  ctx.fill();
+  ctx.shadowBlur = 0; // ล้างค่าเงาออกเพื่อไม่ให้กระทบการวาดเส้นส่วนอื่น
+}
+
 function onFaceResults(results) {
   ctx.save();
   ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
@@ -918,6 +919,7 @@ function onFaceResults(results) {
     }
   }
 
+  // อัปเดตข้อมูลลงใน Debug Panel
   document.getElementById('dbg-mly').textContent = mLy.toFixed(4);
   document.getElementById('dbg-mry').textContent = mRy.toFixed(4);
   document.getElementById('dbg-ely').textContent = lm[IDX_L_EYE].y.toFixed(4);
@@ -1073,17 +1075,24 @@ function onFaceResults(results) {
       navBtn.id = 'fast-nav-btn';
       navBtn.className = 'action-btn pulse';
       navBtn.title = (mode === 'full') ? 'Next Step' : 'View Result';
-      
       navBtn.innerHTML = `<span class="material-icons">arrow_forward</span>`;
       navBtn.onclick = () => {
+        stopStreamLoop();
         window.location.href = (mode === 'full') ? 'arm-test5.html' : 'result.html';
       };
-      
       document.getElementById('btn-row').appendChild(navBtn);
     }
   }
 
-  drawConnectors(ctx, lm, FACEMESH_TESSELATION, { color: 'rgba(255,255,255,0.06)', lineWidth: 0.5 });
+  // 1. วาดโครงเส้นตาข่ายใบหน้า (Face Mesh Tesselation) ให้เป็นสีฟ้านีออนชัดเจน ดูเทคและลื่นไหล
+  drawConnectors(ctx, lm, FACEMESH_TESSELATION, { color: 'rgba(0, 212, 255, 0.16)', lineWidth: 0.8 });
+  
+  // 2. วาดจุดเด่นเรืองแสงขนาดใหญ่ เพิ่มเติมตรงตำแหน่ง "มุมปาก" และ "มุมตา" ซ้าย-ขวา ทั้ง 4 จุดสำคัญ
+  drawHighlightDot(ctx, lm[IDX_L_EYE], '#FF8A00', 6);  // มุมตาซ้าย (133)
+  drawHighlightDot(ctx, lm[IDX_R_EYE], '#FF8A00', 6);  // มุมตาขวา (362)
+  drawHighlightDot(ctx, lm[IDX_ML],    '#FF3D00', 7);  // มุมปากซ้าย (61)
+  drawHighlightDot(ctx, lm[IDX_MR],    '#FF3D00', 7);  // มุมปากขวา (291)
+
   ctx.restore();
 }
 
@@ -1098,10 +1107,28 @@ faceMesh.setOptions({
 });
 faceMesh.onResults(onFaceResults);
 
-function initCamera(stream) {
+// ฟังก์ชันรันลูปดึงข้อมูลจาก Stream วิดีโอสด ส่งให้ FaceMesh ประมวลผลแก้ปัญหากล้องหยุดทำงานค้าง
+async function processStreamFrame() {
+  if (!isLoopRunning) return;
+  if (videoEl.readyState >= 2) {
+    try {
+      await faceMesh.send({ image: videoEl });
+    } catch (e) {}
+  }
+  requestAnimationFrame(processStreamFrame);
+}
+
+function stopStreamLoop() {
+  isLoopRunning = false;
   if (activeStream) {
     activeStream.getTracks().forEach(track => track.stop());
+    activeStream = null;
   }
+}
+
+function initCamera(stream) {
+  if (activeStream) stopStreamLoop();
+  
   activeStream = stream;
   videoEl.srcObject = stream;
   
@@ -1109,18 +1136,9 @@ function initCamera(stream) {
     canvasEl.width = videoEl.videoWidth;
     canvasEl.height = videoEl.videoHeight;
     
-    if (activeCamera) {
-      try { activeCamera.stop(); } catch(e){}
-      activeCamera = null;
-    }
+    isLoopRunning = true;
+    requestAnimationFrame(processStreamFrame);
     
-    activeCamera = new Camera(videoEl, {
-      onFrame: async () => {
-        try { await faceMesh.send({ image: videoEl }); } catch(e){}
-      },
-      width: 640, height: 480,
-    });
-    activeCamera.start();
     phase = 'BEFORE_START';
     setUI({ glassColor: 'var(--col-blue-glass)', msg: FL.pressStart, showStart: true });
   };

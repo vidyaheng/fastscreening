@@ -116,7 +116,7 @@
 
   #pose-hud {
     display: none;
-    position: absolute; top: 125px; left: 50%;
+    position: absolute; top: 145px; left: 50%;
     transform: translateX(-50%);
     background: rgba(8,12,16,0.6);
     border: 1px solid rgba(255,255,255,0.12);
@@ -162,7 +162,7 @@
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: 20px;
-    padding: 10px 16px;
+    padding: 8px 14px;
     display: none;
     flex-direction: column;
     align-items: center;
@@ -177,7 +177,7 @@
   }
   #score-num {
     font-family: 'Manrope', monospace;
-    font-size: 32px; font-weight: 800; line-height: 1;
+    font-size: 28px; font-weight: 800; line-height: 1;
     color: #fff;
   }
   #score-label {
@@ -259,7 +259,7 @@
     width:100%;
   }
 
-  #countdown-box { text-align: center; display: none; }
+  #countdown-box { text-align: left; display: none; width: 100%; }
   #countdown-label {
     color: rgba(255,255,255,0.75); font-size: 11px;
     font-weight: 700; letter-spacing: 1.5px;
@@ -267,7 +267,7 @@
   }
   #countdown-num {
     font-family: 'Manrope', monospace;
-    color: #fff; font-size: 40px;
+    color: #fff; font-size: 32px;
     font-weight: 800; line-height: 1;
   }
 
@@ -286,15 +286,38 @@
     transition: transform 0.12s, background 0.18s;
   }
   .action-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.24); }
+
+  .icon-btn{
+    width:42px;
+    height:42px;
+    min-width:42px;
+  
+    border-radius:12px;
+  
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  
+    padding:0;
+  
+    font-size:18px;
+  }
   
   #start-btn {
     background: #2B7DE9; border-color: rgba(255,255,255,0.2);
     box-shadow: 0 6px 16px rgba(43,125,233,0.35);
   }
-  #reset-btn {
-    padding: 13px 18px;
-    font-size: 20px;
-    min-width: 52px;
+  #reset-btn,
+  #home-btn {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    padding: 0;
+    font-size: 19px;
+    border-radius: 12px;
+  }
+  #home-btn {
+    background: rgba(255,255,255,0.12);
   }
   #fast-nav-btn { flex: 1; }
 
@@ -360,6 +383,7 @@
   .lang-sw-btn.active { background: #2B7DE9; border-color: #2B7DE9; }
 
   #back-home-btn {
+    display: none;
     position: absolute; top: 14px; left: 14px; z-index: 125;
     background: rgba(0,0,0,0.6);
     border: 1px solid rgba(255,255,255,0.25);
@@ -370,7 +394,7 @@
     backdrop-filter: blur(4px);
   }
   #debug-btn-top {
-    position: absolute; top: 14px; left: 56px; z-index: 125;
+    position: absolute; top: 14px; left: 14px; z-index: 125;
     background: rgba(0,0,0,0.6);
     border: 1px solid rgba(255,255,255,0.25);
     color: #fff; border-radius: 9px;
@@ -475,18 +499,25 @@
 </div>
 
 <div id="dashboard">
-  <span id="app-title">🚨 FAST · Face Screening</span>
+  <div id="dashboard-header">
+    <span id="app-title">🚨 FAST · Face Screening</span>
+
+    <div id="action-icons">
+      <button class="action-btn icon-btn hidden" id="reset-btn" type="button" aria-label="Retry">↺</button>
+      <button class="action-btn icon-btn hidden" id="home-btn" type="button" aria-label="Home">🏠</button>
+    </div>
+  </div>
+
   <p id="status-msg"></p>
   <p id="pose-warn-msg"></p>
 
   <div id="countdown-box">
     <span id="countdown-label">กำลังบันทึกค่าเริ่มต้น</span>
-    <div id="countdown-num-wrap"><span id="countdown-num">5</span><span style="color:#fff;font-size:20px;font-weight:700;">s</span></div>
+    <div id="countdown-num-wrap"><span id="countdown-num">5</span><span style="color:#fff;font-size:18px;font-weight:700;">s</span></div>
   </div>
 
   <div id="btn-row">
     <button class="action-btn hidden" id="start-btn"></button>
-    <button class="action-btn hidden" id="reset-btn"></button>
   </div>
 </div>
 
@@ -625,6 +656,7 @@ const FACE_I18N = {
 };
 
 let FL = FACE_I18N[sessionStorage.getItem('fast_lang') || 'th'] || FACE_I18N.th;
+let phase = 'BEFORE_START';
 
 function applyFaceLang() {
   const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
@@ -638,12 +670,25 @@ function applyFaceLang() {
   setText('score-threshold', FL.threshold);
   setText('start-btn', FL.startBtn);
   setText('reset-btn', FL.resetBtn);
+  const hb = document.getElementById('home-btn');
+  if (hb) { hb.title = FL.navHome; hb.setAttribute('aria-label', FL.navHome); }
   
   const sm = document.getElementById('status-msg');
   if (sm) {
     if (phase === 'BEFORE_START') sm.textContent = FL.pressStart;
     else if (phase === 'RESTING_PHASE') sm.textContent = FL.step1;
     else if (phase === 'ACTION_PHASE') sm.textContent = FL.step2;
+    else if (phase === 'ACTION_WAIT_SMILE') sm.textContent = FL.noSmileWarn;
+    else if (phase === 'FACE_DONE') {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('fast_face') || '{}');
+        sm.textContent = saved.riskLevel === 'ok' ? FL.faceDone : FL.faceAbnormal;
+        const sl = document.getElementById('score-label');
+        if (sl && saved.riskLevel) sl.textContent = saved.riskLevel === 'ok' ? FL.resultOk : saved.riskLevel === 'warn' ? FL.resultWarn : FL.resultBad;
+        const sn = document.getElementById('score-num');
+        if (sn && typeof saved.score === 'number') sn.textContent = saved.score + ' ' + FL.resultScore;
+      } catch(e) {}
+    }
   }
 }
 
@@ -701,7 +746,6 @@ const IDX_NOSE    = 4,   IDX_FOREHEAD = 10;
 const IDX_CHIN    = 152;
 const IDX_ML      = 61,  IDX_MR    = 291;
 
-let phase             = 'BEFORE_START';
 let restSamplesL      = [];  
 let restSamplesR      = [];  
 let restBaseL         = null; 
@@ -726,6 +770,7 @@ const statusMsg      = document.getElementById('status-msg');
 const poseWarnMsg    = document.getElementById('pose-warn-msg');
 const startBtn       = document.getElementById('start-btn');
 const resetBtn       = document.getElementById('reset-btn');
+const homeBtn        = document.getElementById('home-btn');
 const countdownBox   = document.getElementById('countdown-box');
 const countdownNum   = document.getElementById('countdown-num');
 const scoreBox       = document.getElementById('score-box');
@@ -737,8 +782,7 @@ const disclaimerEl   = document.getElementById('disclaimer-overlay');
 const understandBtn  = document.getElementById('understand-btn');
 
 function switchFaceLang(code) {
-  if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') return;
-  FL = FACE_I18N[code];
+  FL = FACE_I18N[code] || FACE_I18N.th;
   sessionStorage.setItem('fast_lang', code);
   applyFaceLang();
   ['th','en','ja'].forEach(c => {
@@ -794,8 +838,9 @@ function computeScore(lm) {
   const mL       = lm[IDX_ML];
   const mR       = lm[IDX_MR];
 
-  const eyeDx = rEye.x - lEye.x;
-  const eyeDy = rEye.y - lEye.y;
+  // The video is shown mirrored. Using left-eye minus right-eye keeps roll near 0° on screen.
+  const eyeDx = lEye.x - rEye.x;
+  const eyeDy = lEye.y - rEye.y;
   const roll  = Math.atan2(eyeDy, eyeDx);
   const cx    = (lEye.x + rEye.x) / 2;
   const cy    = (lEye.y + rEye.y) / 2;
@@ -811,7 +856,8 @@ function computeScore(lm) {
   const eyeDist   = Math.sqrt(eyeDx ** 2 + eyeDy ** 2) + 1e-6;
   const rollDeg   = roll * 180 / Math.PI;
   const noseMidDx = nose.x - cx;
-  const yawDeg    = (noseMidDx / eyeDist) * 90;
+  // In mirrored selfie view, invert yaw so left/right warnings match what the user sees.
+  const yawDeg    = -(noseMidDx / eyeDist) * 90;
 
   const faceLength = Math.abs(chin.y - forehead.y) + 1e-6;
   const pitchDeg   = getPitchDeg(nose.y, forehead.y, faceLength);
@@ -849,7 +895,7 @@ function updatePoseBar(barId, valId, deg, maxDeg) {
 }
 
 function setUI({ glassColor, msg, poseWarn = '', showCD = false, showScore = false,
-                 showStart = false, showReset = false, showHud = false, pulse = false }) {
+                 showStart = false, showReset = false, showHome = true, showHud = false, pulse = false }) {
   const db = document.getElementById('dashboard');
   if (db) {
     db.style.background = glassColor;
@@ -865,6 +911,7 @@ function setUI({ glassColor, msg, poseWarn = '', showCD = false, showScore = fal
   
   startBtn.classList.toggle('hidden', !showStart);
   resetBtn.classList.toggle('hidden', !showReset);
+  if (homeBtn) homeBtn.classList.toggle('hidden', !showHome);
   poseHud.style.display      = showHud   ? 'flex'  : 'none';
 }
 
@@ -952,7 +999,7 @@ function startScreening() {
   if (oldSkip) oldSkip.remove();
 
   phase = 'RESTING_PHASE';
-  setUI({ glassColor: 'var(--col-orange-glass)', msg: FL.step1, showCD: true, showHud: true });
+  setUI({ glassColor: 'var(--col-orange-glass)', msg: FL.step1, showCD: true, showReset: true, showHud: true });
   maybeShowSkipButton();
 
   if (countdownTimer) { clearInterval(countdownTimer); }
@@ -970,6 +1017,7 @@ function startScreening() {
 
 startBtn.addEventListener('click', startScreening);
 resetBtn.addEventListener('click', startScreening);
+if (homeBtn) homeBtn.addEventListener('click', goBackHome);
 
 const faceMesh = new FaceMesh({
   locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`,
@@ -1250,7 +1298,7 @@ function handleFaceFastFlow() {
     const btn = document.createElement('button');
     btn.id = 'fast-nav-btn';
     btn.className = 'action-btn';
-    btn.style.cssText = 'background:#2B7DE9;border-color:rgba(255,255,255,0.25);color:#fff;font-weight:700;box-shadow: 0 4px 12px rgba(43,125,233,0.35);';
+    btn.style.cssText = 'background:#2B7DE9;border-color:rgba(255,255,255,0.25);color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(43,125,233,0.35);width:100%;padding:12px 16px;';
     if (mode === 'full') {
       btn.textContent = FL.navNext;
       btn.onclick = () => window.location.href = 'arm-test.html';
@@ -1310,7 +1358,7 @@ function maybeShowSkipButton() {
     const btn = document.createElement('button');
     btn.id = 'skip-step-btn';
     btn.className = 'action-btn';
-    btn.style.cssText = 'background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.25);color:#fff;font-size:13px;opacity:0.85';
+    btn.style.cssText = 'background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.25);color:#fff;font-size:13px;opacity:0.85;width:100%;padding:11px 16px;';
     btn.textContent = FL.skipStep;
     btn.onclick = skipFaceStep;
     document.getElementById('btn-row').appendChild(btn);

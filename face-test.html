@@ -757,8 +757,8 @@ function computeScore(lm) {
   const mL       = lm[IDX_ML];
   const mR       = lm[IDX_MR];
 
-  const eyeDx = lEye.x - rEye.x;
-  const eyeDy = lEye.y - rEye.y;
+  const eyeDx = rEye.x - lEye.x;
+  const eyeDy = rEye.y - lEye.y;
   const roll  = Math.atan2(eyeDy, eyeDx);
   const cx    = (lEye.x + rEye.x) / 2;
   const cy    = (lEye.y + rEye.y) / 2;

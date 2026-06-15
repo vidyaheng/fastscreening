@@ -606,7 +606,6 @@ function speakFace(text) {
   } catch (e) { }
 }
 
-// แก้ไขจุดที่ 1: กลับหน้าหลักไปที่ index.html
 function goBackHome() {
   if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') {
     const msg = { th: 'ออกจากการทดสอบ? ผลจะไม่ถูกบันทึก', en: 'Exit test? Result will not be saved.', ja: '終了しますか？' };
@@ -617,7 +616,6 @@ function goBackHome() {
   window.location.href = 'index.html';
 }
 
-// แก้ไขจุดที่ 2: ข้ามขั้นตอนไปที่ arm-test.html
 function skipFaceStep() {
   if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
   try { speechSynthesis.cancel(); } catch(e) {}
@@ -1178,7 +1176,6 @@ function finishFace() {
   handleFaceFastFlow();
 }
 
-// แก้ไขจุดที่ 3: ปลายทางสำหรับการทำแบบทดสอบร่วม (Full Mode) ไปยัง arm-test.html และ result.html
 function handleFaceFastFlow() {
   const mode = sessionStorage.getItem('fast_mode');
   const allDone = ['fast_face','fast_arm','fast_speech'].every(k => sessionStorage.getItem(k));
@@ -1206,12 +1203,20 @@ function handleFaceFastFlow() {
   }, 400);
 }
 
-function processCameraFrames() {
+// ฟังก์ชันลูปส่งเฟรมภาพแบบ Async/Await ป้องกันการ Deadlock ค้างของกล้องและ MediaPipe
+async function processCameraFrames() {
   if (!isCameraRunning) return;
-  if (videoEl.readyState >= 2) {
-    faceMesh.send({ image: videoEl }).catch(()=>{});
+  try {
+    if (videoEl.readyState >= 2 && !videoEl.paused && !videoEl.ended) {
+      await faceMesh.send({ image: videoEl });
+    }
+    // รอจนกระทั่งเบราว์เซอร์พร้อมส่งเฟรมภาพรอบถัดไป (ป้องกันสคริปต์ถมข้อมูลกันจนค้าง)
+    await new Promise(requestAnimationFrame);
+    processCameraFrames();
+  } catch (err) {
+    console.error("Frame loop error:", err);
+    setTimeout(processCameraFrames, 200); // หากผิดพลาดให้รอระยะสั้นๆ แล้วทำงานต่อ
   }
-  requestAnimationFrame(processCameraFrames);
 }
 
 function initCamera(stream) {
@@ -1219,10 +1224,15 @@ function initCamera(stream) {
   videoEl.srcObject = stream;
   videoEl.onloadedmetadata = () => {
     isCameraRunning = true;
-    processCameraFrames();
-    phase = 'BEFORE_START';
-    setUI({ glassColor: 'var(--col-blue-glass)', msg: FL.pressStart, showStart: true });
-    maybeShowSkipButton();
+    videoEl.play().then(() => {
+      processCameraFrames();
+      phase = 'BEFORE_START';
+      setUI({ glassColor: 'var(--col-blue-glass)', msg: FL.pressStart, showStart: true });
+      maybeShowSkipButton();
+    }).catch(e => {
+      console.error("Video play failed:", e);
+      statusMsg.textContent = "⚠️ ไม่สามารถแสดงผลวิดีโอจากกล้องได้";
+    });
   };
 }
 

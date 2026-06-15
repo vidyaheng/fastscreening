@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>FAST · Face Screening</title>
+<!-- นำเข้า Google Material Icons สำหรับใช้ทำปุ่มสากล -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap');
 
@@ -14,7 +16,6 @@
     --col-red-glass:    rgba(186, 38, 38, 0.65);
     --col-yellow-glass: rgba(204, 153, 0, 0.65);
     --col-bg:      #0E1620;
-    --radius-dash: 32px;
     --transition:  background 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
@@ -38,7 +39,6 @@
     max-height: 100dvh;
     display: flex;
     flex-direction: column;
-    border-radius: 0;
     position: relative;
     box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 24px 60px rgba(0,0,0,0.6);
   }
@@ -83,7 +83,7 @@
   #disclaimer-overlay .disc-icon { font-size: 38px; }
   #disclaimer-overlay h2 {
     color: #fff; font-size: 21px; font-weight: 800;
-    letter-spacing: 0.3px; text-align: center;
+    text-align: center;
   }
   #disclaimer-overlay p {
     color: rgba(255,255,255,0.8); font-size: 15px; font-weight:500;
@@ -96,7 +96,7 @@
     border: none; border-radius: 14px;
     padding: 16px 44px; font-family: inherit;
     font-size: 16px; font-weight: 700;
-    cursor: pointer; letter-spacing: 0.3px;
+    cursor: pointer;
     transition: transform 0.12s;
     box-shadow: 0 6px 18px rgba(43,125,233,0.4);
   }
@@ -153,7 +153,7 @@
     color: #fff; font-size: 10px; font-weight: 700;
   }
 
-  /* ── พาเนลด้านล่างแบบ Ultra Slim เตี้ยสุดๆ ไม่บังคางและลำคอ ── */
+  /* ── แผงความสูงมินิมอล ขยายฝั่งแสดงผลกว้างขึ้น สมดุลขึ้น ── */
   #dashboard {
     position: absolute;
     bottom: 12px; left: 12px; right: 12px;
@@ -163,8 +163,8 @@
     flex-direction: row; 
     align-items: center; 
     justify-content: space-between; 
-    padding: 10px 14px; 
-    gap: 10px;
+    padding: 12px 16px; 
+    gap: 12px;
     transition: var(--transition);
     background: var(--col-blue-glass);
     backdrop-filter: blur(25px);
@@ -173,6 +173,7 @@
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
   }
 
+  /* ขยายพื้นที่แสดงผลฝั่งซ้าย (Flex-grow: 1) */
   #status-container {
     display: flex;
     flex-direction: column;
@@ -192,7 +193,6 @@
   #status-msg {
     color: #fff; font-size: 13px; font-weight: 600;
     text-align: left; line-height: 1.3;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     width: 100%;
   }
 
@@ -200,29 +200,45 @@
   #countdown-num-wrap { color: #fff; font-size: 20px; font-weight: 800; }
 
   #score-box { text-align: left; display: none; width: auto; }
-  #score-container { display: flex; align-items: center; gap: 6px; }
-  #score-num { font-family: 'Manrope', monospace; font-size: 22px; font-weight: 800; line-height: 1; color: #fff; }
-  #score-label { font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
-  #score-threshold { display: none; }
+  #score-container { display: flex; align-items: center; gap: 8px; }
+  #score-num { font-family: 'Manrope', monospace; font-size: 24px; font-weight: 800; line-height: 1; color: #fff; }
+  #score-label { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
 
+  /* บล็อกฝั่งขวา (ปุ่ม) กระชับพื้นที่ลง ไม่แย่งสายตา */
   #btn-row { 
-    display: flex; gap: 6px; margin-top: 0; position: relative; width: auto;
-    justify-content: flex-end; align-items: center; flex-shrink: 0;
+    display: flex; 
+    gap: 8px; 
+    margin-top: 0; 
+    justify-content: flex-end; 
+    align-items: center; 
+    flex-shrink: 0;
   }
   
+  /* ปรับสไตล์ปุ่มแอคชันให้เป็นวงกลม/สี่เหลี่ยมมนสไตล์ไอคอนคอมแพค */
   .action-btn {
     background: rgba(255,255,255,0.14);
     border: 1px solid rgba(255,255,255,0.3);
-    color: #fff; border-radius: 10px;
-    padding: 8px 14px; 
-    font-family: 'IBM Plex Sans Thai', sans-serif;
-    font-size: 13px; font-weight: 700;
+    color: #fff; 
+    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    white-space: nowrap;
     transition: transform 0.12s, background 0.18s;
   }
-  .action-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.24); }
-  #start-btn { background: #2B7DE9; border-color: rgba(255,255,255,0.2); box-shadow: 0 4px 12px rgba(43,125,233,0.35); }
+  .action-btn .material-icons {
+    font-size: 20px;
+  }
+  .action-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.24); }
+  
+  /* ปุ่มเริ่มต้น และ ปุ่มนำทางหลัก ให้สีเด่นชัดขึ้น */
+  #start-btn, #fast-nav-btn { 
+    background: #2B7DE9; 
+    border-color: rgba(255,255,255,0.2); 
+    box-shadow: 0 4px 12px rgba(43,125,233,0.35); 
+  }
 
   #pose-warn-msg {
     display: none;
@@ -235,7 +251,7 @@
     text-align: center;
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
     position: absolute;
-    bottom: 72px; left: 50%; 
+    bottom: 76px; left: 50%; 
     transform: translateX(-50%);
     width: calc(100% - 24px);
     max-width: 360px;
@@ -291,7 +307,6 @@
   }
   .lang-sw-btn.active { background: #2B7DE9; border-color: #2B7DE9; }
 
-  /* ปุ่มย้อนกลับมุมบนซ้าย */
   #back-home-btn {
     position: absolute; top: 14px; left: 14px; z-index: 100;
     background: rgba(0,0,0,0.6);
@@ -303,7 +318,6 @@
     backdrop-filter: blur(4px);
   }
 
-  /* ปุ่มดีบักมุมบนซ้าย (ย้ายมาอยู่ข้างๆ ปุ่มกลับ) */
   #debug-btn {
     position: absolute; top: 14px; left: 54px; z-index: 100;
     background: rgba(0,0,0,0.6);
@@ -320,16 +334,15 @@
 
   @keyframes pulse {
     0%, 100% { transform: scale(1); }
-    50%       { transform: scale(1.02); }
+    50%       { transform: scale(1.03); }
   }
-  .pulse { animation: pulse 1.0s ease-in-out infinite; }
+  .pulse { animation: pulse 1.2s ease-in-out infinite; }
 </style>
-<script src="fast-permissions.js"></script>
 </head>
 <body>
 
 <button id="back-home-btn" onclick="goBackHome()">←</button>
-<button class="action-btn hidden" id="debug-btn" style="opacity:0.6;">🔬 Debug</button>
+<button class="action-btn hidden" id="debug-btn" style="opacity:0.6; width:auto; height:auto; padding:6px 10px;">🔬 Debug</button>
 
 <div id="lang-switcher">
   <button class="lang-sw-btn" id="lsw-th" onclick="switchFaceLang('th')">TH</button>
@@ -421,12 +434,14 @@
     </div>
   </div>
 
+  <!-- แผงปุ่มขนาดเล็กแบบ Icon ไม่ยาวเทอะทะและไม่แย่งพื้นที่ฝั่งซ้าย -->
   <div id="btn-row">
-    <button class="action-btn hidden" id="start-btn"></button>
-    <button class="action-btn hidden" id="reset-btn"></button>
+    <button class="action-btn hidden" id="start-btn" title="Start"><span class="material-icons">play_arrow</span></button>
+    <button class="action-btn hidden" id="reset-btn" title="Retry"><span class="material-icons">refresh</span></button>
   </div>
 </div>
 
+<script src="fast-permission.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
@@ -442,8 +457,6 @@ const FACE_I18N = {
     loading: 'กำลังเปิดกล้องและโหลดระบบ...',
     calibLabel: 'กำลังบันทึกค่าเริ่มต้น',
     threshold: 'เกณฑ์ความไม่สมสมมาตรสูงสุด 0.40',
-    startBtn: '▶\u00A0 เริ่มทดสอบ',
-    resetBtn: '↺\u00A0 ทดสอบใหม่',
     pressStart: 'กดปุ่มเพื่อเริ่มทดสอบ',
     step1: 'ขั้นตอนที่ 1: ทำหน้าตรง นิ่งๆ และผ่อนคลาย...',
     step2: 'ขั้นตอนที่ 2: ยิ้มกว้างให้เห็นฟันอย่างเต็มที่! 😄',
@@ -461,17 +474,11 @@ const FACE_I18N = {
     faceDone: '✅ การทดสอบใบหน้าเสร็จสิ้น',
     faceAbnormal: '⚠️ พบความผิดปกติของใบหน้า',
     asymLabel: 'ความเบี้ยวใบหน้า',
-    navResult: 'ดูผลรวม FAST →',
-    navNext: 'ทดสอบแขนต่อ →',
-    navHome: 'กลับหน้าหลัก',
     smilePrompt: '😄 ยิ้มกว้าง!',
     smileVoice: 'ยิ้มกว้าง ให้เห็นฟัน',
     noSmileWarn: '😐 ยังไม่ได้ยิ้ม — กรุณายิ้มกว้างให้เห็นฟัน',
     restVoice: 'ทำหน้าตรง นิ่งๆ',
     abortReset: '↺ การทดสอบหยุด เริ่มใหม่...',
-    backHome: '← กลับหน้าหลัก',
-    skipStep: 'ข้ามขั้นนี้ →',
-    resultScore: 'คะแนน',
     resultOk: 'ปกติ',
     resultWarn: 'ควรระวัง',
     resultBad: 'ผิดปกติ',
@@ -484,8 +491,6 @@ const FACE_I18N = {
     loading: 'Opening camera and loading...',
     calibLabel: 'Recording baseline',
     threshold: 'Asymmetry Threshold 0.40',
-    startBtn: '▶\u00A0 Start Test',
-    resetBtn: '↺\u00A0 Retry',
     pressStart: 'Press the button to start',
     step1: 'Step 1: Keep your face straight, still, and relaxed...',
     step2: 'Step 2: Smile widely, show your teeth! 😄',
@@ -503,89 +508,51 @@ const FACE_I18N = {
     faceDone: '✅ Face test complete',
     faceAbnormal: '⚠️ Facial abnormality detected',
     asymLabel: 'Asymmetry',
-    navResult: 'View FAST Score →',
-    navNext: 'Continue to Arms →',
-    navHome: 'Back to Home',
     smilePrompt: '😄 Smile Big!',
     smileVoice: 'Smile widely, show your teeth',
     noSmileWarn: '😐 Not smiling yet — please smile widely showing teeth',
     restVoice: 'Keep your face straight and still',
     abortReset: '↺ Test stopped, restarting...',
-    backHome: '← Back to Home',
-    skipStep: 'Skip this step →',
-    resultScore: 'Score',
     resultOk: 'Normal',
     resultWarn: 'Caution',
     resultBad: 'Abnormal',
-  },
-  ja: {
-    discTitle: '重要なお知らせ',
-    discBody: 'このアプリは<strong>予備的なスクリーニングのみ</strong>を目的としています。医学的診断ではなく、専門医の診察に代わるものではありません。<br><br><strong>脳卒中</strong>の疑いがある場合は、<strong>すぐに救急に電話してください</strong>。',
-    understand: '了解して開始',
-    noFace: '⚠️ 顔が検出されません — 顔を枠の中央に合わせてください',
-    loading: 'カメラを起動しています...',
-    calibLabel: '基準値を記録中',
-    threshold: '左右非対称のしきい値 0.40',
-    startBtn: '▶\u00A0 テスト開始',
-    resetBtn: '↺\u00A0 再テスト',
-    pressStart: 'ボタンを押して開始',
-    step1: 'ステップ1: 顔をまっすぐに、静かにリラックスしてください...',
-    step2: 'ステップ2: 歯が見えるように大きく笑ってください! 😄',
-    noFaceBaseline: '⚠️ 基準値の記録中に顔が検出されませんでした。もう一度お試しください。',
-    mouthHidden: '👄 口がはっきり見えません — 顔全体を見せてください',
-    tiltLeft: '首が左に傾きすぎています',
-    tiltRight: '首が右に傾きすぎています',
-    turnRight: '右を向きすぎています',
-    turnLeft: '左を向きすぎています',
-    lookUp: '下を向きすぎています',
-    lookDown: '上を向きすぎています',
-    critical: '🚨 重度の非対称が検出されました!',
-    asymDetect: '⚠️ 非対称を検出... (',
-    holdSmile: '笑顔を保ってください... (',
-    faceDone: '✅ 顔のテスト完了',
-    faceAbnormal: '⚠️ 顔の異常を検出',
-    asymLabel: '非対称度',
-    navResult: 'FASTスコアを見る',
-    navNext: '腕のテストへ →',
-    navHome: 'ホームに戻る',
-    smilePrompt: '😄 笑って!',
-    smileVoice: '歯が見えるように大きく笑ってください',
-    noSmileWarn: '😐 まだ笑っていません',
-    restVoice: '顔をまっすぐ静かに',
-    abortReset: '↺ テスト停止、再開します...',
-    backHome: '← ホームに戻る',
-    skipStep: 'スキップ →',
-    resultScore: 'スコア',
-    resultOk: '正常',
-    resultWarn: '注意',
-    resultBad: '異常',
   }
 };
 
 let FL = FACE_I18N[sessionStorage.getItem('fast_lang') || 'th'] || FACE_I18N.th;
 
 function applyFaceLang() {
-  const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
   const setHTML = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
   
-  setText('disc-title', FL.discTitle);
+  setHTML('disc-title', FL.discTitle);
   setHTML('disc-body', FL.discBody);
-  setText('understand-btn', FL.understand);
-  setText('no-face-banner', FL.noFace);
-  setText('countdown-label', FL.calibLabel);
-  setText('score-threshold', FL.threshold);
-  setText('start-btn', FL.startBtn);
-  setText('reset-btn', FL.resetBtn);
+  setHTML('understand-btn', FL.understand);
+  setHTML('no-face-banner', FL.noFace);
   
+  // จัดการปรับปรุงการเปลี่ยนภาษาของข้อความแจ้งสถานะหลักให้ทำงานเรียลไทม์
   const sm = document.getElementById('status-msg');
   if (sm) {
     if (phase === 'BEFORE_START') sm.textContent = FL.pressStart;
     else if (phase === 'RESTING_PHASE') sm.textContent = FL.step1;
     else if (phase === 'ACTION_PHASE') sm.textContent = FL.step2;
+    else if (phase === 'DONE') sm.textContent = (scoreNum.textContent >= ASYM_THRESHOLD) ? FL.faceAbnormal : FL.faceDone;
+  }
+
+  // จัดการเปลี่ยนป้ายกำกับคะแนน (ปกติ/ระวัง/ผิดปกติ) ตามภาษาที่เปลี่ยนไป
+  if (phase === 'ACTION_PHASE' || phase === 'DONE') {
+    scoreLabel.textContent = FL.asymLabel;
+    const currentScore = parseFloat(scoreNum.textContent) || 0;
+    if (currentScore >= ASYM_CRITICAL) {
+      scoreLabel.textContent = FL.resultBad;
+    } else if (currentScore >= ASYM_THRESHOLD) {
+      scoreLabel.textContent = FL.resultWarn;
+    } else {
+      scoreLabel.textContent = FL.resultOk;
+    }
   }
 }
 
-const SPEAK_LANG = { th: 'th-TH', en: 'en-US', ja: 'ja-JP' };
+const SPEAK_LANG = { th: 'th-TH', en: 'en-US' };
 function speakFace(text) {
   try {
     if (!('speechSynthesis' in window) || !text) return;
@@ -599,7 +566,7 @@ function speakFace(text) {
 
 function goBackHome() {
   if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') {
-    const msg = { th: 'ออกจากการทดสอบ? ผลจะไม่ถูกบันทึก', en: 'Exit test? Result will not be saved.', ja: '終了しますか？' };
+    const msg = { th: 'ออกจากการทดสอบ? ผลจะไม่ถูกบันทึก', en: 'Exit test? Result will not be saved.' };
     if (!confirm(msg[sessionStorage.getItem('fast_lang') || 'th'] || msg.th)) return;
   }
   if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
@@ -628,7 +595,6 @@ const MAX_ALLOWED_YAW      = 28;
 const MAX_ALLOWED_PITCH    = 18;
 const MAX_ALLOWED_ROLL     = 18;
 const MIN_MOUTH_EYE_RATIO  = 0.15;
-const MIN_RISE_TO_SCORE    = 0.005; 
 const SMILE_RISE_MIN       = 0.012; 
 const NO_SMILE_GRACE_MS    = 2000;  
 
@@ -638,7 +604,6 @@ const IDX_L_EYE   = 133, IDX_R_EYE = 362;
 const IDX_NOSE    = 4,   IDX_FOREHEAD = 10;
 const IDX_CHIN    = 152;
 const IDX_ML      = 61,  IDX_MR    = 291;
-const IDX_LIP_TOP = 13,  IDX_LIP_BOT = 14;
 
 let phase             = 'BEFORE_START';
 let restSamplesL      = [];  
@@ -677,7 +642,7 @@ const understandBtn  = document.getElementById('understand-btn');
 
 function switchFaceLang(code) {
   if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') return;
-  FL = FACE_I18N[code];
+  FL = FACE_I18N[code] || FACE_I18N.th;
   sessionStorage.setItem('fast_lang', code);
   applyFaceLang();
   ['th','en','ja'].forEach(c => {
@@ -687,13 +652,6 @@ function switchFaceLang(code) {
 }
 
 applyFaceLang();
-{
-  const _initLang = sessionStorage.getItem('fast_lang') || 'th';
-  ['th','en','ja'].forEach(c => {
-    const btn = document.getElementById('lsw-' + c);
-    if (btn) btn.classList.toggle('active', c === _initLang);
-  });
-}
 const debugPanel     = document.getElementById('debug-panel');
 const debugBtn       = document.getElementById('debug-btn');
 let debugVisible = false;
@@ -707,10 +665,11 @@ debugBtn.addEventListener('click', () => {
 
 understandBtn.addEventListener('click', () => {
   disclaimerEl.style.display = 'none';
-  startCamera(); 
+  if (typeof startCamera === 'function') {
+    startCamera();
+  }
 });
 
-/* ── ปรับปรุง Logic การคำนวณ Roll ไม่ให้สลับฝั่งและพลิกไปเป็น -180° ── */
 function computeScore(lm) {
   const lEye     = lm[IDX_L_EYE];
   const rEye     = lm[IDX_R_EYE];
@@ -779,7 +738,6 @@ function updatePoseBar(barId, valId, deg, maxDeg) {
   val.style.color       = bad ? '#FF6B6B' : '#A8F5C3';
 }
 
-/* ── แก้ไขฟังก์ชัน setUI บังคับปุ่มดีบักที่ย้ายไปด้านบน ── */
 function setUI({ glassColor, msg, poseWarn = '', showCD = false, showScore = false,
                  showStart = false, showReset = false, showHud = false, pulse = false }) {
   const db = document.getElementById('dashboard');
@@ -796,10 +754,6 @@ function setUI({ glassColor, msg, poseWarn = '', showCD = false, showScore = fal
   
   startBtn.classList.toggle('hidden', !showStart);
   resetBtn.classList.toggle('hidden', !showReset);
-  
-  // ควบคุมดีบักที่ย้ายไปด้านบนแทน โดยไม่กวนกับความเตี้ยของแผงล่าง
-  debugBtn.classList.toggle('hidden', !showReset); 
-  
   poseHud.style.display      = showHud   ? 'flex'  : 'none';
 }
 
@@ -882,8 +836,6 @@ function startScreening() {
 
   const oldNav = document.getElementById('fast-nav-btn');
   if (oldNav) oldNav.remove();
-  const oldSkip = document.getElementById('skip-step-btn');
-  if (oldSkip) oldSkip.remove();
 
   phase = 'RESTING_PHASE';
   setUI({ glassColor: 'var(--col-blue-glass)', msg: FL.step1, showCD: true, showReset: true, showHud: true });
@@ -1108,18 +1060,19 @@ function onFaceResults(results) {
         scoreLabel.style.color = '#86E2C3';
       }
 
+      // เปลี่ยนปุ่มดูผลรวม/ไปต่อให้เป็นโมเดลปุ่มแบบ Icon เพื่อความสมดุลกลมกลืน
       const mode = sessionStorage.getItem('fast_mode');
       const navBtn = document.createElement('button');
       navBtn.id = 'fast-nav-btn';
       navBtn.className = 'action-btn pulse';
-      navBtn.style.cssText = 'background:#2B7DE9;border-color:rgba(255,255,255,0.25);box-shadow:0 4px 14px rgba(43,125,233,0.5);';
-      navBtn.textContent = (mode === 'full') ? FL.navNext : FL.navResult;
+      navBtn.title = (mode === 'full') ? 'Next Step' : 'View Result';
+      
+      // ใช้ไอคอนลูกศรไปข้างหน้าสากล
+      navBtn.innerHTML = `<span class="material-icons">arrow_forward</span>`;
       navBtn.onclick = () => {
         window.location.href = (mode === 'full') ? 'arm-test5.html' : 'result.html';
       };
       
-      const oldSkip = document.getElementById('skip-step-btn');
-      if (oldSkip) oldSkip.remove();
       document.getElementById('btn-row').appendChild(navBtn);
     }
   }
@@ -1164,40 +1117,8 @@ function initCamera(stream) {
     activeCamera.start();
     phase = 'BEFORE_START';
     setUI({ glassColor: 'var(--col-blue-glass)', msg: FL.pressStart, showStart: true });
-    maybeShowSkipButton();
   };
 }
-
-/* ── ฟังก์ชันเช็กปุ่มข้ามขั้นตอน เพื่อทำงานในโครงสร้างแบบใหม่ให้สวยงาม ── */
-function maybeShowSkipButton() {
-  const mode = sessionStorage.getItem('fast_mode');
-  const old = document.getElementById('skip-step-btn');
-  if (old) old.remove();
-  
-  if (mode === 'full') {
-    const btn = document.createElement('button');
-    btn.id = 'skip-step-btn';
-    btn.className = 'action-btn';
-    btn.style.cssText = 'background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);color:#fff;font-size:12px;opacity:0.8;';
-    btn.textContent = FL.skipStep || 'ข้ามขั้นนี้ →';
-    btn.onclick = skipFaceStep;
-    document.getElementById('btn-row').appendChild(btn);
-  }
-}
-
-async function startCamera() {
-  const permLang = sessionStorage.getItem('fast_lang') || 'th';
-  const perm = await FastPermissions.request('camera', permLang);
-  if (perm.ok) {
-    initCamera(perm.stream);
-  } else {
-    FastPermissions.requestWithUI('camera', permLang, (stream) => {
-      initCamera(stream);
-    });
-  }
-}
-
-setUI({ glassColor: 'var(--col-blue-glass)', msg: FL.loading });
 </script>
 </body>
 </html>

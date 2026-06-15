@@ -14,7 +14,7 @@
     --col-red-glass:    rgba(186, 38, 38, 0.65);
     --col-yellow-glass: rgba(204, 153, 0, 0.65);
     --col-bg:      #0E1620;
-    --radius-dash: 32px;
+    --radius-dash: 26px;
     --transition:  background 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
@@ -197,12 +197,12 @@
 
   #dashboard {
     position: absolute;
-    bottom: 16px; left: 16px; right: 16px;
+    bottom: 14px; left: 16px; right: 16px;
     z-index: 105;
     border-radius: var(--radius-dash);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    padding: 24px 22px 28px; gap: 14px;
+    padding: 14px 18px 16px; gap: 9px;
     transition: var(--transition);
     background: var(--col-blue-glass);
     backdrop-filter: blur(25px);
@@ -231,7 +231,7 @@
   }
   #countdown-num {
     font-family: 'Manrope', monospace;
-    color: #fff; font-size: 54px;
+    color: #fff; font-size: 40px;
     font-weight: 800; line-height: 1;
   }
 
@@ -254,6 +254,12 @@
     background: #2B7DE9; border-color: rgba(255,255,255,0.2);
     box-shadow: 0 6px 16px rgba(43,125,233,0.35);
   }
+  #reset-btn {
+    padding: 13px 18px;
+    font-size: 20px;
+    min-width: 52px;
+  }
+  #fast-nav-btn { flex: 1; }
 
   #pose-warn-msg {
     display: none;
@@ -326,6 +332,16 @@
     font-family: 'Manrope', sans-serif;
     backdrop-filter: blur(4px);
   }
+  #debug-btn-top {
+    position: absolute; top: 14px; left: 56px; z-index: 125;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff; border-radius: 9px;
+    padding: 6px 10px; font-size: 12px;
+    cursor: pointer; backdrop-filter: blur(4px);
+    opacity: 0.6; transition: opacity 0.15s;
+  }
+  #debug-btn-top.active { opacity: 1; border-color: rgba(0,255,160,0.5); }
 
   .hidden { display: none !important; }
 
@@ -346,6 +362,7 @@
 </div>
 
 <button id="back-home-btn" onclick="goBackHome()">←</button>
+<button id="debug-btn-top" onclick="toggleDebug()">🔬</button>
 
 <div id="video-container">
   <video id="video" autoplay playsinline muted></video>
@@ -433,7 +450,6 @@
   <div id="btn-row">
     <button class="action-btn hidden" id="start-btn"></button>
     <button class="action-btn hidden" id="reset-btn"></button>
-    <button class="action-btn hidden" id="debug-btn" style="font-size:11px;padding:11px 14px;opacity:0.6;">🔬 Debug</button>
   </div>
 </div>
 
@@ -452,7 +468,7 @@ const FACE_I18N = {
     calibLabel: 'กำลังบันทึกค่าเริ่มต้น',
     threshold: 'เกณฑ์ความไม่สมสมมาตรสูงสุด 0.40',
     startBtn: '▶\u00A0 เริ่มทดสอบ',
-    resetBtn: '↺\u00A0 ทดสอบใหม่',
+    resetBtn: '↺',
     pressStart: 'กดปุ่มเพื่อเริ่มทดสอบ',
     step1: 'ขั้นตอนที่ 1: ทำหน้าตรง นิ่งๆ และผ่อนคลาย...',
     step2: 'ขั้นตอนที่ 2: ยิ้มกว้างให้เห็นฟันอย่างเต็มที่! 😄',
@@ -470,9 +486,9 @@ const FACE_I18N = {
     faceDone: '✅ การทดสอบใบหน้าเสร็จสิ้น',
     faceAbnormal: '⚠️ พบความผิดปกติของใบหน้า',
     asymLabel: 'ความเบี้ยวใบหน้า',
-    navResult: 'ดูผลรวม FAST →',
-    navNext: 'ทดสอบแขนต่อ →',
-    navHome: 'กลับหน้าหลัก',
+    navResult: '📊 ผลรวม →',
+    navNext: '💪 แขน →',
+    navHome: '🏠 หน้าหลัก',
     smilePrompt: '😄 ยิ้มกว้าง!',
     smileVoice: 'ยิ้มกว้าง ให้เห็นฟัน',
     noSmileWarn: '😐 ยังไม่ได้ยิ้ม — กรุณายิ้มกว้างให้เห็นฟัน',
@@ -494,7 +510,7 @@ const FACE_I18N = {
     calibLabel: 'Recording baseline',
     threshold: 'Asymmetry Threshold 0.40',
     startBtn: '▶\u00A0 Start Test',
-    resetBtn: '↺\u00A0 Retry',
+    resetBtn: '↺',
     pressStart: 'Press the button to start',
     step1: 'Step 1: Keep your face straight, still, and relaxed...',
     step2: 'Step 2: Smile widely, show your teeth! 😄',
@@ -512,9 +528,9 @@ const FACE_I18N = {
     faceDone: '✅ Face test complete',
     faceAbnormal: '⚠️ Facial abnormality detected',
     asymLabel: 'Asymmetry',
-    navResult: 'View FAST Score →',
-    navNext: 'Continue to Arms →',
-    navHome: 'Back to Home',
+    navResult: '📊 Result →',
+    navNext: '💪 Arms →',
+    navHome: '🏠 Home',
     smilePrompt: '😄 Smile Big!',
     smileVoice: 'Smile widely, show your teeth',
     noSmileWarn: '😐 Not smiling yet — please smile widely showing teeth',
@@ -536,7 +552,7 @@ const FACE_I18N = {
     calibLabel: '基準値を記録中',
     threshold: '左右非対称のしきい値 0.40',
     startBtn: '▶\u00A0 テスト開始',
-    resetBtn: '↺\u00A0 再テスト',
+    resetBtn: '↺',
     pressStart: 'ボタンを押して開始',
     step1: 'ステップ1: 顔をまっすぐに、静かにリラックスしてください...',
     step2: 'ステップ2: 歯が見えるように大きく笑ってください! 😄',
@@ -554,9 +570,9 @@ const FACE_I18N = {
     faceDone: '✅ 顔のテスト完了',
     faceAbnormal: '⚠️ 顔の異常を検出',
     asymLabel: '非対称度',
-    navResult: 'FASTスコアを見る',
-    navNext: '腕のテストへ →',
-    navHome: 'ホームに戻る',
+    navResult: '📊 結果 →',
+    navNext: '💪 腕 →',
+    navHome: '🏠 ホーム',
     smilePrompt: '😄 笑って!',
     smileVoice: '歯が見えるように大きく笑ってください',
     noSmileWarn: '😐 まだ笑っていません — 歯を見せて大きく笑ってください',
@@ -692,6 +708,21 @@ function switchFaceLang(code) {
     const btn = document.getElementById('lsw-' + c);
     if (btn) btn.classList.toggle('active', c === code);
   });
+  // อัปเดตปุ่ม nav/skip ที่สร้างแบบ dynamic (ถ้ามี)
+  const navBtn = document.getElementById('fast-nav-btn');
+  if (navBtn) {
+    const mode = sessionStorage.getItem('fast_mode');
+    const allDone = ['fast_face','fast_arm','fast_speech'].every(k => sessionStorage.getItem(k));
+    if (mode === 'full') navBtn.textContent = FL.navNext;
+    else navBtn.textContent = allDone ? FL.navResult : FL.navHome;
+  }
+  const skipBtn = document.getElementById('skip-step-btn');
+  if (skipBtn) skipBtn.textContent = FL.skipStep;
+  // อัปเดต score label ถ้าแสดงผลอยู่
+  const sl = document.getElementById('score-label');
+  if (sl && phase === 'FACE_DONE') {
+    // คงสถานะผลไว้ (ไม่แก้ เพราะ riskText set แล้ว) — แต่ asymLabel ปรับได้
+  }
 }
 
 applyFaceLang();
@@ -703,15 +734,14 @@ applyFaceLang();
   });
 }
 const debugPanel     = document.getElementById('debug-panel');
-const debugBtn       = document.getElementById('debug-btn');
 let debugVisible = false;
 
-debugBtn.addEventListener('click', () => {
+function toggleDebug() {
   debugVisible = !debugVisible;
   debugPanel.classList.toggle('visible', debugVisible);
-  debugBtn.style.opacity = debugVisible ? '1' : '0.6';
-  debugBtn.textContent = debugVisible ? '🔬 Hide Debug' : '🔬 Debug';
-});
+  const btn = document.getElementById('debug-btn-top');
+  if (btn) btn.classList.toggle('active', debugVisible);
+}
 
 understandBtn.addEventListener('click', () => {
   disclaimerEl.style.display = 'none';
@@ -727,8 +757,8 @@ function computeScore(lm) {
   const mL       = lm[IDX_ML];
   const mR       = lm[IDX_MR];
 
-  const eyeDx = rEye.x - lEye.x;
-  const eyeDy = rEye.y - lEye.y;
+  const eyeDx = lEye.x - rEye.x;
+  const eyeDy = lEye.y - rEye.y;
   const roll  = Math.atan2(eyeDy, eyeDx);
   const cx    = (lEye.x + rEye.x) / 2;
   const cy    = (lEye.y + rEye.y) / 2;
@@ -798,7 +828,6 @@ function setUI({ glassColor, msg, poseWarn = '', showCD = false, showScore = fal
   
   startBtn.classList.toggle('hidden', !showStart);
   resetBtn.classList.toggle('hidden', !showReset);
-  debugBtn.classList.toggle('hidden', !showReset);
   poseHud.style.display      = showHud   ? 'flex'  : 'none';
 }
 
@@ -1229,7 +1258,8 @@ function initCamera(stream) {
       maybeShowSkipButton();
     }).catch(e => {
       console.error("Video play failed:", e);
-      statusMsg.textContent = "⚠️ ไม่สามารถแสดงผลวิดีโอจากกล้องได้";
+      const errMsg = { th: '⚠️ ไม่สามารถแสดงผลวิดีโอจากกล้องได้', en: '⚠️ Cannot display camera video', ja: '⚠️ カメラ映像を表示できません' };
+      statusMsg.textContent = errMsg[sessionStorage.getItem('fast_lang') || 'th'] || errMsg.th;
     });
   };
 }
@@ -1258,7 +1288,8 @@ async function startCamera() {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
       initCamera(stream);
     } catch (e) {
-      statusMsg.textContent = '⚠️ ไม่สามารถเข้าถึงกล้องได้ กรุณาอนุญาตการใช้กล้อง';
+      const errMsg = { th: '⚠️ ไม่สามารถเข้าถึงกล้องได้ กรุณาอนุญาตการใช้กล้อง', en: '⚠️ Cannot access camera. Please allow camera access.', ja: '⚠️ カメラにアクセスできません。カメラの使用を許可してください。' };
+      statusMsg.textContent = errMsg[sessionStorage.getItem('fast_lang') || 'th'] || errMsg.th;
       console.error('Camera access failed:', e);
     }
     return;

@@ -228,6 +228,8 @@
     <span class="dbg-row"><span class="dbg-lbl">smileAsym</span><span class="dbg-val" id="dbg-smasym">—</span></span>
     <span class="dbg-row"><span class="dbg-lbl">geomAsym</span><span class="dbg-val" id="dbg-geomasym">—</span></span>
     <span class="dbg-row"><span class="dbg-lbl">frameAsym</span><span class="dbg-val" id="dbg-frasym">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">peakSmileL</span><span class="dbg-val" id="dbg-pkl">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">peakSmileR</span><span class="dbg-val" id="dbg-pkr">—</span></span>
 
     <div class="dbg-section">📐 POSE</div>
     <span class="dbg-row"><span class="dbg-lbl">roll°</span><span class="dbg-val" id="dbg-roll">—</span></span>
@@ -411,9 +413,12 @@ const debugPanel = document.getElementById('debug-panel');
 const CALIBRATION_SECONDS = 3;       // short "get ready" before smiling
 const ACTION_DURATION_MS = 4000;     // length of the smile-recording window
 
-const SMILE_DETECT_MIN = 0.22;       // (smileL+smileR)/2 needed to count as "smiling"
-const SMILE_VALID_STRENGTH = 0.18;   // min strength for a frame to count as real evidence
-const MIN_VALID_SMILE_FRAMES = 14;   // fewer than this → "unable to assess"
+const SMILE_DETECT_MIN = 0.22;       // (smileL+smileR)/2 to START recording a smile
+const SMILE_DETECT_SIDE = 0.30;      // OR either side this high → a smile has begun (one-sided)
+const SMILE_VALID_STRENGTH = 0.18;   // min strength for a frame to count as evidence
+const REAL_MOVE_MIN = 0.04;          // corner must actually rise (norm by eye width) — guards occlusion
+const SMILE_REAL_MIN = 0.40;         // stronger side must reach a real smile, else "unable to assess"
+const MIN_VALID_SMILE_FRAMES = 12;   // fewer valid frames than this → "unable to assess"
 const MAX_WAIT_FOR_SMILE_MS = 14000; // no genuine smile within this → "unable to assess"
 
 const SMILE_ASYM_WARN = 0.26;        // representative asym → caution
@@ -450,6 +455,8 @@ let smileEverDetected = false;
 let actionWaitStartMs = null;
 let lastSmileVoiceMs = 0;
 let lastRepAsym = 0;
+// per-side PEAK activation during the smile window (the core stroke signal)
+let peakSmileL = 0, peakSmileR = 0, peakRiseL = 0, peakRiseR = 0;
 
 let pitchNeutralRatio = null;
 
@@ -613,6 +620,7 @@ function startScreening(){
   countdownVal=CALIBRATION_SECONDS; countdownPaused=false;
   smileStartMs=null; frameAsymScores=[]; validSmileFrames=0; smileEverDetected=false;
   actionWaitStartMs=null; lastSmileVoiceMs=0; lastRepAsym=0;
+  peakSmileL=0; peakSmileR=0; peakRiseL=0; peakRiseR=0;
   pitchNeutralRatio=null;
   scoreNum.textContent='—';
   noFaceBanner.style.display='none'; poseWarnMsg.style.display='none';
@@ -647,6 +655,7 @@ function calibrationTick(){
 function startActionPhase(){
   phase='ACTION_PHASE';
   smileStartMs=null; frameAsymScores=[]; validSmileFrames=0; smileEverDetected=false;
+  peakSmileL=0; peakSmileR=0; peakRiseL=0; peakRiseR=0;
   actionWaitStartMs=Date.now(); lastSmileVoiceMs=Date.now();
   setUI({glassColor:'var(--col-green-glass)', msg:FL.step2, showReset:true, showHud:true});
   const sp=document.getElementById('smile-prompt');
@@ -697,6 +706,7 @@ function onResults(results){
   setDbg('dbg-sml', smileL.toFixed(2)); setDbg('dbg-smr', smileR.toFixed(2));
   setDbg('dbg-smstr', smileStrength.toFixed(2)); setDbg('dbg-smasym', smileAsym.toFixed(2));
   setDbg('dbg-geomasym', geomAsym.toFixed(2)); setDbg('dbg-frasym', frameAsym.toFixed(2));
+  setDbg('dbg-pkl', peakSmileL.toFixed(2)); setDbg('dbg-pkr', peakSmileR.toFixed(2));
   setDbg('dbg-roll', rollDeg.toFixed(1)+'°'); setDbg('dbg-yaw', yawDeg.toFixed(1)+'°'); setDbg('dbg-pitch', pitchDeg.toFixed(1)+'°');
   setDbg('dbg-vf', validSmileFrames); setDbg('dbg-rep', lastRepAsym.toFixed(2)); setDbg('dbg-phase', phase);
 
@@ -750,7 +760,9 @@ function onResults(results){
     statusMsg.textContent = FL.step2;
     const db=document.getElementById('dashboard'); if(db) db.style.background='var(--col-green-glass)';
     const now = Date.now();
-    if (smileStrength >= SMILE_DETECT_MIN){
+    // A smile has begun if BOTH sides average up, OR if EITHER side clearly activates
+    // (one-sided smile must still start the test — that's exactly the stroke case).
+    if (smileStrength >= SMILE_DETECT_MIN || Math.max(smileL, smileR) >= SMILE_DETECT_SIDE){
       smileEverDetected = true;
       smileStartMs = now;
       phase = 'ACTION_WAIT_SMILE';
@@ -763,19 +775,23 @@ function onResults(results){
     return;
   }
 
-  /* ── WAIT_SMILE: record while smiling ── */
+  /* ── WAIT_SMILE: record per-side PEAK activation while smiling ── */
   if (phase==='ACTION_WAIT_SMILE'){
     statusMsg.textContent = FL.step2;
     const db=document.getElementById('dashboard'); if(db) db.style.background='var(--col-green-glass)';
 
-    // count only frames with genuine smile activation as valid evidence
-    if (smileStrength >= SMILE_VALID_STRENGTH){
+    // A frame is valid evidence only if there's a genuine smile AND the mouth corner
+    // actually rose from the neutral baseline. A still hand over the mouth produces a
+    // hallucinated "smile" blendshape but NO real upward movement → not counted.
+    const realMove = Math.max(riseLn, riseRn) > REAL_MOVE_MIN;
+    if (smileStrength >= SMILE_VALID_STRENGTH && realMove){
       validSmileFrames++;
       frameAsymScores.push(frameAsym);
-    }
-    if (frameAsymScores.length){
-      const s=[...frameAsymScores].sort((a,b)=>a-b);
-      lastRepAsym = s[Math.floor(s.length*0.6)];   // p60: sensitive but not noise-driven
+      // track how far EACH side got at its best moment — this is the core signal
+      peakSmileL = Math.max(peakSmileL, smileL);
+      peakSmileR = Math.max(peakSmileR, smileR);
+      peakRiseL  = Math.max(peakRiseL, riseLn);
+      peakRiseR  = Math.max(peakRiseR, riseRn);
     }
 
     const elapsed = Date.now() - smileStartMs;
@@ -785,9 +801,8 @@ function onResults(results){
     if (elapsed >= ACTION_DURATION_MS){
       hideCenterCountdown();
       const sp=document.getElementById('smile-prompt'); if(sp) sp.style.display='none';
-      // not enough real smile evidence → cannot say "normal"
-      if (validSmileFrames < MIN_VALID_SMILE_FRAMES || frameAsymScores.length < MIN_VALID_SMILE_FRAMES){
-        finishInvalid();
+      if (validSmileFrames < MIN_VALID_SMILE_FRAMES){
+        finishInvalid();   // never saw a real, moving smile → can't say "normal"
         return;
       }
       finishFace();
@@ -803,15 +818,34 @@ function asymToScore(asym){
 
 function finishFace(){
   phase='FACE_DONE';
-  const s=[...frameAsymScores].sort((a,b)=>a-b);
-  const rep = s.length ? s[Math.floor(s.length*0.6)] : 0;
+
+  // The stronger side must have reached a REAL smile. If neither side ever got there
+  // (weak smile, or a covering hand that produced only a faint hallucinated smile),
+  // we cannot call it "normal" → report "unable to assess".
+  const strongSide = Math.max(peakSmileL, peakSmileR);
+  if (strongSide < SMILE_REAL_MIN){
+    finishInvalid();
+    return;
+  }
+
+  // Core comparison: how far did EACH side get at its best moment?
+  // One side high + other side low = one side isn't working = abnormal.
+  const blendAsym = (peakSmileL + peakSmileR) > 0.05
+    ? Math.abs(peakSmileL - peakSmileR) / (peakSmileL + peakSmileR) : 0;
+  const riseAsym = (peakRiseL + peakRiseR) > 0.05
+    ? Math.abs(peakRiseL - peakRiseR) / (peakRiseL + peakRiseR) : 0;
+  const rep = Math.max(blendAsym, riseAsym);
   lastRepAsym = rep;
 
   let riskLevel = rep >= SMILE_ASYM_BAD ? 'bad' : rep >= SMILE_ASYM_WARN ? 'warn' : 'ok';
   if (criticalFired) riskLevel = 'bad';
   const score = criticalFired ? Math.min(asymToScore(rep), 30) : asymToScore(rep);
 
-  saveAndShow(score, riskLevel, { representativeAsym:rep, validSmileFrames, method:'blendshape_smile_symmetry' });
+  saveAndShow(score, riskLevel, {
+    representativeAsym: rep, blendAsym, riseAsym,
+    peakSmileL, peakSmileR, peakRiseL, peakRiseR,
+    validSmileFrames, method: 'peak_per_side_smile_symmetry'
+  });
 }
 
 function finishCritical(){

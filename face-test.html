@@ -582,7 +582,7 @@ const FACE_I18N = {
     resetBtn: '↺',
     pressStart: 'กดปุ่มเพื่อเริ่มทดสอบ',
     step1: 'ขั้นที่ 1: ทำหน้าตรง นิ่งๆ ผ่อนคลาย',
-    step2: '😄 ยิ้มกว้างให้เห็นฟัน',
+    step2: '😄 ยิ้มกว้าง',
     noFaceBaseline: '⚠️ ไม่พบใบหน้าระหว่างบันทึกค่าเริ่มต้น กรุณาลองใหม่',
     mouthHidden: '👄 ไม่เห็นปากชัดเจน',
     tiltLeft: '↙️ ศีรษะเอียง — ตั้งหน้าให้ตรง',
@@ -599,9 +599,9 @@ const FACE_I18N = {
     navResult: '📊 ผลรวม →',
     navNext: '💪 แขน →',
     navHome: '🏠 หน้าหลัก',
-    smilePrompt: '😄 ยิ้มกว้าง!',
-    smileVoice: 'ยิ้มกว้าง ให้เห็นฟัน',
-    noSmileWarn: '😐 กรุณายิ้มกว้างให้เห็นฟัน',
+    smilePrompt: '😄 ยิ้มกว้าง',
+    smileVoice: 'ยิ้มกว้าง',
+    noSmileWarn: '😐 กรุณายิ้มกว้าง',
     restVoice: 'ทำหน้าตรง นิ่งๆ',
     abortReset: '↺ เริ่มใหม่...',
     backHome: '← กลับหน้าหลัก',
@@ -623,7 +623,7 @@ const FACE_I18N = {
     resetBtn: '↺',
     pressStart: 'Press the button to start',
     step1: 'Step 1: Keep your face straight & relaxed',
-    step2: '😄 Smile widely, show teeth',
+    step2: '😄 Smile',
     noFaceBaseline: '⚠️ No face detected during baseline. Please try again.',
     mouthHidden: '👄 Mouth not clearly visible',
     tiltLeft: '↙️ Head tilted — keep head straight',
@@ -640,9 +640,9 @@ const FACE_I18N = {
     navResult: '📊 Result →',
     navNext: '💪 Arms →',
     navHome: '🏠 Home',
-    smilePrompt: '😄 Smile Big!',
-    smileVoice: 'Smile widely, show your teeth',
-    noSmileWarn: '😐 Please smile widely showing teeth',
+    smilePrompt: '😄 Smile',
+    smileVoice: 'Smile',
+    noSmileWarn: '😐 Please smile',
     restVoice: 'Keep your face straight and still',
     abortReset: '↺ Restarting...',
     backHome: '← Back to Home',
@@ -664,7 +664,7 @@ const FACE_I18N = {
     resetBtn: '↺',
     pressStart: 'ボタンを押して開始',
     step1: 'ステップ1: 顔をまっすぐ、リラックス',
-    step2: '😄 歯を見せて大きく笑って',
+    step2: '😄 笑って',
     noFaceBaseline: '⚠️ 基準値の記録中に顔が検出されませんでした。もう一度お試しください。',
     mouthHidden: '👄 口がはっきり見えません',
     tiltLeft: '↙️ 頭が傾いています — まっすぐに',
@@ -682,8 +682,8 @@ const FACE_I18N = {
     navNext: '💪 腕 →',
     navHome: '🏠 ホーム',
     smilePrompt: '😄 笑って!',
-    smileVoice: '歯が見えるように大きく笑ってください',
-    noSmileWarn: '😐 歯を見せて大きく笑ってください',
+    smileVoice: '笑ってください',
+    noSmileWarn: '😐 笑ってください',
     restVoice: '顔をまっすぐ静かに',
     abortReset: '↺ 再開します...',
     backHome: '← ホームに戻る',
@@ -750,16 +750,41 @@ function applyFaceLang() {
 }
 
 const SPEAK_LANG = { th: 'th-TH', en: 'en-US', ja: 'ja-JP' };
-function speakFace(text) {
+const FEMALE_VOICE_HINTS = [
+  'female', 'woman', 'girl',
+  'samantha', 'karen', 'moira', 'tessa', 'victoria', 'zira', 'hazel', 'susan',
+  'joanna', 'salli', 'amy', 'emma', 'olivia', 'aria', 'kanya', 'narisa',
+  'kyoko', 'nanami', 'ichiko', 'haruka'
+];
+let cachedVoices = [];
+function loadFaceVoices() {
+  try { cachedVoices = speechSynthesis.getVoices() || []; } catch(e) { cachedVoices = []; }
+}
+if ('speechSynthesis' in window) {
+  loadFaceVoices();
+  speechSynthesis.onvoiceschanged = loadFaceVoices;
+}
+function pickFemaleVoice(lang) {
+  if (!cachedVoices.length) loadFaceVoices();
+  const langPrefix = (lang || '').split('-')[0].toLowerCase();
+  const sameLang = cachedVoices.filter(v => (v.lang || '').toLowerCase().startsWith(langPrefix));
+  const hinted = sameLang.find(v => FEMALE_VOICE_HINTS.some(h => (v.name || '').toLowerCase().includes(h)));
+  return hinted || sameLang.find(v => v.localService) || sameLang[0] || null;
+}
+function speakFace(text, { interrupt = true } = {}) {
   try {
     if (!('speechSynthesis' in window) || !text) return;
-    speechSynthesis.cancel();
+    if (interrupt) speechSynthesis.cancel();
+    const lang = SPEAK_LANG[sessionStorage.getItem('fast_lang') || 'th'] || 'th-TH';
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = SPEAK_LANG[sessionStorage.getItem('fast_lang') || 'th'] || 'th-TH';
-    u.rate = 0.95;
+    u.lang = lang;
+    u.voice = pickFemaleVoice(lang);
+    u.rate = 0.92;
+    u.pitch = 1.08;
     speechSynthesis.speak(u);
   } catch (e) { }
 }
+
 
 function goBackHome() {
   if (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') {
@@ -798,6 +823,9 @@ const NO_SMILE_GRACE_MS    = 2000;
 
 let smileStarted         = false;
 let smileWarningActive   = false;
+let noSmilePromptSpoken  = false;
+let lastNoSmilePromptMs  = 0;
+const NO_SMILE_REPEAT_MS = 10000;
 const IDX_L_EYE   = 133, IDX_R_EYE = 362;
 const IDX_NOSE    = 4,   IDX_FOREHEAD = 10;
 const IDX_CHIN    = 152;
@@ -842,8 +870,12 @@ const centerCdEl     = document.getElementById('center-countdown');
 
 /* ── Center countdown helpers ── */
 function showCenterCountdown(v) {
-  // Disabled in this cleaned UX version: keep countdown inside dashboard only.
-  if (centerCdEl) centerCdEl.style.display = 'none';
+  if (!centerCdEl) return;
+  centerCdEl.textContent = v;
+  centerCdEl.style.display = 'block';
+  centerCdEl.style.animation = 'none';
+  void centerCdEl.offsetWidth;
+  centerCdEl.style.animation = '';
 }
 function hideCenterCountdown() {
   if (centerCdEl) centerCdEl.style.display = 'none';
@@ -1009,6 +1041,8 @@ function startActionPhase() {
   recentAsymScores = [];
   smileStarted   = false;
   smileWarningActive = false;
+  noSmilePromptSpoken = false;
+  lastNoSmilePromptMs = 0;
 
   // Live score intentionally hidden during the test (showScore:false) —
   // only the final result is revealed.
@@ -1064,6 +1098,8 @@ function startScreening() {
   countdownPaused      = false;
   actionStartMs        = null;
   actionAsymScores     = [];
+  noSmilePromptSpoken  = false;
+  lastNoSmilePromptMs  = 0;
   scoreNum.textContent            = '—';
   noFaceBanner.style.display      = 'none';
   poseWarnMsg.style.display       = 'none';
@@ -1075,7 +1111,8 @@ function startScreening() {
   if (oldSkip) oldSkip.remove();
 
   phase = 'RESTING_PHASE';
-  setUI({ glassColor: 'var(--col-orange-glass)', msg: FL.step1, showCD: true, showReset: true, showHud: true });
+  setUI({ glassColor: 'var(--col-orange-glass)', msg: FL.step1, showReset: true, showHud: true });
+  showCenterCountdown(countdownVal);
   maybeShowSkipButton();
 
   if (countdownTimer) { clearInterval(countdownTimer); }
@@ -1084,7 +1121,7 @@ function startScreening() {
     countdownVal--;
     countdownNum.textContent = countdownVal;
     if (countdownVal > 0) {
-      // dashboard countdown only
+      showCenterCountdown(countdownVal);
     } else {
       clearInterval(countdownTimer);
       countdownTimer = null;
@@ -1281,13 +1318,27 @@ faceMesh.onResults(results => {
       phase = 'ACTION_WAIT_SMILE';
       const sp = document.getElementById('smile-prompt');
       if (sp) sp.querySelector('div').textContent = FL.smilePrompt;
-      statusMsg.textContent      = FL.noSmileWarn;
+      statusMsg.textContent = FL.noSmileWarn;
       const db = document.getElementById('dashboard');
       if (db) db.style.background = 'var(--col-orange-glass)';
+
+      const now = performance.now();
+      if (!noSmilePromptSpoken || now - lastNoSmilePromptMs >= NO_SMILE_REPEAT_MS) {
+        speakFace(FL.smileVoice);
+        noSmilePromptSpoken = true;
+        lastNoSmilePromptMs = now;
+      }
       return;
     }
 
-    if (phase === 'ACTION_WAIT_SMILE') return;
+    if (phase === 'ACTION_WAIT_SMILE') {
+      const now = performance.now();
+      if (now - lastNoSmilePromptMs >= NO_SMILE_REPEAT_MS) {
+        speakFace(FL.smileVoice);
+        lastNoSmilePromptMs = now;
+      }
+      return;
+    }
 
     // Still compute & store asymmetry for the final result, but do NOT display it live.
     let asym = 0;
@@ -1368,29 +1419,38 @@ function finishFace() {
 function handleFaceFastFlow() {
   const mode = sessionStorage.getItem('fast_mode');
   const allDone = ['fast_face','fast_arm','fast_speech'].every(k => sessionStorage.getItem(k));
+
   setTimeout(() => {
     const existing = document.getElementById('fast-nav-btn');
     if (existing) existing.remove();
+
+    // มีปุ่ม Home แบบ icon อยู่แล้ว จึงไม่สร้างปุ่ม "หน้าหลัก" ซ้ำ
+    // สร้างปุ่มยาวเฉพาะกรณีต้องไปขั้นถัดไป หรือไปหน้าผลรวมเท่านั้น
+    let label = '';
+    let target = '';
+    let bg = '#2B7DE9';
+
+    if (mode === 'full') {
+      label = FL.navNext;
+      target = 'arm-test.html';
+    } else if (allDone) {
+      label = FL.navResult;
+      target = 'result.html';
+      bg = '#1FA98F';
+    } else {
+      return;
+    }
+
     const btn = document.createElement('button');
     btn.id = 'fast-nav-btn';
     btn.className = 'action-btn';
-    btn.style.cssText = 'background:#2B7DE9;border-color:rgba(255,255,255,0.25);color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(43,125,233,0.35);width:100%;padding:12px 16px;';
-    if (mode === 'full') {
-      btn.textContent = FL.navNext;
-      btn.onclick = () => window.location.href = 'arm-test.html';
-    } else {
-      if (allDone) {
-        btn.textContent = FL.navResult;
-        btn.style.background = '#1FA98F';
-        btn.onclick = () => window.location.href = 'result.html';
-      } else {
-        btn.textContent = FL.navHome;
-        btn.onclick = () => window.location.href = 'index.html';
-      }
-    }
+    btn.style.cssText = `background:${bg};border-color:rgba(255,255,255,0.25);color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(43,125,233,0.35);width:100%;padding:12px 16px;`;
+    btn.textContent = label;
+    btn.onclick = () => window.location.href = target;
     document.getElementById('btn-row').appendChild(btn);
   }, 400);
 }
+
 
 // ฟังก์ชันลูปส่งเฟรมภาพแบบ Async/Await ป้องกันการ Deadlock ค้างของกล้องและ MediaPipe
 async function processCameraFrames() {

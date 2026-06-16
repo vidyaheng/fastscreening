@@ -797,20 +797,20 @@ function handleFastFlow(riskLevel) {
       // Full mode: speech เป็นอันสุดท้าย → ไป result
       if (allDone) {
         btn.textContent = L.result;
-        btn.onclick = () => window.location.href = 'result3.html';
+        btn.onclick = () => window.location.href = 'result.html';
       } else {
         btn.textContent = L.home;
-        btn.onclick = () => window.location.href = 'index3.html';
+        btn.onclick = () => window.location.href = 'index.html';
       }
     } else {
       // Individual mode
       if (allDone) {
         btn.textContent = L.result;
         btn.style.background = 'var(--green)';
-        btn.onclick = () => window.location.href = 'result3.html';
+        btn.onclick = () => window.location.href = 'result.html';
       } else {
         btn.textContent = L.home;
-        btn.onclick = () => window.location.href = 'index3.html';
+        btn.onclick = () => window.location.href = 'index.html';
         // ถ้าผิดปกติแต่ยังไม่ครบ แสดงข้อความเตือน
         if (riskLevel !== 'ok') {
           $('rb-sub').textContent = L.incomplete;

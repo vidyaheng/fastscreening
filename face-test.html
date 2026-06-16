@@ -14,402 +14,155 @@
     --col-red-glass:    rgba(186, 38, 38, 0.65);
     --col-yellow-glass: rgba(204, 153, 0, 0.65);
     --col-bg:      #0E1620;
-    --radius-dash: 26px;
-    --transition:  background 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  html {
-    background: #10141d;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100dvh;
-  }
+  html { background:#10141d; display:flex; justify-content:center; align-items:center; min-height:100dvh; }
 
   body {
     background: var(--col-bg);
     font-family: 'IBM Plex Sans Thai', 'Manrope', -apple-system, sans-serif;
     overflow: hidden;
-    width: 390px;
-    max-width: 100vw;
-    height: 844px;
-    max-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    border-radius: 0;
+    width: 390px; max-width: 100vw;
+    height: 844px; max-height: 100dvh;
+    display: flex; flex-direction: column;
     position: relative;
     box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 24px 60px rgba(0,0,0,0.6);
   }
+  @media (min-width: 500px) { body { border-radius: 40px; height: min(844px, 100dvh); } }
 
-  @media (min-width: 500px) {
-    body {
-      border-radius: 40px;
-      height: min(844px, 100dvh);
-    }
-  }
-
-  #video-container {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    background: #000;
-    z-index: 1;
-  }
-  #video {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    transform: scaleX(-1);
-    display: block;
-  }
-  #canvas {
-    position: absolute; top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 2;
-  }
+  #video-container { position:absolute; inset:0; overflow:hidden; background:#000; z-index:1; }
+  #video { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); display:block; }
+  #canvas { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:2; }
 
   #disclaimer-overlay {
-    position: absolute; inset: 0;
-    background: rgba(14, 22, 32, 0.95);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 18px; padding: 28px;
-    z-index: 130;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    position:absolute; inset:0; background:rgba(14,22,32,0.95);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:18px; padding:28px; z-index:130;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
   }
-  #disclaimer-overlay .disc-icon { font-size: 38px; }
-  #disclaimer-overlay h2 {
-    color: #fff; font-size: 21px; font-weight: 800;
-    letter-spacing: 0.3px; text-align: center;
-  }
-  #disclaimer-overlay p {
-    color: rgba(255,255,255,0.8); font-size: 15px; font-weight:500;
-    text-align: center; line-height: 1.65; max-width: 320px;
-  }
-  #disclaimer-overlay p strong { color: #FFB84D; font-weight:700; }
+  #disclaimer-overlay .disc-icon { font-size:38px; }
+  #disclaimer-overlay h2 { color:#fff; font-size:21px; font-weight:800; letter-spacing:0.3px; text-align:center; }
+  #disclaimer-overlay p { color:rgba(255,255,255,0.8); font-size:15px; font-weight:500; text-align:center; line-height:1.65; max-width:320px; }
+  #disclaimer-overlay p strong { color:#FFB84D; font-weight:700; }
   #understand-btn {
-    margin-top: 8px;
-    background: #2B7DE9; color: #fff;
-    border: none; border-radius: 14px;
-    padding: 16px 44px; font-family: inherit;
-    font-size: 16px; font-weight: 700;
-    cursor: pointer; letter-spacing: 0.3px;
-    transition: transform 0.12s;
-    box-shadow: 0 6px 18px rgba(43,125,233,0.4);
+    margin-top:8px; background:#2B7DE9; color:#fff; border:none; border-radius:14px;
+    padding:16px 44px; font-family:inherit; font-size:16px; font-weight:700;
+    cursor:pointer; letter-spacing:0.3px; transition:transform 0.12s;
+    box-shadow:0 6px 18px rgba(43,125,233,0.4);
   }
-  #understand-btn:active { transform: scale(0.97); }
+  #understand-btn:active { transform:scale(0.97); }
+  #understand-btn:disabled { opacity:0.55; cursor:default; }
 
   #no-face-banner {
-    display: none;
-    position: absolute; top: 55px; left: 50%;
-    transform: translateX(-50%);
-    background: rgba(229, 84, 78, 0.92);
-    color: #fff; padding: 9px 20px;
-    border-radius: 20px; font-size: 14px;
-    font-weight: 700; white-space: nowrap; z-index: 110;
-    backdrop-filter: blur(4px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    display:none; position:absolute; top:55px; left:50%; transform:translateX(-50%);
+    background:rgba(229,84,78,0.92); color:#fff; padding:9px 20px; border-radius:20px;
+    font-size:14px; font-weight:700; white-space:nowrap; z-index:110;
+    backdrop-filter:blur(4px); box-shadow:0 4px 12px rgba(0,0,0,0.25);
   }
 
-  /* ── Progress indicator ── */
   #progress-dots {
-    position: absolute; top: 54px; left: 50%;
-    transform: translateX(-50%);
-    z-index: 106; display: flex; gap: 14px; align-items: center;
-    background: rgba(8,12,16,0.5); padding: 7px 16px;
-    border-radius: 14px;
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.12);
+    position:absolute; top:54px; left:50%; transform:translateX(-50%);
+    z-index:106; display:flex; gap:14px; align-items:center;
+    background:rgba(8,12,16,0.5); padding:7px 16px; border-radius:14px;
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.12);
   }
-  .prog-step { display: flex; align-items: center; gap: 5px; }
-  .prog-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: rgba(255,255,255,0.25);
-    transition: background 0.2s, box-shadow 0.2s;
-  }
-  .prog-step.active .prog-dot { background: #2B7DE9; box-shadow: 0 0 8px rgba(43,125,233,0.85); }
-  .prog-step.done   .prog-dot { background: #1FA98F; }
-  .prog-label {
-    color: rgba(255,255,255,0.5); font-size: 9px; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase;
-  }
-  .prog-step.active .prog-label { color: #fff; }
-  .prog-step.done   .prog-label { color: rgba(168,245,195,0.85); }
+  .prog-step { display:flex; align-items:center; gap:5px; }
+  .prog-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.25); transition:background 0.2s, box-shadow 0.2s; }
+  .prog-step.active .prog-dot { background:#2B7DE9; box-shadow:0 0 8px rgba(43,125,233,0.85); }
+  .prog-step.done   .prog-dot { background:#1FA98F; }
+  .prog-label { color:rgba(255,255,255,0.5); font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+  .prog-step.active .prog-label { color:#fff; }
+  .prog-step.done   .prog-label { color:rgba(168,245,195,0.85); }
 
-  /* ── Center countdown ── */
   #center-countdown {
-    position: absolute; top: 40%; left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 140; display: none; pointer-events: none;
-    font-family: 'Manrope', sans-serif;
-    font-size: 110px; font-weight: 800; line-height: 1;
-    color: #fff; text-shadow: 0 4px 28px rgba(0,0,0,0.65);
+    position:absolute; top:40%; left:50%; transform:translate(-50%,-50%);
+    z-index:140; display:none; pointer-events:none;
+    font-family:'Manrope',sans-serif; font-size:110px; font-weight:800; line-height:1;
+    color:#fff; text-shadow:0 4px 28px rgba(0,0,0,0.65);
   }
 
   #pose-hud {
-    display: none;
-    position: absolute; top: 145px; left: 50%;
-    transform: translateX(-50%);
-    background: rgba(8,12,16,0.6);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 16px; padding: 8px 16px;
-    flex-direction: row; gap: 16px;
-    align-items: center; z-index: 100;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    display:none; position:absolute; top:145px; left:50%; transform:translateX(-50%);
+    background:rgba(8,12,16,0.6); border:1px solid rgba(255,255,255,0.12);
+    border-radius:16px; padding:8px 16px; flex-direction:row; gap:14px;
+    align-items:center; z-index:100; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
   }
-  .pose-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .pose-item-label {
-    color: rgba(255,255,255,0.5); font-size: 8px;
-    font-weight: 700; letter-spacing: 1.5px;
-    text-transform: uppercase;
-  }
-  .pose-bar-wrap {
-    width: 58px; height: 5px;
-    background: rgba(255,255,255,0.15);
-    border-radius: 3px; position: relative;
-  }
-  .pose-bar-center {
-    position: absolute; left: 50%; top: -2px;
-    width: 1.5px; height: 9px;
-    background: rgba(255,255,255,0.4);
-    transform: translateX(-50%); border-radius: 1px;
-  }
-  .pose-bar-fill {
-    position: absolute; top: 0; height: 100%;
-    border-radius: 3px;
-    transition: left .08s, width .08s, background .15s;
-  }
-  .pose-val {
-    font-family: 'Manrope', monospace;
-    color: #fff; font-size: 10px; font-weight: 700;
-  }
+  .pose-item { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .pose-item-label { color:rgba(255,255,255,0.5); font-size:8px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+  .pose-bar-wrap { width:50px; height:5px; background:rgba(255,255,255,0.15); border-radius:3px; position:relative; }
+  .pose-bar-center { position:absolute; left:50%; top:-2px; width:1.5px; height:9px; background:rgba(255,255,255,0.4); transform:translateX(-50%); border-radius:1px; }
+  .pose-bar-fill { position:absolute; top:0; height:100%; border-radius:3px; transition:left .08s, width .08s, background .15s; }
+  .pose-val { font-family:'Manrope',monospace; color:#fff; font-size:10px; font-weight:700; }
 
   #score-box {
-    position: absolute;
-    top: 55px; left: 14px; right: 14px;
-    z-index: 105;
-    background: rgba(14, 22, 32, 0.75);
-    border: 1px solid rgba(255,255,255,0.15);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 20px;
-    padding: 8px 14px;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    position:absolute; top:55px; left:14px; right:14px; z-index:105;
+    background:rgba(14,22,32,0.75); border:1px solid rgba(255,255,255,0.15);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border-radius:20px; padding:8px 14px; display:none; flex-direction:column;
+    align-items:center; box-shadow:0 8px 24px rgba(0,0,0,0.3);
   }
-  #score-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    width: 100%;
-  }
-  #score-num {
-    font-family: 'Manrope', monospace;
-    font-size: 28px; font-weight: 800; line-height: 1;
-    color: #fff;
-  }
-  #score-label {
-    font-size: 13px;
-    font-weight: 700;
-    padding: 4px 12px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.15);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-  #score-threshold {
-    color: rgba(255,255,255,0.45); font-size: 11px;
-    margin-top: 4px; display: block; font-weight: 500;
-    text-align: center;
-  }
+  #score-container { display:flex; align-items:center; justify-content:center; gap:14px; width:100%; }
+  #score-num { font-family:'Manrope',monospace; font-size:28px; font-weight:800; line-height:1; color:#fff; }
+  #score-label { font-size:13px; font-weight:700; padding:4px 12px; border-radius:10px; background:rgba(255,255,255,0.15); color:#fff; border:1px solid rgba(255,255,255,0.1); }
+  #score-threshold { color:rgba(255,255,255,0.45); font-size:11px; margin-top:4px; display:block; font-weight:500; text-align:center; }
 
-  #dashboard-header{
-    width:100%;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:8px;
-  }
+  #dashboard-header { width:100%; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  #action-icons { display:flex; gap:8px; flex-shrink:0; }
 
-  #action-icons{
-    display:flex;
-    gap:8px;
-    flex-shrink:0;
-  }
-
-  /* ── Dashboard ── */
   #dashboard {
-    position:absolute;
-    bottom:12px;
-    left:12px;
-    right:12px;
-    z-index:105;
-    border-radius:20px;
-    display:flex;
-    flex-direction:column;
-    padding:12px 14px;
-    gap:4px;
-    background:var(--col-blue-glass);
-    backdrop-filter:blur(25px);
-    -webkit-backdrop-filter:blur(25px);
-    border:1px solid rgba(255,255,255,0.2);
-    box-shadow:0 16px 40px rgba(0,0,0,0.45);
-    transition: background 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    position:absolute; bottom:12px; left:12px; right:12px; z-index:105;
+    border-radius:20px; display:flex; flex-direction:column; padding:12px 14px; gap:4px;
+    background:var(--col-blue-glass); backdrop-filter:blur(25px); -webkit-backdrop-filter:blur(25px);
+    border:1px solid rgba(255,255,255,0.2); box-shadow:0 16px 40px rgba(0,0,0,0.45);
+    transition:background 0.3s cubic-bezier(0.25,1,0.5,1);
   }
+  #app-title { color:rgba(255,255,255,0.8); font-size:11px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #status-msg { color:#fff; font-size:15px; font-weight:600; line-height:1.4; text-align:left; width:100%; }
 
-  #app-title {
-    color:rgba(255,255,255,0.8);
-    font-size:11px;
-    font-weight:700;
-    letter-spacing:1.2px;
-    text-transform:uppercase;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-  #status-msg {
-    color:#fff;
-    font-size:15px;
-    font-weight:600;
-    line-height:1.4;
-    text-align:left;
-    width:100%;
-  }
-
-  #countdown-box { text-align: left; display: none; width: 100%; }
-
-  #btn-row {
-    display: flex; gap: 10px; margin-top: 6px; position: relative; width: 100%;
-    justify-content: center; align-items: center; flex-wrap: wrap;
-  }
+  #btn-row { display:flex; gap:10px; margin-top:6px; position:relative; width:100%; justify-content:center; align-items:center; flex-wrap:wrap; }
   .action-btn {
-    background: rgba(255,255,255,0.14);
-    border: 1px solid rgba(255,255,255,0.3);
-    color: #fff; border-radius: 14px;
-    padding: 12px 26px;
-    font-family: 'IBM Plex Sans Thai', sans-serif;
-    font-size: 15px; font-weight: 700;
-    letter-spacing: 0.3px; cursor: pointer;
-    transition: transform 0.12s, background 0.18s;
+    background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.3); color:#fff;
+    border-radius:14px; padding:12px 26px; font-family:'IBM Plex Sans Thai',sans-serif;
+    font-size:15px; font-weight:700; letter-spacing:0.3px; cursor:pointer; transition:transform 0.12s, background 0.18s;
   }
-  .action-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.24); }
-
-  .icon-btn{
-    width:40px;
-    height:40px;
-    min-width:40px;
-    border-radius:12px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:0;
-    font-size:18px;
-  }
-
-  #start-btn {
-    background: #2B7DE9; border-color: rgba(255,255,255,0.2);
-    box-shadow: 0 6px 16px rgba(43,125,233,0.35);
-  }
-  #reset-btn {
-    background: rgba(255,255,255,0.12);
-  }
-
-  #pose-warn-msg {
-    display: none;
-    color: #fff;
-    background: transparent;
-    padding: 0;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 1.4;
-    text-align: left;
-  }
+  .action-btn:active { transform:scale(0.97); background:rgba(255,255,255,0.24); }
+  .icon-btn { width:40px; height:40px; min-width:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; padding:0; font-size:18px; }
+  #start-btn { background:#2B7DE9; border-color:rgba(255,255,255,0.2); box-shadow:0 6px 16px rgba(43,125,233,0.35); }
+  #reset-btn { background:rgba(255,255,255,0.12); }
+  #pose-warn-msg { display:none; color:#fff; background:transparent; padding:0; font-size:15px; font-weight:600; line-height:1.4; text-align:left; }
 
   #debug-panel {
-    display: none;
-    position: absolute;
-    top: 135px; left: 12px; right: 12px;
-    background: rgba(4,8,14,0.93);
-    border: 1px solid rgba(0,255,160,0.25);
-    border-radius: 12px; padding: 10px;
-    flex-direction: column; gap: 2px; z-index: 120;
-    backdrop-filter: blur(8px);
-    max-height: 45%;
-    overflow-y: auto;
+    display:none; position:absolute; top:135px; left:12px; right:12px;
+    background:rgba(4,8,14,0.93); border:1px solid rgba(0,255,160,0.25);
+    border-radius:12px; padding:10px; flex-direction:column; gap:2px; z-index:120;
+    backdrop-filter:blur(8px); max-height:48%; overflow-y:auto;
   }
-  #debug-panel.visible { display: flex; }
-  .dbg-section {
-    color: rgba(0,255,160,0.6); font-size: 8px;
-    font-weight: 700; letter-spacing: 1.5px;
-    text-transform: uppercase; margin-top: 4px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    padding-top: 4px;
-  }
-  .dbg-section:first-child { margin-top: 0; border-top: none; padding-top: 0; }
-  .dbg-row { display: flex; gap: 6px; align-items: baseline; }
-  .dbg-lbl {
-    color: rgba(255,255,255,0.35); font-size: 9px;
-    font-weight: 700; letter-spacing: 0.8px;
-    text-transform: uppercase; width: 82px; flex-shrink: 0;
-  }
-  .dbg-val {
-    font-family: 'Manrope', monospace;
-    color: #FFD54F; font-size: 10px; font-weight: 700;
-  }
+  #debug-panel.visible { display:flex; }
+  .dbg-section { color:rgba(0,255,160,0.6); font-size:8px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; margin-top:4px; border-top:1px solid rgba(255,255,255,0.06); padding-top:4px; }
+  .dbg-section:first-child { margin-top:0; border-top:none; padding-top:0; }
+  .dbg-row { display:flex; gap:6px; align-items:baseline; }
+  .dbg-lbl { color:rgba(255,255,255,0.35); font-size:9px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; width:96px; flex-shrink:0; }
+  .dbg-val { font-family:'Manrope',monospace; color:#FFD54F; font-size:10px; font-weight:700; }
 
-  #lang-switcher {
-    position: absolute; top: 14px; right: 14px; z-index: 125;
-    display: flex; gap: 5px;
-  }
-  .lang-sw-btn {
-    background: rgba(0,0,0,0.6);
-    border: 1px solid rgba(255,255,255,0.25);
-    color: #fff; border-radius: 9px;
-    padding: 6px 11px; font-size: 11px;
-    font-weight: 700; cursor: pointer;
-    font-family: 'Manrope', sans-serif;
-    letter-spacing: 0.5px;
-    transition: background 0.15s, border-color 0.15s;
-    backdrop-filter: blur(4px);
-  }
-  .lang-sw-btn.active { background: #2B7DE9; border-color: #2B7DE9; }
+  #lang-switcher { position:absolute; top:14px; right:14px; z-index:125; display:flex; gap:5px; }
+  .lang-sw-btn { background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.25); color:#fff; border-radius:9px; padding:6px 11px; font-size:11px; font-weight:700; cursor:pointer; font-family:'Manrope',sans-serif; letter-spacing:0.5px; transition:background 0.15s, border-color 0.15s; backdrop-filter:blur(4px); }
+  .lang-sw-btn.active { background:#2B7DE9; border-color:#2B7DE9; }
 
-  #back-home-btn {
-    display: none;
-    position: absolute; top: 14px; left: 14px; z-index: 125;
-    background: rgba(0,0,0,0.6);
-    border: 1px solid rgba(255,255,255,0.25);
-    color: #fff; border-radius: 9px;
-    padding: 6px 12px; font-size: 12px;
-    font-weight: 700; cursor: pointer;
-    font-family: 'Manrope', sans-serif;
-    backdrop-filter: blur(4px);
-  }
-  #debug-btn-top {
-    position: absolute; top: 14px; left: 52px; z-index: 125;
-    background: rgba(0,0,0,0.6);
-    border: 1px solid rgba(255,255,255,0.25);
-    color: #fff; border-radius: 9px;
-    padding: 6px 10px; font-size: 12px;
-    cursor: pointer; backdrop-filter: blur(4px);
-    opacity: 0.6; transition: opacity 0.15s;
-  }
-  #debug-btn-top.active { opacity: 1; border-color: rgba(0,255,160,0.5); }
+  #back-home-btn { display:none; position:absolute; top:14px; left:14px; z-index:125; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.25); color:#fff; border-radius:9px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Manrope',sans-serif; backdrop-filter:blur(4px); }
+  #debug-btn-top { position:absolute; top:14px; left:52px; z-index:125; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.25); color:#fff; border-radius:9px; padding:6px 10px; font-size:12px; cursor:pointer; backdrop-filter:blur(4px); opacity:0.6; transition:opacity 0.15s; }
+  #debug-btn-top.active { opacity:1; border-color:rgba(0,255,160,0.5); }
 
-  .hidden { display: none !important; }
+  .hidden { display:none !important; }
+  @keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.02); } }
+  .pulse { animation:pulse 1.0s ease-in-out infinite; }
 
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50%       { transform: scale(1.02); }
-  }
-  .pulse { animation: pulse 1.0s ease-in-out infinite; }
+  /* smile symmetry mini-meter (debug) */
+  #smile-meter { display:flex; gap:6px; align-items:center; }
+  .sm-bar-wrap { width:60px; height:6px; background:rgba(255,255,255,0.15); border-radius:3px; overflow:hidden; }
+  .sm-bar { height:100%; background:#A8F5C3; width:0%; transition:width .08s; }
 </style>
 <script src="fast-permissions.js"></script>
 </head>
@@ -444,7 +197,7 @@
     <div class="disc-icon">⚕️</div>
     <h2 id="disc-title">ข้อมูลสำคัญก่อนใช้งาน</h2>
     <p id="disc-body"></p>
-    <button id="understand-btn"></button>
+    <button id="understand-btn" disabled></button>
   </div>
 
   <div id="no-face-banner"></div>
@@ -452,47 +205,38 @@
   <div id="pose-hud">
     <div class="pose-item">
       <span class="pose-item-label">YAW ↔</span>
-      <div class="pose-bar-wrap">
-        <div class="pose-bar-center"></div>
-        <div class="pose-bar-fill" id="bar-yaw"></div>
-      </div>
+      <div class="pose-bar-wrap"><div class="pose-bar-center"></div><div class="pose-bar-fill" id="bar-yaw"></div></div>
       <span class="pose-val" id="val-yaw">0°</span>
     </div>
     <div class="pose-item">
       <span class="pose-item-label">PITCH ↕</span>
-      <div class="pose-bar-wrap">
-        <div class="pose-bar-center"></div>
-        <div class="pose-bar-fill" id="bar-pitch"></div>
-      </div>
+      <div class="pose-bar-wrap"><div class="pose-bar-center"></div><div class="pose-bar-fill" id="bar-pitch"></div></div>
       <span class="pose-val" id="val-pitch">0°</span>
     </div>
     <div class="pose-item">
       <span class="pose-item-label">ROLL ↻</span>
-      <div class="pose-bar-wrap">
-        <div class="pose-bar-center"></div>
-        <div class="pose-bar-fill" id="bar-roll"></div>
-      </div>
+      <div class="pose-bar-wrap"><div class="pose-bar-center"></div><div class="pose-bar-fill" id="bar-roll"></div></div>
       <span class="pose-val" id="val-roll">0°</span>
     </div>
   </div>
 
   <div id="debug-panel">
-    <div class="dbg-section">📍 LANDMARK RAW Y</div>
-    <span class="dbg-row"><span class="dbg-lbl">mouthL y (61)</span><span class="dbg-val" id="dbg-mly">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">mouthR y (291)</span><span class="dbg-val" id="dbg-mry">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">eyeL y (133)</span><span class="dbg-val" id="dbg-ely">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">eyeR y (362)</span><span class="dbg-val" id="dbg-ery">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">nose y (4)</span><span class="dbg-val" id="dbg-ny">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">forehead y (10)</span><span class="dbg-val" id="dbg-fy">—</span></span>
+    <div class="dbg-section">😀 BLENDSHAPES (smile)</div>
+    <span class="dbg-row"><span class="dbg-lbl">smileLeft</span><span class="dbg-val" id="dbg-sml">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">smileRight</span><span class="dbg-val" id="dbg-smr">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">smileStrength</span><span class="dbg-val" id="dbg-smstr">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">smileAsym</span><span class="dbg-val" id="dbg-smasym">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">geomAsym</span><span class="dbg-val" id="dbg-geomasym">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">frameAsym</span><span class="dbg-val" id="dbg-frasym">—</span></span>
 
-    <div class="dbg-section">📐 POSE (de-rotated)</div>
+    <div class="dbg-section">📐 POSE</div>
     <span class="dbg-row"><span class="dbg-lbl">roll°</span><span class="dbg-val" id="dbg-roll">—</span></span>
     <span class="dbg-row"><span class="dbg-lbl">yaw°</span><span class="dbg-val" id="dbg-yaw">—</span></span>
     <span class="dbg-row"><span class="dbg-lbl">pitch°</span><span class="dbg-val" id="dbg-pitch">—</span></span>
 
-    <div class="dbg-section">🎯 RESTING BASELINE</div>
-    <span class="dbg-row"><span class="dbg-lbl">restBaseL y</span><span class="dbg-val" id="dbg-rbl">—</span></span>
-    <span class="dbg-row"><span class="dbg-lbl">samples</span><span class="dbg-val" id="dbg-n">—</span></span>
+    <div class="dbg-section">🎯 RECORDING</div>
+    <span class="dbg-row"><span class="dbg-lbl">validFrames</span><span class="dbg-val" id="dbg-vf">—</span></span>
+    <span class="dbg-row"><span class="dbg-lbl">repAsym(p60)</span><span class="dbg-val" id="dbg-rep">—</span></span>
     <span class="dbg-row"><span class="dbg-lbl">phase</span><span class="dbg-val" id="dbg-phase">—</span></span>
   </div>
 </div>
@@ -502,7 +246,7 @@
     <span id="score-num">—</span>
     <span id="score-label">ปกติ</span>
   </div>
-  <span id="score-threshold">เกณฑ์ความไม่สมสมมาตรสูงสุด 0.40</span>
+  <span id="score-threshold"></span>
 </div>
 
 <div id="dashboard">
@@ -512,252 +256,145 @@
       <button class="action-btn icon-btn hidden" id="reset-btn" type="button" aria-label="Retry">↺</button>
     </div>
   </div>
-
   <p id="status-msg"></p>
   <p id="pose-warn-msg"></p>
-  <div id="countdown-box" class="hidden"></div>
-
   <div id="btn-row">
     <button class="action-btn hidden" id="start-btn"></button>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-<script>
+<script type="module">
+import { FaceLandmarker, FilesetResolver }
+  from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs";
+
 'use strict';
 
+/* ───────────────────────── i18n ───────────────────────── */
 const FACE_I18N = {
   th: {
-    discTitle: 'ข้อมูลสำคัญก่อนใช้งาน',
-    discBody: 'แอปนี้มีวัตถุประสงค์เพื่อ <strong>ให้ข้อมูลเบื้องต้นเท่านั้น</strong> ไม่ใช่การวินิจฉัยทางการแพทย์ และไม่สามารถทดแทนการตรวจโดยแพทย์ผู้เชี่ยวชาญได้<br><br>หากสงสัยว่ามี <strong>อาการสโตรก</strong> ให้โทร <strong>1669 ทันที</strong>',
-    understand: 'รับทราบและเริ่มใช้งาน',
-    noFace: '⚠️ ไม่พบใบหน้า — วางใบหน้าให้อยู่กลางกรอบ',
-    loading: 'กำลังเปิดกล้องและโหลดระบบ...',
-    calibLabel: 'กำลังบันทึกค่าเริ่มต้น',
-    threshold: 'เกณฑ์ความไม่สมสมมาตรสูงสุด 0.40',
-    startBtn: '▶\u00A0 เริ่มทดสอบ',
-    resetBtn: '↺',
-    pressStart: 'กดปุ่มเพื่อเริ่มทดสอบ',
-    step1: 'ขั้นที่ 1: ทำหน้าตรง นิ่งๆ ผ่อนคลาย',
-    step2: '😄 ยิ้มกว้าง',
-    noFaceBaseline: '⚠️ ไม่พบใบหน้าระหว่างบันทึกค่าเริ่มต้น กรุณาลองใหม่',
-    mouthHidden: '👄 ไม่เห็นปากชัดเจน',
-    mouthNotAssessable: '⚠️ ตรวจไม่ได้ — กรุณาเปิดให้เห็นปากชัดเจนและยิ้มใหม่',
-    faceUnableAssess: '⚠️ ไม่สามารถประเมินใบหน้าได้',
-    resultInvalid: 'ตรวจไม่ได้',
-    tiltLeft: '↙️ ศีรษะเอียงไปทางซ้าย — ตั้งหน้าให้ตรง',
-    tiltRight: '↘️ ศีรษะเอียงไปทางขวา — ตั้งหน้าให้ตรง',
-    turnRight: '➡️ คุณหันขวามากไป — หันหน้าตรง',
-    turnLeft: '⬅️ คุณหันซ้ายมากไป — หันหน้าตรง',
-    lookUp: '⬇️ ก้มหน้ามากไป — เงยหน้าขึ้นเล็กน้อย',
-    lookDown: '⬆️ เงยหน้ามากไป — ก้มหน้าลงเล็กน้อย',
-    critical: '🚨 ตรวจพบความไม่สมมาตรขั้นรุนแรง!\nกรุณาพบแพทย์โดยด่วน',
-    holdSmile: '😄 ยิ้มกว้าง',
-    faceDone: '✅ การทดสอบใบหน้าเสร็จสิ้น',
-    faceAbnormal: '⚠️ พบความผิดปกติของใบหน้า',
-    asymLabel: 'ความเบี้ยวใบหน้า',
-    navResult: '📊 ผลรวม →',
-    navNext: '💪 แขน →',
-    navHome: '🏠 หน้าหลัก',
-    smilePrompt: '😄 ยิ้มกว้าง',
-    smileVoice: 'ยิ้มกว้าง',
-    noSmileWarn: '😐 กรุณายิ้มกว้าง',
-    restVoice: 'ทำหน้าตรง นิ่งๆ',
-    abortReset: '↺ เริ่มใหม่...',
-    backHome: '← กลับหน้าหลัก',
-    skipStep: 'ข้ามขั้นนี้ →',
-    resultScore: 'คะแนน',
-    resultOk: 'ปกติ',
-    resultWarn: 'ควรระวัง',
-    resultBad: 'ผิดปกติ',
+    discTitle:'ข้อมูลสำคัญก่อนใช้งาน',
+    discBody:'แอปนี้มีวัตถุประสงค์เพื่อ <strong>ให้ข้อมูลเบื้องต้นเท่านั้น</strong> ไม่ใช่การวินิจฉัยทางการแพทย์ และไม่สามารถทดแทนการตรวจโดยแพทย์ผู้เชี่ยวชาญได้<br><br>หากสงสัยว่ามี <strong>อาการสโตรก</strong> ให้โทร <strong>1669 ทันที</strong>',
+    understand:'รับทราบและเริ่มใช้งาน',
+    loadingModel:'กำลังโหลดระบบตรวจจับใบหน้า...',
+    noFace:'⚠️ ไม่พบใบหน้า — วางใบหน้าให้อยู่กลางกรอบ',
+    loading:'กำลังเปิดกล้องและโหลดระบบ...',
+    startBtn:'▶\u00A0 เริ่มทดสอบ',
+    pressStart:'กดปุ่มเพื่อเริ่มทดสอบ',
+    step1:'ขั้นที่ 1: ทำหน้าตรง นิ่งๆ ผ่อนคลาย',
+    step2:'😄 ยิ้มกว้างให้เห็นฟัน',
+    noFaceBaseline:'⚠️ ไม่พบใบหน้าระหว่างบันทึกค่าเริ่มต้น กรุณาลองใหม่',
+    mouthNotAssessable:'⚠️ ตรวจไม่ได้ — กรุณาเปิดให้เห็นปากชัดเจนและยิ้มกว้างใหม่',
+    faceUnableAssess:'⚠️ ไม่สามารถประเมินใบหน้าได้',
+    resultInvalid:'ตรวจไม่ได้',
+    tiltLeft:'↙️ ศีรษะเอียง — ตั้งหน้าให้ตรง',
+    tiltRight:'↘️ ศีรษะเอียง — ตั้งหน้าให้ตรง',
+    turnRight:'➡️ คุณหันหน้ามากไป — หันหน้าตรง',
+    turnLeft:'⬅️ คุณหันหน้ามากไป — หันหน้าตรง',
+    lookUp:'⬇️ ก้มหน้ามากไป — เงยขึ้นเล็กน้อย',
+    lookDown:'⬆️ เงยหน้ามากไป — ก้มลงเล็กน้อย',
+    critical:'🚨 ตรวจพบความไม่สมมาตรขั้นรุนแรง!\nกรุณาพบแพทย์โดยด่วน',
+    faceDone:'✅ การทดสอบใบหน้าเสร็จสิ้น',
+    faceAbnormal:'⚠️ พบความผิดปกติของใบหน้า',
+    navResult:'📊 ผลรวม →',
+    navNext:'💪 แขน →',
+    navHome:'🏠 หน้าหลัก',
+    smilePrompt:'😄 ยิ้มกว้าง',
+    smileVoice:'ยิ้มกว้าง ให้เห็นฟัน',
+    noSmileWarn:'😐 กรุณายิ้มกว้างให้เห็นฟัน',
+    restVoice:'ทำหน้าตรง นิ่งๆ',
+    resultScore:'คะแนน',
+    resultOk:'ปกติ',
+    resultWarn:'ควรระวัง',
+    resultBad:'ผิดปกติ',
+    cameraErr:'⚠️ ไม่สามารถเข้าถึงกล้องได้ กรุณาอนุญาตการใช้กล้อง',
+    modelErr:'❌ โหลดระบบตรวจจับใบหน้าไม่สำเร็จ กรุณาเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่',
+    quit:'ต้องการออกจากการทดสอบใช่หรือไม่?',
   },
   en: {
-    discTitle: 'Important Information',
-    discBody: 'This app is for <strong>preliminary screening only</strong>. It is not a medical diagnosis and cannot replace examination by a specialist.<br><br>If you suspect a <strong>stroke</strong>, call <strong>emergency services immediately</strong>.',
-    understand: 'I Understand, Start',
-    noFace: '⚠️ No face detected — center your face in the frame',
-    loading: 'Opening camera and loading...',
-    calibLabel: 'Recording baseline',
-    threshold: 'Asymmetry Threshold 0.40',
-    startBtn: '▶\u00A0 Start Test',
-    resetBtn: '↺',
-    pressStart: 'Press the button to start',
-    step1: 'Step 1: Keep your face straight & relaxed',
-    step2: '😄 Smile',
-    noFaceBaseline: '⚠️ No face detected during baseline. Please try again.',
-    mouthHidden: '👄 Mouth not clearly visible',
-    mouthNotAssessable: '⚠️ Unable to assess — keep your mouth visible and try again',
-    faceUnableAssess: '⚠️ Unable to assess face',
-    resultInvalid: 'Unable',
-    tiltLeft: '↙️ Head tilted left — keep head straight',
-    tiltRight: '↘️ Head tilted right — keep head straight',
-    turnRight: '➡️ Turned too far right — face forward',
-    turnLeft: '⬅️ Turned too far left — face forward',
-    lookUp: '⬇️ Looking down too much — lift your head a bit',
-    lookDown: '⬆️ Looking up too much — lower your head a bit',
-    critical: '🚨 Severe asymmetry detected!\nSee a doctor immediately',
-    holdSmile: '😄 Smile',
-    faceDone: '✅ Face test complete',
-    faceAbnormal: '⚠️ Facial abnormality detected',
-    asymLabel: 'Asymmetry',
-    navResult: '📊 Result →',
-    navNext: '💪 Arms →',
-    navHome: '🏠 Home',
-    smilePrompt: '😄 Smile',
-    smileVoice: 'Smile',
-    noSmileWarn: '😐 Please smile',
-    restVoice: 'Keep your face straight and still',
-    abortReset: '↺ Restarting...',
-    backHome: '← Back to Home',
-    skipStep: 'Skip this step →',
-    resultScore: 'Score',
-    resultOk: 'Normal',
-    resultWarn: 'Caution',
-    resultBad: 'Abnormal',
+    discTitle:'Important Information',
+    discBody:'This app is for <strong>preliminary screening only</strong>. It is not a medical diagnosis and cannot replace examination by a specialist.<br><br>If you suspect a <strong>stroke</strong>, call <strong>emergency services immediately</strong>.',
+    understand:'I Understand, Start',
+    loadingModel:'Loading face detection engine...',
+    noFace:'⚠️ No face detected — center your face in the frame',
+    loading:'Opening camera and loading...',
+    startBtn:'▶\u00A0 Start Test',
+    pressStart:'Press the button to start',
+    step1:'Step 1: Keep your face straight & relaxed',
+    step2:'😄 Smile widely, show teeth',
+    noFaceBaseline:'⚠️ No face detected during baseline. Please try again.',
+    mouthNotAssessable:'⚠️ Unable to assess — keep your mouth visible and smile widely',
+    faceUnableAssess:'⚠️ Unable to assess face',
+    resultInvalid:'Unable',
+    tiltLeft:'↙️ Head tilted — keep head straight',
+    tiltRight:'↘️ Head tilted — keep head straight',
+    turnRight:'➡️ Turned too far — face forward',
+    turnLeft:'⬅️ Turned too far — face forward',
+    lookUp:'⬇️ Looking down — lift your head a bit',
+    lookDown:'⬆️ Looking up — lower your head a bit',
+    critical:'🚨 Severe asymmetry detected!\nSee a doctor immediately',
+    faceDone:'✅ Face test complete',
+    faceAbnormal:'⚠️ Facial abnormality detected',
+    navResult:'📊 Result →',
+    navNext:'💪 Arms →',
+    navHome:'🏠 Home',
+    smilePrompt:'😄 Smile',
+    smileVoice:'Smile widely, show your teeth',
+    noSmileWarn:'😐 Please smile widely showing teeth',
+    restVoice:'Keep your face straight and still',
+    resultScore:'Score',
+    resultOk:'Normal',
+    resultWarn:'Caution',
+    resultBad:'Abnormal',
+    cameraErr:'⚠️ Cannot access camera. Please allow camera access.',
+    modelErr:'❌ Failed to load face detection. Check your connection and retry.',
+    quit:'Quit the test?',
   },
   ja: {
-    discTitle: '重要なお知らせ',
-    discBody: 'このアプリは<strong>予備的なスクリーニングのみ</strong>を目的としています。医学的診断ではなく、専門医の診察に代わるものではありません。<br><br><strong>脳卒中</strong>の疑いがある場合は、<strong>すぐに救急に電話してください</strong>。',
-    understand: '了解して開始',
-    noFace: '⚠️ 顔が検出されません — 顔を枠の中央に合わせてください',
-    loading: 'カメラを起動しています...',
-    calibLabel: '基準値を記録中',
-    threshold: '左右非対称のしきい値 0.40',
-    startBtn: '▶\u00A0 テスト開始',
-    resetBtn: '↺',
-    pressStart: 'ボタンを押して開始',
-    step1: 'ステップ1: 顔をまっすぐ、リラックス',
-    step2: '😄 笑って',
-    noFaceBaseline: '⚠️ 基準値の記録中に顔が検出されませんでした。もう一度お試しください。',
-    mouthHidden: '👄 口がはっきり見えません',
-    mouthNotAssessable: '⚠️ 判定できません — 口元が見えるようにしてもう一度お試しください',
-    faceUnableAssess: '⚠️ 顔を評価できません',
-    resultInvalid: '判定不可',
-    tiltLeft: '↙️ 頭が左に傾いています — まっすぐに',
-    tiltRight: '↘️ 頭が右に傾いています — まっすぐに',
-    turnRight: '➡️ 右に向きすぎ — 正面を向いて',
-    turnLeft: '⬅️ 左に向きすぎ — 正面を向いて',
-    lookUp: '⬇️ 下向きすぎ — 少し上げて',
-    lookDown: '⬆️ 上向きすぎ — 少し下げて',
-    critical: '🚨 重度の非対称が検出されました!\nすぐに医師の診察を受けてください',
-    holdSmile: '😄 笑って!',
-    faceDone: '✅ 顔 of テスト完了',
-    faceAbnormal: '⚠️ 顔の異常を検出',
-    asymLabel: '非対称度',
-    navResult: '📊 結果 →',
-    navNext: '💪 腕 →',
-    navHome: '🏠 ホーム',
-    smilePrompt: '😄 笑って!',
-    smileVoice: '笑ってください',
-    noSmileWarn: '😐 笑ってください',
-    restVoice: '顔をまっすぐ静かに',
-    abortReset: '↺ 再開します...',
-    backHome: '← ホームに戻る',
-    skipStep: 'スキップ →',
-    resultScore: 'スコア',
-    resultOk: '正常',
-    resultWarn: '注意',
-    resultBad: '異常',
+    discTitle:'重要なお知らせ',
+    discBody:'このアプリは<strong>予備的なスクリーニングのみ</strong>を目的としています。医学的診断ではなく、専門医の診察に代わるものではありません。<br><br><strong>脳卒中</strong>の疑いがある場合は、<strong>すぐに救急に電話してください</strong>。',
+    understand:'了解して開始',
+    loadingModel:'顔検出エンジンを読み込み中...',
+    noFace:'⚠️ 顔が検出されません — 顔を枠の中央に合わせてください',
+    loading:'カメラを起動しています...',
+    startBtn:'▶\u00A0 テスト開始',
+    pressStart:'ボタンを押して開始',
+    step1:'ステップ1: 顔をまっすぐ、リラックス',
+    step2:'😄 歯を見せて大きく笑って',
+    noFaceBaseline:'⚠️ 基準値の記録中に顔が検出されませんでした。もう一度お試しください。',
+    mouthNotAssessable:'⚠️ 判定できません — 口元が見えるように大きく笑ってください',
+    faceUnableAssess:'⚠️ 顔を評価できません',
+    resultInvalid:'判定不可',
+    tiltLeft:'↙️ 頭が傾いています — まっすぐに',
+    tiltRight:'↘️ 頭が傾いています — まっすぐに',
+    turnRight:'➡️ 向きすぎ — 正面を向いて',
+    turnLeft:'⬅️ 向きすぎ — 正面を向いて',
+    lookUp:'⬇️ 下向きすぎ — 少し上げて',
+    lookDown:'⬆️ 上向きすぎ — 少し下げて',
+    critical:'🚨 重度の非対称が検出されました!\nすぐに医師の診察を受けてください',
+    faceDone:'✅ 顔のテスト完了',
+    faceAbnormal:'⚠️ 顔の異常を検出',
+    navResult:'📊 結果 →',
+    navNext:'💪 腕 →',
+    navHome:'🏠 ホーム',
+    smilePrompt:'😄 笑って',
+    smileVoice:'歯を見せて大きく笑ってください',
+    noSmileWarn:'😐 歯を見せて大きく笑ってください',
+    restVoice:'顔をまっすぐ静かに',
+    resultScore:'スコア',
+    resultOk:'正常',
+    resultWarn:'注意',
+    resultBad:'異常',
+    cameraErr:'⚠️ カメラにアクセスできません。カメラの使用を許可してください。',
+    modelErr:'❌ 顔検出の読み込みに失敗しました。接続を確認してください。',
+    quit:'終了しますか？',
   }
 };
 
 let FL = FACE_I18N[sessionStorage.getItem('fast_lang') || 'th'] || FACE_I18N.th;
 let phase = 'BEFORE_START';
 
-function applyFaceLang() {
-  const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-  const setHTML = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
-
-  setText('disc-title', FL.discTitle);
-  setHTML('disc-body', FL.discBody);
-  setText('understand-btn', FL.understand);
-  setText('no-face-banner', FL.noFace);
-  setText('start-btn', FL.startBtn);
-  setText('reset-btn', FL.resetBtn);
-
-  const sm = document.getElementById('status-msg');
-  if (sm) {
-    if (phase === 'BEFORE_START') sm.textContent = FL.pressStart;
-    else if (phase === 'RESTING_PHASE') sm.textContent = FL.step1;
-    else if (phase === 'ACTION_PHASE') sm.textContent = FL.step2;
-    else if (phase === 'ACTION_WAIT_SMILE') sm.textContent = FL.noSmileWarn;
-    else if (phase === 'FACE_DONE' || phase === 'CRITICAL_ASYMMETRY') {
-      try {
-        const saved = JSON.parse(sessionStorage.getItem('fast_face') || '{}');
-        sm.textContent = saved.riskLevel === 'invalid' ? FL.faceUnableAssess : (saved.riskLevel === 'ok' ? FL.faceDone : FL.faceAbnormal);
-        const sl = document.getElementById('score-label');
-        if (sl && saved.riskLevel) sl.textContent = saved.riskLevel === 'invalid' ? FL.resultInvalid : (saved.riskLevel === 'ok' ? FL.resultOk : saved.riskLevel === 'warn' ? FL.resultWarn : FL.resultBad);
-        const sn = document.getElementById('score-num');
-        if (sn && saved.riskLevel === 'invalid') sn.textContent = FL.resultInvalid;
-        else if (sn && typeof saved.score === 'number') sn.textContent = saved.score + ' ' + FL.resultScore;
-        const st = document.getElementById('score-threshold');
-        if (st) st.textContent = '';
-      } catch(e) {}
-    }
-  }
-
-  const navBtn = document.getElementById('fast-nav-btn');
-  if (navBtn) {
-    const mode = sessionStorage.getItem('fast_mode');
-    const allDone = ['fast_face','fast_arm','fast_speech'].every(k => sessionStorage.getItem(k));
-    if (mode === 'full') navBtn.textContent = FL.navNext;
-    else navBtn.textContent = allDone ? FL.navResult : FL.navHome;
-  }
-}
-
-const SPEAK_LANG = { th: 'th-TH', en: 'en-US', ja: 'ja-JP' };
-const FEMALE_VOICE_HINTS = [
-  'female', 'woman', 'girl', 'samantha', 'karen', 'moira', 'tessa', 'victoria', 'zira', 'hazel', 'susan', 'joanna', 'salli', 'amy', 'emma', 'olivia', 'aria', 'kanya', 'narisa', 'kyoko', 'nanami', 'ichiko', 'haruka'
-];
-let cachedVoices = [];
-
-function loadFaceVoices() {
-  try {
-    cachedVoices = speechSynthesis.getVoices() || [];
-  } catch(e) {
-    cachedVoices = [];
-  }
-}
-if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-  speechSynthesis.onvoiceschanged = loadFaceVoices;
-}
-loadFaceVoices();
-
-function speakFace(txt) {
-  if (typeof speechSynthesis === 'undefined') return;
-  try {
-    speechSynthesis.cancel();
-    const ut = new SpeechSynthesisUtterance(txt);
-    const code = sessionStorage.getItem('fast_lang') || 'th';
-    ut.lang = SPEAK_LANG[code] || 'th-TH';
-
-    if (cachedVoices.length === 0) cachedVoices = speechSynthesis.getVoices() || [];
-    const regional = cachedVoices.filter(v => v.lang.toLowerCase().replace('_','-').startsWith(ut.lang.toLowerCase().substring(0,2)));
-    
-    let selected = null;
-    if (code === 'en') {
-      selected = regional.find(v => v.name.includes('UK English Female') || v.name.includes('US English Female') || v.name.includes('Siri'));
-    } else if (code === 'th') {
-      selected = regional.find(v => v.name.includes('Kanya') || v.name.includes('Narisa') || v.name.includes('Siri'));
-    }
-    if (!selected && regional.length > 0) {
-      selected = regional.find(v => FEMALE_VOICE_HINTS.some(h => v.name.toLowerCase().includes(h)));
-      if (!selected) selected = regional[0];
-    }
-    if (selected) ut.voice = selected;
-    
-    ut.rate = 1.05;
-    ut.pitch = 1.0;
-    speechSynthesis.speak(ut);
-  } catch(e) {
-    console.error('Speech error:', e);
-  }
-}
-
+/* ───────────── DOM ───────────── */
 const videoEl = document.getElementById('video');
-const canvasEl = document.getElementById('canvas');
-const ctx = canvasEl.getContext('2d');
 const startBtn = document.getElementById('start-btn');
 const resetBtn = document.getElementById('reset-btn');
 const statusMsg = document.getElementById('status-msg');
@@ -769,752 +406,561 @@ const scoreNum = document.getElementById('score-num');
 const disclaimerEl = document.getElementById('disclaimer-overlay');
 const understandBtn = document.getElementById('understand-btn');
 const poseHud = document.getElementById('pose-hud');
+const debugPanel = document.getElementById('debug-panel');
 
-let isCameraRunning = false;
-let faceMesh = null;
-let countdownTimer = null;
-let countdownVal = 5;
-let countdownPaused = false;
-let displayW = 390, displayH = 844;
-let pitchNeutralSamples = [];
-let pitchNeutralRatio = null;
+/* ───────────── Tunable thresholds (calibrate on a real device) ───────────── */
+const CALIBRATION_SECONDS = 3;       // short "get ready" before smiling
+const ACTION_DURATION_MS = 4000;     // length of the smile-recording window
 
-function showCenterCountdown(val) {
-  centerCD.textContent = val;
-  centerCD.style.display = 'block';
-}
-function hideCenterCountdown() {
-  centerCD.style.display = 'none';
-}
+const SMILE_DETECT_MIN = 0.22;       // (smileL+smileR)/2 needed to count as "smiling"
+const SMILE_VALID_STRENGTH = 0.18;   // min strength for a frame to count as real evidence
+const MIN_VALID_SMILE_FRAMES = 14;   // fewer than this → "unable to assess"
+const MAX_WAIT_FOR_SMILE_MS = 14000; // no genuine smile within this → "unable to assess"
 
-function goBackHome() {
-  if (phase !== 'BEFORE_START' && phase !== 'FACE_DONE' && phase !== 'CRITICAL_ASYMMETRY') {
-    const msg = { th: 'ต้องการออกจากการทดสอบใช่หรือไม่?', en: 'Quit the test?', ja: '終了しますか？' };
-    if (!confirm(msg[sessionStorage.getItem('fast_lang') || 'th'] || msg.th)) return;
-  }
-  if (countdownTimer) {
-    clearInterval(countdownTimer);
-    countdownTimer = null;
-  }
-  try { speechSynthesis.cancel(); } catch(e) {}
-  window.location.href = 'index.html';
-}
-
-const ACTION_DURATION_MS = 6000;
-let actionStartMs = null;
-let actionAsymScores = [];
-const CALIBRATION_SECONDS = 5;
-const SMOOTHING_WINDOW = 10;
-const MAX_HISTORY = 300;
-const REST_FIRE_WINDOW = 8;
-const CRITICAL_THRESHOLD = 0.28;
-const ASYM_THRESHOLD = 0.40;
-const ASYM_CRITICAL = 0.70;
+const SMILE_ASYM_WARN = 0.26;        // representative asym → caution
+const SMILE_ASYM_BAD  = 0.40;        // representative asym → abnormal
+const REST_ASYM_CRITICAL = 0.30;     // resting mouth-corner asym (norm by eye width) → severe
 
 const MAX_ALLOWED_YAW = 28;
-const MAX_ALLOWED_PITCH = 28; 
+const MAX_ALLOWED_PITCH = 24;
 const MAX_ALLOWED_ROLL = 20;
 
-const MIN_MOUTH_EYE_RATIO = 0.15;
-const MIN_RISE_TO_SCORE = 0.005;
-const SMILE_RISE_MIN = 0.012;
-const MIN_VALID_ACTION_FRAMES = 12;
-const MIN_SMILE_EVIDENCE_FRAMES = 6;
-const MAX_WAIT_FOR_SMILE_MS = 18000;
-const SMILE_WIDTH_RATIO_MIN = 1.04;
-
-let smileStarted = false;
-let lastSmileVoicePromptMs = 0;
-let smileVoiceStep = 0; 
-
 const IDX_L_EYE = 133, IDX_R_EYE = 362;
-const IDX_NOSE = 4, IDX_FOREHEAD = 10;
-const IDX_CHIN = 152;
+const IDX_NOSE = 4, IDX_FOREHEAD = 10, IDX_CHIN = 152;
 const IDX_ML = 61, IDX_MR = 291;
 
-let restSamplesL = [];
-let restSamplesR = [];
-let restBaseL = null;
-let restBaseR = null;
-let restBaseMouthWidth = null;
-let restMouthWidthSamples = [];
-let smileEvidenceFrames = 0;
-let actionPhasePromptStartMs = null;
-
-let recentAsymScores = [];
-let recentRestAsym = [];
-let criticalFired = false;
+/* ───────────── State ───────────── */
+let faceLandmarker = null;
+let modelReady = false;
+let isCameraRunning = false;
+let lastVideoTs = -1;
+let countdownTimer = null;
+let countdownVal = CALIBRATION_SECONDS;
+let countdownPaused = false;
 let noFaceCount = 0;
 
-function initProgressDots() {
-  const map = { face: 'fast_face', arm: 'fast_arm', speech: 'fast_speech' };
-  ['face','arm','speech'].forEach(k => {
-    const el = document.getElementById('prog-' + k);
-    if (!el) return;
+let restCornerAsymSamples = [];   // resting |mLy-mRy|/eyeWidth
+let restCornerL = [], restCornerR = [], restEyeW = [];
+let baseL = null, baseR = null, baseEyeW = null;
+let criticalFired = false;
+
+let smileStartMs = null;
+let frameAsymScores = [];
+let validSmileFrames = 0;
+let smileEverDetected = false;
+let actionWaitStartMs = null;
+let lastSmileVoiceMs = 0;
+let lastRepAsym = 0;
+
+let pitchNeutralRatio = null;
+
+/* ───────────── helpers ───────────── */
+const SPEAK_LANG = { th:'th-TH', en:'en-US', ja:'ja-JP' };
+let cachedVoices = [];
+function loadVoices(){ try { cachedVoices = speechSynthesis.getVoices() || []; } catch(e){ cachedVoices = []; } }
+if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+function speakFace(txt){
+  if (typeof speechSynthesis === 'undefined' || !txt) return;
+  try {
+    speechSynthesis.cancel();
+    const ut = new SpeechSynthesisUtterance(txt);
+    const code = sessionStorage.getItem('fast_lang') || 'th';
+    ut.lang = SPEAK_LANG[code] || 'th-TH';
+    if (cachedVoices.length === 0) cachedVoices = speechSynthesis.getVoices() || [];
+    const regional = cachedVoices.filter(v => v.lang.toLowerCase().replace('_','-').startsWith(ut.lang.toLowerCase().slice(0,2)));
+    if (regional[0]) ut.voice = regional[0];
+    ut.rate = 1.03;
+    speechSynthesis.speak(ut);
+  } catch(e){}
+}
+
+function showCenterCountdown(v){ centerCD.textContent = v; centerCD.style.display = 'block'; }
+function hideCenterCountdown(){ centerCD.style.display = 'none'; }
+function average(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
+
+function applyFaceLang(){
+  const setText=(id,t)=>{const el=document.getElementById(id);if(el)el.textContent=t;};
+  const setHTML=(id,h)=>{const el=document.getElementById(id);if(el)el.innerHTML=h;};
+  setText('disc-title',FL.discTitle);
+  setHTML('disc-body',FL.discBody);
+  setText('understand-btn', modelReady ? FL.understand : FL.loadingModel);
+  setText('no-face-banner',FL.noFace);
+  setText('start-btn',FL.startBtn);
+  setText('reset-btn','↺');
+
+  const sm = statusMsg;
+  if (phase==='BEFORE_START') sm.textContent = FL.pressStart;
+  else if (phase==='RESTING_PHASE') sm.textContent = FL.step1;
+  else if (phase==='ACTION_PHASE'||phase==='ACTION_WAIT_SMILE') sm.textContent = FL.step2;
+  else if (phase==='FACE_DONE'||phase==='CRITICAL_ASYMMETRY') {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('fast_face')||'{}');
+      sm.textContent = saved.riskLevel==='invalid' ? FL.faceUnableAssess : (saved.riskLevel==='ok' ? FL.faceDone : FL.faceAbnormal);
+      const sl = document.getElementById('score-label');
+      if (sl && saved.riskLevel) sl.textContent = saved.riskLevel==='invalid'?FL.resultInvalid:(saved.riskLevel==='ok'?FL.resultOk:saved.riskLevel==='warn'?FL.resultWarn:FL.resultBad);
+      const sn = scoreNum;
+      if (sn && saved.riskLevel==='invalid') sn.textContent = FL.resultInvalid;
+      else if (sn && typeof saved.score==='number') sn.textContent = saved.score + ' ' + FL.resultScore;
+    } catch(e){}
+  }
+
+  const navBtn = document.getElementById('fast-nav-btn');
+  if (navBtn){
+    const mode = sessionStorage.getItem('fast_mode');
+    const allDone = ['fast_face','fast_arm','fast_speech'].every(k=>sessionStorage.getItem(k));
+    if (mode==='full') navBtn.textContent = FL.navNext;
+    else navBtn.textContent = allDone ? FL.navResult : FL.navHome;
+  }
+}
+
+function switchFaceLang(code){
+  FL = FACE_I18N[code] || FACE_I18N.th;
+  sessionStorage.setItem('fast_lang', code);
+  applyFaceLang();
+  ['th','en','ja'].forEach(c=>{ const b=document.getElementById('lsw-'+c); if(b) b.classList.toggle('active', c===code); });
+}
+
+function initProgressDots(){
+  const map={face:'fast_face',arm:'fast_arm',speech:'fast_speech'};
+  ['face','arm','speech'].forEach(k=>{
+    const el=document.getElementById('prog-'+k); if(!el) return;
     el.classList.remove('active','done');
-    if (k === 'face') el.classList.add('active');
+    if (k==='face') el.classList.add('active');
     else if (sessionStorage.getItem(map[k])) el.classList.add('done');
   });
 }
 
-function switchFaceLang(code) {
-  FL = FACE_I18N[code] || FACE_I18N.th;
-  sessionStorage.setItem('fast_lang', code);
-  applyFaceLang();
-  ['th','en','ja'].forEach(c => {
-    const btn = document.getElementById('lsw-' + c);
-    if (btn) btn.classList.toggle('active', c === code);
-  });
-}
-
-applyFaceLang();
-initProgressDots();
-{
-  const _initLang = sessionStorage.getItem('fast_lang') || 'th';
-  ['th','en','ja'].forEach(c => {
-    const btn = document.getElementById('lsw-' + c);
-    if (btn) btn.classList.toggle('active', c === _initLang);
-  });
-}
-
-const debugPanel = document.getElementById('debug-panel');
 let debugVisible = false;
-function toggleDebug() {
+function toggleDebug(){
   debugVisible = !debugVisible;
   debugPanel.classList.toggle('visible', debugVisible);
-  const btn = document.getElementById('debug-btn-top');
-  if (btn) btn.classList.toggle('active', debugVisible);
+  const btn = document.getElementById('debug-btn-top'); if (btn) btn.classList.toggle('active', debugVisible);
   const inTest = ['RESTING_PHASE','ACTION_PHASE','ACTION_WAIT_SMILE'].includes(phase);
   poseHud.style.display = (debugVisible && inTest) ? 'flex' : 'none';
 }
 
-understandBtn.addEventListener('click', () => {
-  disclaimerEl.style.display = 'none';
-  startCamera();
-});
-
-function computeScore(lm) {
-  const lEye = lm[IDX_L_EYE];
-  const rEye = lm[IDX_R_EYE];
-  const nose = lm[IDX_NOSE];
-  const forehead = lm[IDX_FOREHEAD];
-  const chin = lm[IDX_CHIN];
-  const mL = lm[IDX_ML];
-  const mR = lm[IDX_MR];
-
-  const dx = rEye.x - lEye.x;
-  const dy = rEye.y - lEye.y;
-  let rollDeg = Math.atan2(dy, dx) * 180 / Math.PI;
-
-  const cosR = Math.cos(-rollDeg * Math.PI / 180);
-  const sinR = Math.sin(-rollDeg * Math.PI / 180);
-  const rotateY = (pt, ref) => {
-    const dyRaw = pt.y - ref.y;
-    const dxRaw = pt.x - ref.x;
-    return ref.y + (dxRaw * sinR + dyRaw * cosR);
-  };
-
-  const noseRotY = rotateY(nose, lEye);
-  const mLy = rotateY(mL, lEye);
-  const mRy = rotateY(mR, lEye);
-
-  const faceLength = Math.abs(rotateY(chin, lEye) - rotateY(forehead, lEye)) + 1e-6;
-  
-  const currentRatio = (noseRotY - rotateY(forehead, lEye)) / faceLength;
-  if (pitchNeutralRatio === null) pitchNeutralRatio = 0.355; 
-  const pitchDeg = (currentRatio - pitchNeutralRatio) * 95; 
-
-  const eyeWidth = Math.sqrt((lEye.x - rEye.x) ** 2 + (lEye.y - rEye.y) ** 2) + 1e-6;
-  const yawDeg = (nose.x - (lEye.x + rEye.x) / 2) / eyeWidth * -90;
-
-  return { mLy, mRy, rollDeg, yawDeg, pitchDeg, faceLength };
-}
-
-function checkMouthVisibility(lm) {
-  const lEye = lm[IDX_L_EYE], rEye = lm[IDX_R_EYE];
-  const mL = lm[IDX_ML], mR = lm[IDX_MR];
-  const eyeWidth = Math.sqrt((lEye.x - rEye.x) ** 2 + (lEye.y - rEye.y) ** 2) + 1e-6;
-  const mouthWidth = Math.sqrt((mL.x - mR.x) ** 2 + (mL.y - mR.y) ** 2);
-  const ratio = mouthWidth / eyeWidth;
-  if (ratio < MIN_MOUTH_EYE_RATIO) return { ok: false, reason: FL.mouthHidden };
-  return { ok: true, reason: '' };
-}
-function getMouthWidth(lm) {
-  const mL = lm[IDX_ML], mR = lm[IDX_MR];
-  return Math.sqrt((mL.x - mR.x) ** 2 + (mL.y - mR.y) ** 2);
-}
-
-function getEyeWidth(lm) {
-  const lEye = lm[IDX_L_EYE], rEye = lm[IDX_R_EYE];
-  return Math.sqrt((lEye.x - rEye.x) ** 2 + (lEye.y - rEye.y) ** 2) + 1e-6;
-}
-
-function average(arr) {
-  return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
-}
-
-
-function updatePoseBar(barId, valId, deg, maxDeg) {
-  const bar = document.getElementById(barId);
-  const val = document.getElementById(valId);
-  if (!bar || !val) return;
-  const clip = Math.max(-maxDeg, Math.min(maxDeg, deg));
-  const pct = Math.abs(clip) / maxDeg * 50;
-  const bad = Math.abs(deg) > maxDeg * 0.6;
-  if (clip < 0) {
-    bar.style.left = (50 - pct) + '%';
-    bar.style.width = pct + '%';
-  } else {
-    bar.style.left = '50%';
-    bar.style.width = pct + '%';
+function goBackHome(){
+  if (!['BEFORE_START','FACE_DONE','CRITICAL_ASYMMETRY'].includes(phase)) {
+    if (!confirm(FL.quit)) return;
   }
-  bar.style.background = bad ? 'rgba(255,107,107,0.95)' : 'rgba(168,245,195,0.95)';
-  val.textContent = (deg > 0 ? '+' : '') + deg.toFixed(0) + '°';
-  val.style.color = bad ? '#FF6B6B' : '#A8F5C3';
+  if (countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
+  try { speechSynthesis.cancel(); } catch(e){}
+  window.location.href = 'index.html';
 }
 
-function setUI({ glassColor, msg, poseWarn = '', showScore = false, showStart = false, showReset = false, showHud = false, pulse = false }) {
-  const db = document.getElementById('dashboard');
-  if (db) {
-    db.style.background = glassColor;
-    db.classList.toggle('pulse', pulse);
-  }
-  
-  if (poseWarn) {
-    poseWarnMsg.textContent = poseWarn;
-    poseWarnMsg.style.display = 'block';
-    statusMsg.style.display = 'none';
-  } else {
-    poseWarnMsg.style.display = 'none';
-    statusMsg.textContent = msg;
-    statusMsg.style.display = msg ? 'block' : 'none';
-  }
+// expose inline-onclick handlers (module scope is not global)
+window.switchFaceLang = switchFaceLang;
+window.toggleDebug = toggleDebug;
+window.goBackHome = goBackHome;
 
-  if (showStart) startBtn.classList.remove('hidden'); else startBtn.classList.add('hidden');
-  if (showReset) resetBtn.classList.remove('hidden'); else resetBtn.classList.add('hidden');
+/* ───────────── pose & geometry from landmarks ───────────── */
+function computePose(lm){
+  const lEye=lm[IDX_L_EYE], rEye=lm[IDX_R_EYE], nose=lm[IDX_NOSE], forehead=lm[IDX_FOREHEAD], chin=lm[IDX_CHIN];
+  const mL=lm[IDX_ML], mR=lm[IDX_MR];
+  // roll: rEye - lEye (raw image coords) → ~0° when level
+  const dx = rEye.x - lEye.x, dy = rEye.y - lEye.y;
+  const rollDeg = Math.atan2(dy, dx) * 180/Math.PI;
+  const cosR = Math.cos(-rollDeg*Math.PI/180), sinR = Math.sin(-rollDeg*Math.PI/180);
+  const rotY = (pt,ref)=> ref.y + ((pt.x-ref.x)*sinR + (pt.y-ref.y)*cosR);
+  const mLy = rotY(mL,lEye), mRy = rotY(mR,lEye);
+  const foreY = rotY(forehead,lEye), chinY = rotY(chin,lEye), noseY = rotY(nose,lEye);
+  const faceLen = Math.abs(chinY - foreY) + 1e-6;
+  const ratio = (noseY - foreY)/faceLen;
+  if (pitchNeutralRatio === null) pitchNeutralRatio = 0.355;
+  const pitchDeg = (ratio - pitchNeutralRatio) * 95;
+  const eyeW = Math.hypot(lEye.x-rEye.x, lEye.y-rEye.y) + 1e-6;
+  const yawDeg = (nose.x - (lEye.x+rEye.x)/2)/eyeW * -90;
+  return { mLy, mRy, rollDeg, yawDeg, pitchDeg, eyeW };
+}
 
-  const backHome = document.getElementById('back-home-btn');
-  if (backHome) backHome.style.display = 'block';
+function bs(blend, name){
+  if (!blend || !blend.categories) return 0;
+  const c = blend.categories.find(x => x.categoryName === name);
+  return c ? c.score : 0;
+}
 
-  if (debugVisible && showHud) poseHud.style.display = 'flex';
-  else poseHud.style.display = 'none';
+function updatePoseBar(barId, valId, deg, maxDeg){
+  const bar=document.getElementById(barId), val=document.getElementById(valId);
+  if(!bar||!val) return;
+  const clip=Math.max(-maxDeg,Math.min(maxDeg,deg));
+  const pct=Math.abs(clip)/maxDeg*50;
+  const bad=Math.abs(deg)>maxDeg*0.6;
+  if(clip<0){ bar.style.left=(50-pct)+'%'; bar.style.width=pct+'%'; }
+  else { bar.style.left='50%'; bar.style.width=pct+'%'; }
+  bar.style.background = bad?'rgba(255,107,107,0.95)':'rgba(168,245,195,0.95)';
+  val.textContent=(deg>0?'+':'')+deg.toFixed(0)+'°';
+  val.style.color = bad?'#FF6B6B':'#A8F5C3';
+}
 
+function setUI({glassColor,msg,poseWarn='',showScore=false,showStart=false,showReset=false,showHud=false,pulse=false}){
+  const db=document.getElementById('dashboard');
+  if(db){ db.style.background=glassColor; db.classList.toggle('pulse',pulse); }
+  if(poseWarn){ poseWarnMsg.textContent=poseWarn; poseWarnMsg.style.display='block'; statusMsg.style.display='none'; }
+  else { poseWarnMsg.style.display='none'; statusMsg.textContent=msg; statusMsg.style.display=msg?'block':'none'; }
+  startBtn.classList.toggle('hidden',!showStart);
+  resetBtn.classList.toggle('hidden',!showReset);
+  const bh=document.getElementById('back-home-btn'); if(bh) bh.style.display='block';
+  poseHud.style.display = (debugVisible && showHud) ? 'flex' : 'none';
   scoreBox.style.display = showScore ? 'flex' : 'none';
+  const pd=document.getElementById('progress-dots'); if(pd) pd.style.display = showScore ? 'none' : 'flex';
 }
 
-function handleCalibrationTick() {
+/* ───────────── calibration / phase control ───────────── */
+function startScreening(){
+  restCornerAsymSamples=[]; restCornerL=[]; restCornerR=[]; restEyeW=[];
+  baseL=null; baseR=null; baseEyeW=null;
+  criticalFired=false; noFaceCount=0;
+  countdownVal=CALIBRATION_SECONDS; countdownPaused=false;
+  smileStartMs=null; frameAsymScores=[]; validSmileFrames=0; smileEverDetected=false;
+  actionWaitStartMs=null; lastSmileVoiceMs=0; lastRepAsym=0;
+  pitchNeutralRatio=null;
+  scoreNum.textContent='—';
+  noFaceBanner.style.display='none'; poseWarnMsg.style.display='none';
+  hideCenterCountdown();
+  const oldNav=document.getElementById('fast-nav-btn'); if(oldNav) oldNav.remove();
+
+  phase='RESTING_PHASE';
+  setUI({glassColor:'var(--col-orange-glass)', msg:FL.step1, showReset:true, showHud:true});
+  speakFace(FL.restVoice);
+  showCenterCountdown(countdownVal);
+  if (countdownTimer) clearInterval(countdownTimer);
+  countdownTimer = setInterval(calibrationTick, 1000);
+}
+
+function calibrationTick(){
   if (countdownPaused) return;
   countdownVal--;
-  if (countdownVal > 0) {
-    showCenterCountdown(countdownVal);
-  } else {
-    clearInterval(countdownTimer);
-    countdownTimer = null;
-    hideCenterCountdown();
+  if (countdownVal > 0){ showCenterCountdown(countdownVal); return; }
+  clearInterval(countdownTimer); countdownTimer=null; hideCenterCountdown();
 
-    if (restSamplesL.length < 5 || restSamplesR.length < 5 || restMouthWidthSamples.length < 5) {
-      phase = 'BEFORE_START';
-      setUI({ glassColor: 'var(--col-red-glass)', msg: FL.noFaceBaseline, showReset: true });
-      return;
-    }
-
-    restBaseL = average(restSamplesL);
-    restBaseR = average(restSamplesR);
-    restBaseMouthWidth = average(restMouthWidthSamples);
-    if (!restBaseMouthWidth || restBaseMouthWidth <= 0) {
-      phase = 'BEFORE_START';
-      setUI({ glassColor: 'var(--col-orange-glass)', msg: FL.mouthNotAssessable, showReset: true });
-      return;
-    }
-    
-    startActionPhase();
+  if (restCornerL.length < 5){
+    phase='BEFORE_START';
+    setUI({glassColor:'var(--col-red-glass)', msg:FL.noFaceBaseline, showReset:true});
+    return;
   }
+  baseL = average(restCornerL);
+  baseR = average(restCornerR);
+  baseEyeW = average(restEyeW) || 0.1;
+  startActionPhase();
 }
 
-function startActionPhase() {
-  if (countdownTimer) clearInterval(countdownTimer);
-  phase = 'ACTION_PHASE';
-  actionStartMs = null;
-  actionAsymScores = [];
-  smileStarted = false;
-  smileEvidenceFrames = 0;
-  actionPhasePromptStartMs = Date.now();
-  
-  lastSmileVoicePromptMs = Date.now();
-  smileVoiceStep = 0; 
-
-  setUI({ glassColor: 'var(--col-green-glass)', msg: FL.step2, showReset: true, showHud: true });
-  
-  const sp = document.getElementById('smile-prompt');
-  if (sp) {
-    sp.querySelector('div').textContent = FL.smilePrompt;
-    sp.style.display = 'block';
-  }
+function startActionPhase(){
+  phase='ACTION_PHASE';
+  smileStartMs=null; frameAsymScores=[]; validSmileFrames=0; smileEverDetected=false;
+  actionWaitStartMs=Date.now(); lastSmileVoiceMs=Date.now();
+  setUI({glassColor:'var(--col-green-glass)', msg:FL.step2, showReset:true, showHud:true});
+  const sp=document.getElementById('smile-prompt');
+  if(sp){ sp.querySelector('div').textContent=FL.smilePrompt; sp.style.display='block'; }
   speakFace(FL.smileVoice);
 }
 
-function startScreening() {
-  restSamplesL = []; restSamplesR = [];
-  restBaseL = null; restBaseR = null; restBaseMouthWidth = null;
-  restMouthWidthSamples = [];
-  smileEvidenceFrames = 0;
-  actionPhasePromptStartMs = null;
-  recentAsymScores = []; recentRestAsym = [];
-  pitchNeutralSamples = []; pitchNeutralRatio = null;
-  criticalFired = false;
-  noFaceCount = 0;
-  countdownVal = CALIBRATION_SECONDS;
-  countdownPaused = false;
-  actionStartMs = null;
-  actionAsymScores = [];
-  
-  scoreNum.textContent = '—';
-  noFaceBanner.style.display = 'none';
-  poseWarnMsg.style.display = 'none';
-  hideCenterCountdown();
-
-  const oldNav = document.getElementById('fast-nav-btn'); if (oldNav) oldNav.remove();
-
-  phase = 'RESTING_PHASE';
-  setUI({ glassColor: 'var(--col-orange-glass)', msg: FL.step1, showReset: true, showHud: true });
-  speakFace(FL.restVoice);
-
-  showCenterCountdown(countdownVal);
-  countdownTimer = setInterval(handleCalibrationTick, 1000);
-}
-
-function processActionPhase(mLy, mRy, lm, faceLength) {
-  if (restBaseL === null || restBaseR === null || !restBaseMouthWidth) return;
-
-  // ค่ายิ่งบวก แปลว่ามุมปากยกขึ้นสูง (แกน Y ของภาพชี้ลง)
-  const riseL = Math.max(0, restBaseL - mLy);
-  const riseR = Math.max(0, restBaseR - mRy);
-  const maxRise = Math.max(riseL, riseR);
-  const minRise = Math.min(riseL, riseR);
-
-  const currentMouthWidth = getMouthWidth(lm);
-  const smileWidthRatio = currentMouthWidth / (restBaseMouthWidth + 1e-6);
-
-  // เริ่มจับเวลาเมื่อมีหลักฐานการยิ้มจริง ไม่ใช่แค่ landmark สั่นเล็กน้อย
-  // ยอมให้ "ยิ้มข้างเดียว" เริ่มการจับเวลาได้ เพื่อให้ระบบจับปากเบี้ยวได้
-  const unilateralSmile = maxRise > 0.018 && (smileWidthRatio >= 1.01 || minRise < maxRise * 0.55);
-  const bilateralSmile  = riseL > SMILE_RISE_MIN && riseR > SMILE_RISE_MIN;
-  const widthSmile      = smileWidthRatio >= SMILE_WIDTH_RATIO_MIN;
-  const meetsSmileCriteria = unilateralSmile || bilateralSmile || widthSmile;
-
-  if (meetsSmileCriteria && phase === 'ACTION_PHASE') {
-    actionStartMs = Date.now();
-    phase = 'ACTION_WAIT_SMILE';
-    smileStarted = true;
-    const sp = document.getElementById('smile-prompt');
-    if (sp) sp.style.display = 'none';
-  }
-
-  if (phase === 'ACTION_PHASE') {
-    const now = Date.now();
-    const elapsedSincePrompt = now - lastSmileVoicePromptMs;
-    const elapsedWaiting = actionPhasePromptStartMs ? now - actionPhasePromptStartMs : 0;
-
-    if (smileVoiceStep === 0 && elapsedSincePrompt > 5000) {
-      speakFace(FL.noSmileWarn);
-      lastSmileVoicePromptMs = now;
-      smileVoiceStep = 1;
-    } else if (smileVoiceStep === 1 && elapsedSincePrompt > 10000) {
-      speakFace(FL.noSmileWarn);
-      lastSmileVoicePromptMs = now;
-    }
-
-    // ถ้ารอนานมากแล้วยังไม่มีหลักฐานว่ายิ้มได้จริง ให้จบเป็น "ตรวจไม่ได้" ไม่ใช่ "ปกติ"
-    if (elapsedWaiting > MAX_WAIT_FOR_SMILE_MS) {
-      finishFaceInvalid(FL.mouthNotAssessable);
-      return;
-    }
-    
-    statusMsg.textContent = FL.step2;
-    hideCenterCountdown();
-    return;
-  }
-
-  if (phase === 'ACTION_WAIT_SMILE') {
-    if (!meetsSmileCriteria) {
-      phase = 'ACTION_PHASE';
-      actionStartMs = null;
-      hideCenterCountdown();
-      return;
-    }
-
-    const elapsed = Date.now() - actionStartMs;
-    const remain = Math.ceil((ACTION_DURATION_MS - elapsed) / 1000);
-
-    if (remain > 0) showCenterCountdown(remain);
-
-    // นับเฉพาะเฟรมที่มีหลักฐานว่าปากกำลังทำงานจริง
-    if (maxRise > MIN_RISE_TO_SCORE || smileWidthRatio >= 1.02) {
-      smileEvidenceFrames++;
-    }
-
-    // ── Logic ตรวจจับยิ้มข้างเดียว / ปากเบี้ยว ──
-    let instAsym = 0;
-    if (maxRise > MIN_RISE_TO_SCORE) {
-      if (minRise < 0.007 && maxRise > 0.015) {
-        instAsym = 0.72;
-      } else {
-        instAsym = Math.abs(riseL - riseR) / (riseL + riseR + 1e-5);
-        if (minRise / (maxRise + 1e-5) < 0.45) {
-          instAsym = Math.max(instAsym, 0.55);
-        }
-      }
-      actionAsymScores.push(instAsym);
-    }
-
-    statusMsg.textContent = FL.step2;
-    const db = document.getElementById('dashboard');
-    if (db) db.style.background = 'var(--col-green-glass)';
-
-    if (elapsed >= ACTION_DURATION_MS) {
-      hideCenterCountdown();
-      const sp = document.getElementById('smile-prompt');
-      if (sp) sp.style.display = 'none';
-      phase = 'FACE_DONE';
-
-      // กรณีปิดปาก / ไม่เห็นปาก / ไม่เคยมี evidence ของรอยยิ้มจริง ห้ามให้ผล "ปกติ"
-      if (actionAsymScores.length < MIN_VALID_ACTION_FRAMES || smileEvidenceFrames < MIN_SMILE_EVIDENCE_FRAMES) {
-        finishFaceInvalid(FL.mouthNotAssessable);
-        return;
-      }
-      finishFace();
-    }
-  }
-}
-
-function finishFaceInvalid(reasonText) {
-  hideCenterCountdown();
-  const sp = document.getElementById('smile-prompt');
-  if (sp) sp.style.display = 'none';
-  phase = 'FACE_DONE';
-
-  sessionStorage.setItem('fast_face', JSON.stringify({
-    score: 0,
-    riskLevel: 'invalid',
-    passed: false,
-    breakdown: {
-      reason: reasonText || FL.mouthNotAssessable,
-      actionFrames: actionAsymScores.length,
-      smileEvidenceFrames,
-      restBaseL,
-      restBaseR,
-      restBaseMouthWidth,
-      method: 'unable_to_assess_mouth_visibility_or_smile_evidence'
-    }
-  }));
-
-  setUI({
-    glassColor: 'var(--col-orange-glass)',
-    msg: reasonText || FL.faceUnableAssess,
-    showReset: true,
-    showScore: true
-  });
-  scoreNum.textContent = FL.resultInvalid;
-  scoreNum.style.color = '#fff';
-  const sl = document.getElementById('score-label');
-  if (sl) {
-    sl.textContent = FL.resultInvalid;
-    sl.style.background = 'rgba(232, 155, 60, 0.4)';
-    sl.style.color = '#FFD479';
-    sl.style.borderColor = '#E89B3C';
-  }
-  const st = document.getElementById('score-threshold');
-  if (st) st.textContent = '';
-}
-
-function asymToFaceScore(asym) {
-  if (asym <= 0) return 100;
-  if (asym < ASYM_THRESHOLD) return Math.round(100 - (asym / ASYM_THRESHOLD) * 40);
-  return Math.round(Math.max(0, 55 - ((asym - ASYM_THRESHOLD) / (ASYM_CRITICAL - ASYM_THRESHOLD)) * 55));
-}
-
-function finishFace() {
-  if (actionAsymScores.length < MIN_VALID_ACTION_FRAMES || smileEvidenceFrames < MIN_SMILE_EVIDENCE_FRAMES) {
-    finishFaceInvalid(FL.mouthNotAssessable);
-    return;
-  }
-  const sorted = [...actionAsymScores].sort((a, b) => a - b);
-  const idx = Math.floor(sorted.length * 0.75);
-  const repAsym = sorted.length ? sorted[idx] : 0;
-  
-  let faceScore = asymToFaceScore(repAsym);
-  let riskLevel = faceScore >= 70 ? 'ok' : faceScore >= 45 ? 'warn' : 'bad';
-  
-  // บังคับตก (Force Fall) ถ้าสถิติเฉลี่ยชี้ว่ามีจุดที่ปากเบี้ยวข้างเดียวหลุดเข้ามาบ่อยเกินไป
-  if (repAsym >= 0.42) {
-    riskLevel = 'bad';
-    faceScore = Math.min(faceScore, 40);
-  }
-
-  const criticalDetected = criticalFired;
-  const finalScore = criticalDetected ? Math.min(faceScore, 30) : faceScore;
-  const finalRisk = criticalDetected ? 'bad' : riskLevel;
-
-  sessionStorage.setItem('fast_face', JSON.stringify({
-    score: finalScore,
-    riskLevel: finalRisk,
-    passed: !criticalDetected && finalRisk === 'ok',
-    breakdown: { representativeAsym: repAsym, restBaseL, restBaseR, method: 'inter_side_movement_symmetry' }
-  }));
-
-  const pf = document.getElementById('prog-face');
-  if (pf) { pf.classList.remove('active'); pf.classList.add('done'); }
-
-  const ok = !criticalDetected && finalRisk === 'ok';
-  setUI({
-    glassColor: ok ? 'var(--col-green-glass)' : (finalRisk === 'warn' ? 'var(--col-orange-glass)' : 'var(--col-red-glass)'),
-    msg: ok ? FL.faceDone : FL.faceAbnormal,
-    showReset: true,
-    showScore: true
-  });
-
-  applyFaceLang();
-
-  setTimeout(() => {
-    const oldBtn = document.getElementById('fast-nav-btn'); if (oldBtn) oldBtn.remove();
-
-    const mode = sessionStorage.getItem('fast_mode');
-    const allDone = ['fast_face','fast_arm','fast_speech'].every(k => sessionStorage.getItem(k));
-
-    let label = FL.navHome, target = 'index.html', bg = 'rgba(255,255,255,0.15)';
-    if (mode === 'full') {
-      label = FL.navNext;
-      target = 'arm-test.html';
-      bg = '#2B7DE9';
-    } else if (allDone) {
-      label = FL.navResult;
-      target = 'result.html';
-      bg = '#1FA98F';
-    } else {
-      return; 
-    }
-
-    const btn = document.createElement('button');
-    btn.id = 'fast-nav-btn';
-    btn.className = 'action-btn';
-    btn.style.cssText = `background:${bg};border-color:rgba(255,255,255,0.25);color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(43,125,233,0.35);width:100%;padding:13px 16px;border-radius:14px;`;
-    btn.textContent = label;
-    btn.onclick = () => window.location.href = target;
-    document.getElementById('btn-row').appendChild(btn);
-  }, 400);
-}
-
-async function processCameraFrames() {
+/* ───────────── results ───────────── */
+function onResults(results){
   if (!isCameraRunning) return;
-  try {
-    if (videoEl.readyState >= 2 && !videoEl.paused && !videoEl.ended) {
-      await faceMesh.send({ image: videoEl });
-    }
-    await new Promise(requestAnimationFrame);
-    processCameraFrames();
-  } catch (err) {
-    console.error('Frame process loop crashed:', err);
-    setTimeout(processCameraFrames, 500);
-  }
-}
+  const lmArr = results.faceLandmarks;
+  const blendArr = results.faceBlendshapes;
 
-function initCamera(stream) {
-  videoEl.srcObject = stream;
-  videoEl.addEventListener('loadedmetadata', () => {
-    displayW = videoEl.clientWidth || 390;
-    displayH = videoEl.clientHeight || 844;
-    canvasEl.width = displayW;
-    canvasEl.height = displayH;
-  });
-  isCameraRunning = true;
-  processCameraFrames();
-  startScreening();
-}
-
-async function startCamera() {
-  const permLang = sessionStorage.getItem('fast_lang') || 'th';
-  if (typeof FastPermissions === 'undefined') {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
-      initCamera(stream);
-    } catch (e) {
-      const errMsg = { th: '⚠️ ไม่สามารถเข้าถึงกล้องได้ กรุณาอนุญาตการใช้กล้อง', en: '⚠️ Cannot access camera. Please allow camera access.', ja: '⚠️ カメラにアクセスできません。カメラの使用を許可してください。' };
-      statusMsg.textContent = errMsg[sessionStorage.getItem('fast_lang') || 'th'] || errMsg.th;
-    }
-    return;
-  }
-  const perm = await FastPermissions.request('camera', permLang);
-  if (perm.ok) {
-    initCamera(perm.stream);
-  } else {
-    FastPermissions.requestWithUI('camera', permLang, (stream) => {
-      if (stream) initCamera(stream);
-      else {
-        const errMsg = { th: '⚠️ ไม่สามารถเข้าถึงกล้องได้ กรุณาอนุญาตการใช้กล้อง', en: '⚠️ Cannot access camera. Please allow camera access.' };
-        statusMsg.textContent = errMsg[sessionStorage.getItem('fast_lang') || 'th'] || errMsg.th;
-      }
-    });
-  }
-}
-
-function onFaceMeshResults(results) {
-  if (!isCameraRunning) return;
-  const vw = videoEl.videoWidth;
-  const vh = videoEl.videoHeight;
-  if (!vw || !vh) return;
-
-  if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
+  if (!lmArr || lmArr.length === 0){
     noFaceCount++;
-    if (noFaceCount > 12 && ['RESTING_PHASE','ACTION_PHASE','ACTION_WAIT_SMILE'].includes(phase)) {
-      hideCenterCountdown();
-      setUI({ glassColor: 'var(--col-orange-glass)', msg: '', poseWarn: FL.noFace, showReset: true, showHud: true });
+    if (noFaceCount > 12 && ['RESTING_PHASE','ACTION_PHASE','ACTION_WAIT_SMILE'].includes(phase)){
+      hideCenterCountdown(); countdownPaused = true;
+      setUI({glassColor:'var(--col-orange-glass)', msg:'', poseWarn:FL.noFace, showReset:true, showHud:true});
     }
-    noFaceBanner.style.display = 'block';
+    noFaceBanner.style.display='block';
     return;
   }
-  noFaceCount = 0;
-  noFaceBanner.style.display = 'none';
+  noFaceCount=0; noFaceBanner.style.display='none';
 
-  const lm = results.multiFaceLandmarks[0];
-  const { mLy, mRy, rollDeg, yawDeg, pitchDeg, faceLength } = computeScore(lm);
+  const lm = lmArr[0];
+  const blend = (blendArr && blendArr.length) ? blendArr[0] : null;
+  const { mLy, mRy, rollDeg, yawDeg, pitchDeg, eyeW } = computePose(lm);
 
-  document.getElementById('dbg-mly').textContent = mLy.toFixed(4);
-  document.getElementById('dbg-mry').textContent = mRy.toFixed(4);
-  document.getElementById('dbg-ely').textContent = lm[IDX_L_EYE].y.toFixed(4);
-  document.getElementById('dbg-ery').textContent = lm[IDX_R_EYE].y.toFixed(4);
-  document.getElementById('dbg-ny').textContent = lm[IDX_NOSE].y.toFixed(4);
-  document.getElementById('dbg-fy').textContent = lm[IDX_FOREHEAD].y.toFixed(4);
-  document.getElementById('dbg-roll').textContent = rollDeg.toFixed(1) + '°';
-  document.getElementById('dbg-yaw').textContent = yawDeg.toFixed(1) + '°';
-  document.getElementById('dbg-pitch').textContent = pitchDeg.toFixed(1) + '°';
-  document.getElementById('dbg-rbl').textContent = restBaseL ? restBaseL.toFixed(4) : '—';
-  document.getElementById('dbg-n').textContent = restSamplesL.length;
-  document.getElementById('dbg-phase').textContent = phase;
+  // blendshape smile (subject's anatomical left/right; magnitude is what matters)
+  const smileL = bs(blend,'mouthSmileLeft');
+  const smileR = bs(blend,'mouthSmileRight');
+  const smileTotal = smileL + smileR;
+  const smileStrength = smileTotal / 2;
+  const smileAsym = smileTotal > 0.05 ? Math.abs(smileL - smileR) / smileTotal : 0;
 
-  if (phase === 'BEFORE_START' || phase === 'FACE_DONE' || phase === 'CRITICAL_ASYMMETRY' || phase === 'ABORTED') {
+  // geometry corner rise (relative to neutral baseline), normalized by eye width
+  let geomAsym = 0, riseLn = 0, riseRn = 0;
+  if (baseL !== null && baseR !== null){
+    riseLn = Math.max(0, baseL - mLy) / baseEyeW;
+    riseRn = Math.max(0, baseR - mRy) / baseEyeW;
+    const riseSum = riseLn + riseRn;
+    if (riseSum > 0.05) geomAsym = Math.abs(riseLn - riseRn) / riseSum;
+  }
+  const frameAsym = Math.max(smileAsym, geomAsym);
+
+  // debug
+  const setDbg=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setDbg('dbg-sml', smileL.toFixed(2)); setDbg('dbg-smr', smileR.toFixed(2));
+  setDbg('dbg-smstr', smileStrength.toFixed(2)); setDbg('dbg-smasym', smileAsym.toFixed(2));
+  setDbg('dbg-geomasym', geomAsym.toFixed(2)); setDbg('dbg-frasym', frameAsym.toFixed(2));
+  setDbg('dbg-roll', rollDeg.toFixed(1)+'°'); setDbg('dbg-yaw', yawDeg.toFixed(1)+'°'); setDbg('dbg-pitch', pitchDeg.toFixed(1)+'°');
+  setDbg('dbg-vf', validSmileFrames); setDbg('dbg-rep', lastRepAsym.toFixed(2)); setDbg('dbg-phase', phase);
+
+  if (['BEFORE_START','FACE_DONE','CRITICAL_ASYMMETRY','ABORTED'].includes(phase)) return;
+
+  updatePoseBar('bar-yaw','val-yaw',yawDeg,MAX_ALLOWED_YAW);
+  updatePoseBar('bar-pitch','val-pitch',pitchDeg,MAX_ALLOWED_PITCH);
+  updatePoseBar('bar-roll','val-roll',rollDeg,MAX_ALLOWED_ROLL);
+
+  // pose gate (pause, don't abort)
+  const absYaw=Math.abs(yawDeg), absPitch=Math.abs(pitchDeg), absRoll=Math.abs(rollDeg);
+  if (absYaw>MAX_ALLOWED_YAW || absPitch>MAX_ALLOWED_PITCH || absRoll>MAX_ALLOWED_ROLL){
+    countdownPaused=true; hideCenterCountdown();
+    let t='';
+    if (absRoll>MAX_ALLOWED_ROLL) t = rollDeg>0?FL.tiltLeft:FL.tiltRight;
+    else if (absYaw>MAX_ALLOWED_YAW) t = yawDeg>0?FL.turnRight:FL.turnLeft;
+    else t = pitchDeg>0?FL.lookUp:FL.lookDown;
+    setUI({glassColor:'var(--col-orange-glass)', msg:'', poseWarn:t, showReset:true, showHud:true});
     return;
   }
-
-  const visibility = checkMouthVisibility(lm);
-  if (!visibility.ok) {
-    setUI({ glassColor: 'var(--col-orange-glass)', msg: '', poseWarn: visibility.reason, showReset: true, showHud: true });
-    countdownPaused = true;
-    hideCenterCountdown();
-    return;
+  if (countdownPaused){
+    countdownPaused=false;
+    poseWarnMsg.style.display='none'; statusMsg.style.display='block';
+    if (phase==='RESTING_PHASE') showCenterCountdown(countdownVal);
   }
 
-  updatePoseBar('bar-yaw', 'val-yaw', yawDeg, MAX_ALLOWED_YAW);
-  updatePoseBar('bar-pitch', 'val-pitch', pitchDeg, MAX_ALLOWED_PITCH);
-  updatePoseBar('bar-roll', 'val-roll', rollDeg, MAX_ALLOWED_ROLL);
-
-  const absYaw = Math.abs(yawDeg);
-  const absPitch = Math.abs(pitchDeg);
-  const absRoll = Math.abs(rollDeg);
-
-  if (absYaw > MAX_ALLOWED_YAW || absPitch > MAX_ALLOWED_PITCH || absRoll > MAX_ALLOWED_ROLL) {
-    countdownPaused = true; 
-    hideCenterCountdown(); 
-    
-    let poseText = '';
-    if (absRoll > MAX_ALLOWED_ROLL) poseText = rollDeg > 0 ? FL.tiltLeft : FL.tiltRight;
-    else if (absYaw > MAX_ALLOWED_YAW) poseText = yawDeg > 0 ? FL.turnRight : FL.turnLeft;
-    else if (absPitch > MAX_ALLOWED_PITCH) poseText = pitchDeg > 0 ? FL.lookUp : FL.lookDown;
-
-    setUI({ glassColor: 'var(--col-orange-glass)', msg: '', poseWarn: poseText, showReset: true, showHud: true });
-    return; 
-  }
-
-  if (countdownPaused) {
-    countdownPaused = false;
-    poseWarnMsg.style.display = 'none';
-    poseWarnMsg.textContent = '';
-    statusMsg.style.display = 'block';
-
-    if (phase === 'ACTION_WAIT_SMILE') {
-      phase = 'ACTION_PHASE';
-      actionStartMs = null;
-    } else if (phase === 'RESTING_PHASE') {
-      showCenterCountdown(countdownVal);
-    }
-  }
-
-  const db = document.getElementById('dashboard');
-  if (db && poseWarnMsg.style.display === 'none') {
-    if (phase === 'RESTING_PHASE') db.style.background = 'var(--col-orange-glass)';
-    else if (phase === 'ACTION_PHASE') db.style.background = 'var(--col-blue-glass)';
-    else if (phase === 'ACTION_WAIT_SMILE') db.style.background = 'var(--col-green-glass)';
-  }
-
-  if (phase === 'RESTING_PHASE') {
-    restSamplesL.push(mLy);
-    restSamplesR.push(mRy);
-    restMouthWidthSamples.push(getMouthWidth(lm));
-    if (restMouthWidthSamples.length > MAX_HISTORY) restMouthWidthSamples.shift();
-    if (restSamplesL.length > MAX_HISTORY) restSamplesL.shift();
-    if (restSamplesR.length > MAX_HISTORY) restSamplesR.shift();
-
-    const rawRestAsym = Math.abs(mLy - mRy);
-    recentRestAsym = [...recentRestAsym.slice(-(REST_FIRE_WINDOW - 1)), rawRestAsym];
-
-    if (recentRestAsym.length >= REST_FIRE_WINDOW) {
-      const avgRest = recentRestAsym.reduce((a, b) => a + b, 0) / recentRestAsym.length;
-      if (avgRest > CRITICAL_THRESHOLD && !criticalFired && Math.abs(rollDeg) < 20) {
+  /* ── RESTING: collect neutral baseline + resting-droop check ── */
+  if (phase==='RESTING_PHASE'){
+    restCornerL.push(mLy); restCornerR.push(mRy); restEyeW.push(eyeW);
+    const restAsym = Math.abs(mLy - mRy) / eyeW;
+    restCornerAsymSamples = [...restCornerAsymSamples.slice(-7), restAsym];
+    if (restCornerAsymSamples.length >= 8){
+      const avg = average(restCornerAsymSamples);
+      if (avg > REST_ASYM_CRITICAL && !criticalFired && absRoll < 12){
         criticalFired = true;
-        if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+        if (countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
         hideCenterCountdown();
-        phase = 'CRITICAL_ASYMMETRY';
-        setUI({ glassColor: 'var(--col-red-glass)', msg: FL.critical, showReset: true, pulse: true });
-        actionAsymScores = [ASYM_CRITICAL + 0.1];
-        finishFace();
+        phase='CRITICAL_ASYMMETRY';
+        setUI({glassColor:'var(--col-red-glass)', msg:FL.critical, showReset:true, pulse:true});
+        finishCritical();
         return;
       }
     }
     statusMsg.textContent = FL.step1;
+    const db=document.getElementById('dashboard'); if(db) db.style.background='var(--col-orange-glass)';
     return;
   }
 
-  if (phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE') {
-    processActionPhase(mLy, mRy, lm, faceLength);
+  /* ── ACTION: wait for a genuine smile ── */
+  if (phase==='ACTION_PHASE'){
+    statusMsg.textContent = FL.step2;
+    const db=document.getElementById('dashboard'); if(db) db.style.background='var(--col-green-glass)';
+    const now = Date.now();
+    if (smileStrength >= SMILE_DETECT_MIN){
+      smileEverDetected = true;
+      smileStartMs = now;
+      phase = 'ACTION_WAIT_SMILE';
+      const sp=document.getElementById('smile-prompt'); if(sp) sp.style.display='none';
+      return;
+    }
+    // voice nudge + timeout → invalid (covered mouth / no smile)
+    if (now - lastSmileVoiceMs > 5000){ speakFace(FL.noSmileWarn); lastSmileVoiceMs = now; statusMsg.textContent = FL.noSmileWarn; }
+    if (now - actionWaitStartMs > MAX_WAIT_FOR_SMILE_MS){ finishInvalid(); }
+    return;
+  }
+
+  /* ── WAIT_SMILE: record while smiling ── */
+  if (phase==='ACTION_WAIT_SMILE'){
+    statusMsg.textContent = FL.step2;
+    const db=document.getElementById('dashboard'); if(db) db.style.background='var(--col-green-glass)';
+
+    // count only frames with genuine smile activation as valid evidence
+    if (smileStrength >= SMILE_VALID_STRENGTH){
+      validSmileFrames++;
+      frameAsymScores.push(frameAsym);
+    }
+    if (frameAsymScores.length){
+      const s=[...frameAsymScores].sort((a,b)=>a-b);
+      lastRepAsym = s[Math.floor(s.length*0.6)];   // p60: sensitive but not noise-driven
+    }
+
+    const elapsed = Date.now() - smileStartMs;
+    const remain = Math.ceil((ACTION_DURATION_MS - elapsed)/1000);
+    if (remain > 0) showCenterCountdown(remain);
+
+    if (elapsed >= ACTION_DURATION_MS){
+      hideCenterCountdown();
+      const sp=document.getElementById('smile-prompt'); if(sp) sp.style.display='none';
+      // not enough real smile evidence → cannot say "normal"
+      if (validSmileFrames < MIN_VALID_SMILE_FRAMES || frameAsymScores.length < MIN_VALID_SMILE_FRAMES){
+        finishInvalid();
+        return;
+      }
+      finishFace();
+    }
+    return;
   }
 }
 
-resetBtn.addEventListener('click', () => {
-  if (countdownTimer) clearInterval(countdownTimer);
-  countdownTimer = null;
+/* ───────────── finishers ───────────── */
+function asymToScore(asym){
+  return Math.round(Math.max(0, 100 * (1 - Math.min(1, asym/0.8))));
+}
+
+function finishFace(){
+  phase='FACE_DONE';
+  const s=[...frameAsymScores].sort((a,b)=>a-b);
+  const rep = s.length ? s[Math.floor(s.length*0.6)] : 0;
+  lastRepAsym = rep;
+
+  let riskLevel = rep >= SMILE_ASYM_BAD ? 'bad' : rep >= SMILE_ASYM_WARN ? 'warn' : 'ok';
+  if (criticalFired) riskLevel = 'bad';
+  const score = criticalFired ? Math.min(asymToScore(rep), 30) : asymToScore(rep);
+
+  saveAndShow(score, riskLevel, { representativeAsym:rep, validSmileFrames, method:'blendshape_smile_symmetry' });
+}
+
+function finishCritical(){
+  saveAndShow(20, 'bad', { method:'resting_asymmetry', restAsym:average(restCornerAsymSamples) });
+}
+
+function finishInvalid(){
+  phase='FACE_DONE';
   hideCenterCountdown();
-  try { speechSynthesis.cancel(); } catch(e) {}
+  const sp=document.getElementById('smile-prompt'); if(sp) sp.style.display='none';
+  sessionStorage.setItem('fast_face', JSON.stringify({
+    score:0, riskLevel:'invalid', passed:false,
+    breakdown:{ reason:FL.mouthNotAssessable, validSmileFrames, smileEverDetected, method:'unable_to_assess' }
+  }));
+  setUI({glassColor:'var(--col-orange-glass)', msg:FL.mouthNotAssessable, showReset:true, showScore:true});
+  scoreNum.textContent = FL.resultInvalid; scoreNum.style.color='#fff';
+  const sl=document.getElementById('score-label');
+  if(sl){ sl.textContent=FL.resultInvalid; sl.style.background='rgba(232,155,60,0.4)'; sl.style.color='#FFD479'; sl.style.borderColor='#E89B3C'; }
+  document.getElementById('score-threshold').textContent='';
+}
+
+function saveAndShow(score, riskLevel, breakdown){
+  phase='FACE_DONE';
+  sessionStorage.setItem('fast_face', JSON.stringify({ score, riskLevel, passed: riskLevel==='ok', breakdown }));
+  const pf=document.getElementById('prog-face'); if(pf){ pf.classList.remove('active'); pf.classList.add('done'); }
+
+  const ok = riskLevel==='ok';
+  setUI({
+    glassColor: ok?'var(--col-green-glass)':(riskLevel==='warn'?'var(--col-orange-glass)':'var(--col-red-glass)'),
+    msg: ok?FL.faceDone:FL.faceAbnormal, showReset:true, showScore:true,
+    pulse: riskLevel==='bad'
+  });
+  scoreNum.textContent = score + ' ' + FL.resultScore; scoreNum.style.color='#fff';
+  const sl=document.getElementById('score-label');
+  if(sl){
+    sl.textContent = ok?FL.resultOk:(riskLevel==='warn'?FL.resultWarn:FL.resultBad);
+    sl.style.background = ok?'rgba(31,169,143,0.4)':(riskLevel==='warn'?'rgba(232,155,60,0.4)':'rgba(229,84,78,0.4)');
+    sl.style.color = ok?'#A8F5C3':(riskLevel==='warn'?'#FFD479':'#FF6B6B');
+    sl.style.borderColor = ok?'#1FA98F':(riskLevel==='warn'?'#E89B3C':'#E5544E');
+  }
+  document.getElementById('score-threshold').textContent='';
+
+  setTimeout(()=>{
+    const old=document.getElementById('fast-nav-btn'); if(old) old.remove();
+    const mode=sessionStorage.getItem('fast_mode');
+    const allDone=['fast_face','fast_arm','fast_speech'].every(k=>sessionStorage.getItem(k));
+    let label=FL.navHome, target='index.html', bg='rgba(255,255,255,0.15)';
+    if (mode==='full'){ label=FL.navNext; target='arm-test.html'; bg='#2B7DE9'; }
+    else if (allDone){ label=FL.navResult; target='result.html'; bg='#1FA98F'; }
+    else return;
+    const btn=document.createElement('button');
+    btn.id='fast-nav-btn'; btn.className='action-btn';
+    btn.style.cssText=`background:${bg};border-color:rgba(255,255,255,0.25);color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(43,125,233,0.35);width:100%;padding:13px 16px;border-radius:14px;`;
+    btn.textContent=label; btn.onclick=()=>window.location.href=target;
+    document.getElementById('btn-row').appendChild(btn);
+  }, 400);
+}
+
+/* ───────────── camera + detect loop ───────────── */
+function detectLoop(){
+  if (!isCameraRunning) return;
+  if (faceLandmarker && videoEl.readyState >= 2 && !videoEl.paused && !videoEl.ended){
+    let ts = performance.now();
+    if (ts <= lastVideoTs) ts = lastVideoTs + 1;
+    lastVideoTs = ts;
+    try {
+      const res = faceLandmarker.detectForVideo(videoEl, ts);
+      onResults(res);
+    } catch(err){ console.error('detect error', err); }
+  }
+  requestAnimationFrame(detectLoop);
+}
+
+function initCamera(stream){
+  videoEl.srcObject = stream;
+  videoEl.addEventListener('loadedmetadata', ()=>{ videoEl.play().catch(()=>{}); });
+  isCameraRunning = true;
+  detectLoop();
   startScreening();
-});
+}
 
-window.addEventListener('DOMContentLoaded', () => {
-  statusMsg.textContent = FL.loading;
-  statusMsg.style.display = 'block';
-
-  if (typeof FaceMesh === 'undefined') {
-    statusMsg.textContent = '❌ Failed to load MediaPipe library.';
+async function startCamera(){
+  const permLang = sessionStorage.getItem('fast_lang') || 'th';
+  if (typeof FastPermissions === 'undefined'){
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user' }, audio:false });
+      initCamera(stream);
+    } catch(e){ statusMsg.textContent = FL.cameraErr; }
     return;
   }
+  const perm = await FastPermissions.request('camera', permLang);
+  if (perm.ok) initCamera(perm.stream);
+  else FastPermissions.requestWithUI('camera', permLang, (stream)=>{ stream ? initCamera(stream) : (statusMsg.textContent = FL.cameraErr); });
+}
 
-  faceMesh = new FaceMesh({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-  });
+async function loadModel(){
+  try {
+    const fileset = await FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm"
+    );
+    const make = (delegate) => FaceLandmarker.createFromOptions(fileset, {
+      baseOptions: {
+        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+        delegate
+      },
+      outputFaceBlendshapes: true,
+      runningMode: "VIDEO",
+      numFaces: 1
+    });
+    try { faceLandmarker = await make("GPU"); }
+    catch(e){ console.warn('GPU delegate failed, falling back to CPU', e); faceLandmarker = await make("CPU"); }
+    modelReady = true;
+    understandBtn.disabled = false;
+    understandBtn.textContent = FL.understand;
+  } catch(err){
+    console.error('model load failed', err);
+    understandBtn.textContent = FL.modelErr;
+  }
+}
 
-  faceMesh.setOptions({
-    maxNumFaces: 1,
-    refineLandmarks: false,
-    minDetectionConfidence: 0.6,
-    minTrackingConfidence: 0.6
-  });
+/* ───────────── init ───────────── */
+applyFaceLang();
+initProgressDots();
+{
+  const il = sessionStorage.getItem('fast_lang') || 'th';
+  ['th','en','ja'].forEach(c=>{ const b=document.getElementById('lsw-'+c); if(b) b.classList.toggle('active', c===il); });
+}
 
-  faceMesh.onResults(onFaceMeshResults);
-  statusMsg.textContent = FL.pressStart;
-  setUI({ glassColor: 'var(--col-blue-glass)', msg: FL.pressStart, showStart: true });
+understandBtn.addEventListener('click', ()=>{
+  if (!modelReady) return;
+  disclaimerEl.style.display='none';
+  startCamera();
 });
-
-startBtn.addEventListener('click', () => {
-  startBtn.classList.add('hidden');
+startBtn.addEventListener('click', ()=>{ startBtn.classList.add('hidden'); startScreening(); });
+resetBtn.addEventListener('click', ()=>{
+  if (countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
+  hideCenterCountdown();
+  try { speechSynthesis.cancel(); } catch(e){}
   startScreening();
 });
+
+window.addEventListener('beforeunload', ()=>{
+  isCameraRunning=false;
+  if (countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
+  if (videoEl.srcObject){ videoEl.srcObject.getTracks().forEach(t=>t.stop()); }
+});
+
+loadModel();
 </script>
 </body>
 </html>

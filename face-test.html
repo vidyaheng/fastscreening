@@ -9,7 +9,7 @@
 
   :root {
     --col-blue-glass:   rgba(15, 32, 67, 0.55);
-    --col-orange-glass: rgba(214, 116, 17, 0.6);
+    --col-orange-glass: rgba(214, 116, 17, 0.65);
     --col-green-glass:  rgba(20, 108, 81, 0.6);
     --col-red-glass:    rgba(186, 38, 38, 0.65);
     --col-yellow-glass: rgba(204, 153, 0, 0.65);
@@ -114,7 +114,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
   }
 
-  /* ── Progress indicator (Face / Arm / Speech) ── */
+  /* ── Progress indicator ── */
   #progress-dots {
     position: absolute; top: 54px; left: 50%;
     transform: translateX(-50%);
@@ -139,7 +139,7 @@
   .prog-step.active .prog-label { color: #fff; }
   .prog-step.done   .prog-label { color: rgba(168,245,195,0.85); }
 
-  /* ── Center countdown (camera-app style) ── */
+  /* ── Center countdown ── */
   #center-countdown {
     position: absolute; top: 40%; left: 50%;
     transform: translate(-50%, -50%);
@@ -244,7 +244,7 @@
     flex-shrink:0;
   }
 
-  /* ── Dashboard: compact (~half height) ── */
+  /* ── Dashboard ── */
   #dashboard {
     position:absolute;
     bottom:12px;
@@ -261,7 +261,7 @@
     -webkit-backdrop-filter:blur(25px);
     border:1px solid rgba(255,255,255,0.2);
     box-shadow:0 16px 40px rgba(0,0,0,0.45);
-    transition: background 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    transition: background 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   #app-title {
@@ -324,13 +324,12 @@
   #pose-warn-msg {
     display: none;
     color: #fff;
-    background: rgba(229, 84, 78, 0.9);
-    padding: 6px 14px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 700;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    background: transparent;
+    padding: 0;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: left;
   }
 
   #debug-panel {
@@ -544,12 +543,12 @@ const FACE_I18N = {
     step2: '😄 ยิ้มกว้าง',
     noFaceBaseline: '⚠️ ไม่พบใบหน้าระหว่างบันทึกค่าเริ่มต้น กรุณาลองใหม่',
     mouthHidden: '👄 ไม่เห็นปากชัดเจน',
-    tiltLeft: '↙️ ศีรษะเอียง — ตั้งหน้าให้ตรง',
-    tiltRight: '↘️ ศีรษะเอียง — ตั้งหน้าให้ตรง',
-    turnRight: '➡️ หันหน้าเกินไป — หันหน้าตรง',
-    turnLeft: '⬅️ หันหน้าเกินไป — หันหน้าตรง',
-    lookUp: '⬇️ ก้มหน้ามากไป — เงยขึ้นเล็กน้อย',
-    lookDown: '⬆️ เงยหน้ามากไป — ก้มลงเล็กน้อย',
+    tiltLeft: '↙️ ศีรษะเอียงไปทางซ้าย — ตั้งหน้าให้ตรง',
+    tiltRight: '↘️ ศีรษะเอียงไปทางขวา — ตั้งหน้าให้ตรง',
+    turnRight: '➡️ คุณหันขวามากไป — หันหน้าตรง',
+    turnLeft: '⬅️ คุณหันซ้ายมากไป — หันหน้าตรง',
+    lookUp: '⬇️ ก้มหน้ามากไป — เงยหน้าขึ้นเล็กน้อย',
+    lookDown: '⬆️ เงยหน้ามากไป — ก้มหน้าลงเล็กน้อย',
     critical: '🚨 ตรวจพบความไม่สมมาตรขั้นรุนแรง!\nกรุณาพบแพทย์โดยด่วน',
     holdSmile: '😄 ยิ้มกว้าง',
     faceDone: '✅ การทดสอบใบหน้าเสร็จสิ้น',
@@ -585,12 +584,12 @@ const FACE_I18N = {
     step2: '😄 Smile',
     noFaceBaseline: '⚠️ No face detected during baseline. Please try again.',
     mouthHidden: '👄 Mouth not clearly visible',
-    tiltLeft: '↙️ Head tilted — keep head straight',
-    tiltRight: '↘️ Head tilted — keep head straight',
-    turnRight: '➡️ Turned too far — face forward',
-    turnLeft: '⬅️ Turned too far — face forward',
-    lookUp: '⬇️ Looking down — lift your head a bit',
-    lookDown: '⬆️ Looking up — lower your head a bit',
+    tiltLeft: '↙️ Head tilted left — keep head straight',
+    tiltRight: '↘️ Head tilted right — keep head straight',
+    turnRight: '➡️ Turned too far right — face forward',
+    turnLeft: '⬅️ Turned too far left — face forward',
+    lookUp: '⬇️ Looking down too much — lift your head a bit',
+    lookDown: '⬆️ Looking up too much — lower your head a bit',
     critical: '🚨 Severe asymmetry detected!\nSee a doctor immediately',
     holdSmile: '😄 Smile',
     faceDone: '✅ Face test complete',
@@ -626,10 +625,10 @@ const FACE_I18N = {
     step2: '😄 笑って',
     noFaceBaseline: '⚠️ 基準値の記録中に顔が検出されませんでした。もう一度お試しください。',
     mouthHidden: '👄 口がはっきり見えません',
-    tiltLeft: '↙️ 頭が傾いています — まっすぐに',
-    tiltRight: '↘️ 頭が傾いています — まっすぐに',
-    turnRight: '➡️ 向きすぎ — 正面を向いて',
-    turnLeft: '⬅️ 向きすぎ — 正面を向いて',
+    tiltLeft: '↙️ 頭が左に傾いています — まっすぐに',
+    tiltRight: '↘️ 頭が右に傾いています — まっすぐに',
+    turnRight: '➡️ 右に向きすぎ — 正面を向いて',
+    turnLeft: '⬅️ 左に向きすぎ — 正面を向いて',
     lookUp: '⬇️ 下向きすぎ — 少し上げて',
     lookDown: '⬆️ 上向きすぎ — 少し下げて',
     critical: '🚨 重度の非対称が検出されました!\nすぐに医師の診察を受けてください',
@@ -695,8 +694,6 @@ function applyFaceLang() {
     if (mode === 'full') navBtn.textContent = FL.navNext;
     else navBtn.textContent = allDone ? FL.navResult : FL.navHome;
   }
-  const skipBtn = document.getElementById('skip-step-btn');
-  if (skipBtn) skipBtn.textContent = FL.skipStep;
 }
 
 const SPEAK_LANG = { th: 'th-TH', en: 'en-US', ja: 'ja-JP' };
@@ -771,7 +768,6 @@ let countdownPaused = false;
 let displayW = 390, displayH = 844;
 let pitchNeutralSamples = [];
 let pitchNeutralRatio = null;
-const PITCH_CALIB_FRAMES = 15;
 
 function showCenterCountdown(val) {
   centerCD.textContent = val;
@@ -794,15 +790,6 @@ function goBackHome() {
   window.location.href = 'index.html';
 }
 
-function skipFaceStep() {
-  if (countdownTimer) {
-    clearInterval(countdownTimer);
-    countdownTimer = null;
-  }
-  try { speechSynthesis.cancel(); } catch(e) {}
-  window.location.href = 'arm-test.html';
-}
-
 const ACTION_DURATION_MS = 6000;
 let actionStartMs = null;
 let actionAsymScores = [];
@@ -813,18 +800,19 @@ const REST_FIRE_WINDOW = 8;
 const CRITICAL_THRESHOLD = 0.28;
 const ASYM_THRESHOLD = 0.40;
 const ASYM_CRITICAL = 0.70;
+
+// ปรับปรุงเกณฑ์องศาให้เหมาะสม ยืดหยุ่นขึ้น (โดยเฉพาะก้มหน้าเงยหน้าจาก 18 เป็น 28)
 const MAX_ALLOWED_YAW = 28;
-const MAX_ALLOWED_PITCH = 18;
-const MAX_ALLOWED_ROLL = 18;
+const MAX_ALLOWED_PITCH = 28; 
+const MAX_ALLOWED_ROLL = 20;
+
 const MIN_MOUTH_EYE_RATIO = 0.15;
 const MIN_RISE_TO_SCORE = 0.005;
 const SMILE_RISE_MIN = 0.012;
-const NO_SMILE_GRACE_MS = 2000;
 
 let smileStarted = false;
-let smileWarningActive = false;
 let lastSmileVoicePromptMs = 0;
-let smileVoiceStep = 0; // 0: first time, 1: after 5s, 2: every 10s
+let smileVoiceStep = 0; 
 
 const IDX_L_EYE = 133, IDX_R_EYE = 362;
 const IDX_NOSE = 4, IDX_FOREHEAD = 10;
@@ -915,15 +903,14 @@ function computeScore(lm) {
   const mRy = rotateY(mR, lEye);
 
   const faceLength = Math.abs(rotateY(chin, lEye) - rotateY(forehead, lEye)) + 1e-6;
-  const eyeCenterRotY = (rotateY(lEye, lEye) + rotateY(rEye, lEye)) / 2;
-  const midMouthRotY = (mLy + mRy) / 2;
+  
+  // ผ่อนปรนสมการ Pitch Ratio เล็กน้อยเพื่อลดความไวของการคำนวณก้มเงย
+  const currentRatio = (noseRotY - rotateY(forehead, lEye)) / faceLength;
+  if (pitchNeutralRatio === null) pitchNeutralRatio = 0.355; 
+  const pitchDeg = (currentRatio - pitchNeutralRatio) * 95; 
 
   const eyeWidth = Math.sqrt((lEye.x - rEye.x) ** 2 + (lEye.y - rEye.y) ** 2) + 1e-6;
   const yawDeg = (nose.x - (lEye.x + rEye.x) / 2) / eyeWidth * -90;
-
-  const currentRatio = (noseRotY - rotateY(forehead, lEye)) / faceLength;
-  if (pitchNeutralRatio === null) pitchNeutralRatio = 0.35;
-  const pitchDeg = (currentRatio - pitchNeutralRatio) * 110;
 
   return { mLy, mRy, rollDeg, yawDeg, pitchDeg, faceLength };
 }
@@ -957,21 +944,21 @@ function updatePoseBar(barId, valId, deg, maxDeg) {
   val.style.color = bad ? '#FF6B6B' : '#A8F5C3';
 }
 
-function setUI({ glassColor, msg, poseWarn = '', showCD = false, showScore = false, showStart = false, showReset = false, showHome = false, showHud = false, pulse = false }) {
+function setUI({ glassColor, msg, poseWarn = '', showScore = false, showStart = false, showReset = false, showHud = false, pulse = false }) {
   const db = document.getElementById('dashboard');
   if (db) {
     db.style.background = glassColor;
     db.classList.toggle('pulse', pulse);
   }
-  statusMsg.textContent = msg;
-  statusMsg.style.display = msg ? 'block' : 'none';
-
+  
   if (poseWarn) {
     poseWarnMsg.textContent = poseWarn;
     poseWarnMsg.style.display = 'block';
     statusMsg.style.display = 'none';
   } else {
     poseWarnMsg.style.display = 'none';
+    statusMsg.textContent = msg;
+    statusMsg.style.display = msg ? 'block' : 'none';
   }
 
   if (showStart) startBtn.classList.remove('hidden'); else startBtn.classList.add('hidden');
@@ -1015,9 +1002,7 @@ function startActionPhase() {
   actionStartMs = null;
   actionAsymScores = [];
   smileStarted = false;
-  smileWarningActive = false;
   
-  // Voice warning Throttling Setup
   lastSmileVoicePromptMs = Date.now();
   smileVoiceStep = 0; 
 
@@ -1029,34 +1014,6 @@ function startActionPhase() {
     sp.style.display = 'block';
   }
   speakFace(FL.smileVoice);
-}
-
-function abortAndRestart(reasonText) {
-  if (phase !== 'RESTING_PHASE' && phase !== 'ACTION_PHASE' && phase !== 'ACTION_WAIT_SMILE') return;
-  if (countdownTimer) {
-    clearInterval(countdownTimer);
-    countdownTimer = null;
-  }
-  hideCenterCountdown();
-  const currentPhaseBeforeAbort = phase;
-  phase = 'ABORTED';
-  const db = document.getElementById('dashboard');
-  if (db) db.style.background = 'var(--col-yellow-glass)';
-  poseWarnMsg.style.display = 'none';
-  statusMsg.style.display = 'block';
-  statusMsg.textContent = (reasonText ? reasonText + ' ' : '') + FL.abortReset;
-  const sp = document.getElementById('smile-prompt');
-  if (sp) sp.style.display = 'none';
-
-  setTimeout(() => {
-    if (phase === 'ABORTED') {
-      if (currentPhaseBeforeAbort === 'ACTION_PHASE' || currentPhaseBeforeAbort === 'ACTION_WAIT_SMILE') {
-        startActionPhase();
-      } else {
-        startScreening();
-      }
-    }
-  }, 1300);
 }
 
 function startScreening() {
@@ -1077,7 +1034,6 @@ function startScreening() {
   hideCenterCountdown();
 
   const oldNav = document.getElementById('fast-nav-btn'); if (oldNav) oldNav.remove();
-  const oldSkip = document.getElementById('skip-step-btn'); if (oldSkip) oldSkip.remove();
 
   phase = 'RESTING_PHASE';
   setUI({ glassColor: 'var(--col-orange-glass)', msg: FL.step1, showReset: true, showHud: true });
@@ -1093,14 +1049,12 @@ function processActionPhase(mLy, mRy, lm, faceLength) {
   const riseL = Math.max(0, restBaseL - mLy);
   const riseR = Math.max(0, restBaseR - mRy);
 
-  // คำนวณความกว้างของปาก ณ ปัจจุบัน เทียบกับตอนทำหน้านิ่ง (Baseline) เพื่อเช็คว่าอ้าปาก/ยิ้มกว้างจริงไหม
   const currentMouthWidth = Math.sqrt((lm[IDX_ML].x - lm[IDX_MR].x)**2 + (lm[IDX_ML].y - lm[IDX_MR].y)**2);
   if (!restBaseMouthWidth) {
     restBaseMouthWidth = currentMouthWidth;
   }
   const smileWidthRatio = currentMouthWidth / restBaseMouthWidth;
 
-  // เงื่อนไขใหม่: ต้องยกพร้อมกันทั้งสองข้าง และอัตราส่วนความกว้างปากต้องกว้างขึ้น >= 1.08 เพื่อเลี่ยงการขยับหน้าเพี้ยน
   const meetsSmileCriteria = (riseL > SMILE_RISE_MIN && riseR > SMILE_RISE_MIN && smileWidthRatio >= 1.08);
 
   if (meetsSmileCriteria) {
@@ -1113,17 +1067,15 @@ function processActionPhase(mLy, mRy, lm, faceLength) {
   }
 
   if (phase === 'ACTION_PHASE') {
-    // ยังคงอยู่ในสถานะรอให้ยิ้มกว้างจริงจัง -> เช็ค Throttle การเตือนด้วยเสียงเพื่อไม่ให้หนวกหู
+    // ระบบเตือนเรื่องยิ้ม จะทำงานเฉพาะเฟสรอตรวจจริงตรงนี้เท่านั้น ไม่ปนกับช่วงหน้าเบี้ยว
     const now = Date.now();
     const elapsedSincePrompt = now - lastSmileVoicePromptMs;
 
     if (smileVoiceStep === 0 && elapsedSincePrompt > 5000) {
-      // เตือนรอบที่สองหลังจากผ่านไป 5 วินาที
       speakFace(FL.noSmileWarn);
       lastSmileVoicePromptMs = now;
       smileVoiceStep = 1;
     } else if (smileVoiceStep === 1 && elapsedSincePrompt > 10000) {
-      // จากนั้นเตือนซ้ำห่างๆ ทุก 10 วินาที
       speakFace(FL.noSmileWarn);
       lastSmileVoicePromptMs = now;
     }
@@ -1134,7 +1086,6 @@ function processActionPhase(mLy, mRy, lm, faceLength) {
   }
 
   if (phase === 'ACTION_WAIT_SMILE') {
-    // ถ้ายิ้มอยู่ หลุดเกณฑ์ ให้ Reset ตัวนับถอยหลังกลางจอชั่วคราว
     if (!meetsSmileCriteria) {
       phase = 'ACTION_PHASE';
       actionStartMs = null;
@@ -1145,12 +1096,10 @@ function processActionPhase(mLy, mRy, lm, faceLength) {
     const elapsed = Date.now() - actionStartMs;
     const remain = Math.ceil((ACTION_DURATION_MS - elapsed) / 1000);
 
-    // ตัวเลข Countdown ขนาดใหญ่วิ่งกลางจอให้ชัดเจนแบบแอปกล้องถ่ายรูป
     if (remain > 0) {
       showCenterCountdown(remain);
     }
 
-    // คำนวณดัชนีความไม่สมมาตรเก็บลงคะแนน
     const rawAsym = Math.abs(riseL - riseR);
     const denom = Math.max(0.01, riseL + riseR);
     const instAsym = rawAsym / denom;
@@ -1211,10 +1160,8 @@ function finishFace() {
 
   applyFaceLang();
 
-  // สร้างปุ่มนำทางขั้นตอนถัดไป/ดูผลลัพธ์ โดยไม่สร้างปุ่ม Home ขนาดใหญ่ซ้ำซ้อน
   setTimeout(() => {
     const oldBtn = document.getElementById('fast-nav-btn'); if (oldBtn) oldBtn.remove();
-    const oldSkip = document.getElementById('skip-step-btn'); if (oldSkip) oldSkip.remove();
 
     const mode = sessionStorage.getItem('fast_mode');
     const allDone = ['fast_face','fast_arm','fast_speech'].every(k => sessionStorage.getItem(k));
@@ -1229,7 +1176,7 @@ function finishFace() {
       target = 'result.html';
       bg = '#1FA98F';
     } else {
-      return; // สิ้นสุด flow ย่อย ไม่สร้างปุ่มเพิ่มเพราะมีไอคอนโฮมด้านบนแล้ว
+      return; 
     }
 
     const btn = document.createElement('button');
@@ -1304,7 +1251,8 @@ function onFaceMeshResults(results) {
   if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
     noFaceCount++;
     if (noFaceCount > 12 && ['RESTING_PHASE','ACTION_PHASE','ACTION_WAIT_SMILE'].includes(phase)) {
-      abortAndRestart(FL.noFace);
+      hideCenterCountdown();
+      setUI({ glassColor: 'var(--col-orange-glass)', msg: '', poseWarn: FL.noFace, showReset: true, showHud: true });
     }
     noFaceBanner.style.display = 'block';
     return;
@@ -1313,50 +1261,9 @@ function onFaceMeshResults(results) {
   noFaceBanner.style.display = 'none';
 
   const lm = results.multiFaceLandmarks[0];
-  const videoRatio = vw / vh;
-  const screenRatio = displayW / displayH;
-  let scaleX = 1, scaleY = 1, offsetX = 0, offsetY = 0;
-
-  if (videoRatio > screenRatio) {
-    scaleX = displayH * videoRatio / displayW;
-    offsetX = (1 - scaleX) / 2;
-  } else {
-    scaleY = displayW / videoRatio / displayH;
-    offsetY = (1 - scaleY) / 2;
-  }
-
-  const projectPoint = (pt) => {
-    return { x: ((pt.x * scaleX) + offsetX) * displayW, y: ((pt.y * scaleY) + offsetY) * displayH };
-  };
-
-  ctx.clearRect(0, 0, displayW, displayH);
-  ctx.save();
-  ctx.translate(displayW, 0);
-  ctx.scale(-1, 1);
-
-  if (debugVisible && (phase === 'RESTING_PHASE' || phase === 'ACTION_PHASE' || phase === 'ACTION_WAIT_SMILE')) {
-    ctx.strokeStyle = 'rgba(0, 220, 200, 0.25)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let i = 0; i < lm.length; i += 3) {
-      const p = projectPoint(lm[i]);
-      if(i===0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
-    }
-    ctx.stroke();
-  }
-
-  if (debugVisible) {
-    [IDX_ML, IDX_MR].forEach(i => {
-      const pt = projectPoint(lm[i]);
-      ctx.fillStyle = '#FFD700';
-      ctx.beginPath(); ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
-    });
-  }
-  ctx.restore();
-
   const { mLy, mRy, rollDeg, yawDeg, pitchDeg, faceLength } = computeScore(lm);
 
+  // ── ส่วนแสดงผลดีบักแผงควบคุม ──
   document.getElementById('dbg-mly').textContent = mLy.toFixed(4);
   document.getElementById('dbg-mry').textContent = mRy.toFixed(4);
   document.getElementById('dbg-ely').textContent = lm[IDX_L_EYE].y.toFixed(4);
@@ -1376,7 +1283,9 @@ function onFaceMeshResults(results) {
 
   const visibility = checkMouthVisibility(lm);
   if (!visibility.ok) {
-    abortAndRestart(visibility.reason);
+    setUI({ glassColor: 'var(--col-orange-glass)', msg: '', poseWarn: visibility.reason, showReset: true, showHud: true });
+    countdownPaused = true;
+    hideCenterCountdown();
     return;
   }
 
@@ -1388,18 +1297,45 @@ function onFaceMeshResults(results) {
   const absPitch = Math.abs(pitchDeg);
   const absRoll = Math.abs(rollDeg);
 
+  // ── ปรับปรุง Logic ตรวจเช็คท่าทางแบบ Real-time และฟื้นฟูอัตโนมัติ ──
   if (absYaw > MAX_ALLOWED_YAW || absPitch > MAX_ALLOWED_PITCH || absRoll > MAX_ALLOWED_ROLL) {
-    countdownPaused = true;
+    countdownPaused = true; 
+    hideCenterCountdown(); 
+    
     let poseText = '';
-    if (absRoll > MAX_ALLOWED_ROLL) poseText = yawDeg > 0 ? FL.tiltLeft : FL.tiltRight;
+    if (absRoll > MAX_ALLOWED_ROLL) poseText = rollDeg > 0 ? FL.tiltLeft : FL.tiltRight;
     else if (absYaw > MAX_ALLOWED_YAW) poseText = yawDeg > 0 ? FL.turnRight : FL.turnLeft;
     else if (absPitch > MAX_ALLOWED_PITCH) poseText = pitchDeg > 0 ? FL.lookUp : FL.lookDown;
 
-    setUI({ glassColor: 'var(--col-blue-glass)', msg: '', poseWarn: poseText, showReset: true, showHud: true });
-    return;
+    // เปลี่ยนพื้นหลังเป็นสีส้มใส (var(--col-orange-glass)) ดูสวยงามสบายตาและเป็นมิตรขึ้น
+    setUI({ glassColor: 'var(--col-orange-glass)', msg: '', poseWarn: poseText, showReset: true, showHud: true });
+    return; 
   }
 
-  countdownPaused = false;
+  // ── ด่านตรวจผ่านแล้ว: เคลียร์คำเตือน และทำงานต่อทันทีอัตโนมัติ ──
+  if (countdownPaused) {
+    countdownPaused = false;
+    poseWarnMsg.style.display = 'none';
+    poseWarnMsg.textContent = '';
+    statusMsg.style.display = 'block';
+
+    // ถ้าเดิมหลุดไปตอนรอการยิ้ม ให้สแตนด์บายเพื่อเปิดเลขกลางจอใหม่
+    if (phase === 'ACTION_WAIT_SMILE') {
+      phase = 'ACTION_PHASE';
+      actionStartMs = null;
+    } else if (phase === 'RESTING_PHASE') {
+      // แสดงตัวเลขนับถอยหลังต่อในส่วน Calibration
+      showCenterCountdown(countdownVal);
+    }
+  }
+
+  // คืนค่าสีพื้นหลังปกติของช่วงเฟสการทำงานปัจจุบัน
+  const db = document.getElementById('dashboard');
+  if (db && poseWarnMsg.style.display === 'none') {
+    if (phase === 'RESTING_PHASE') db.style.background = 'var(--col-orange-glass)';
+    else if (phase === 'ACTION_PHASE') db.style.background = 'var(--col-blue-glass)';
+    else if (phase === 'ACTION_WAIT_SMILE') db.style.background = 'var(--col-green-glass)';
+  }
 
   if (phase === 'RESTING_PHASE') {
     restSamplesL.push(mLy);

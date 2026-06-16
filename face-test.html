@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>FAST · Face Screening</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght=400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght=400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap');
 
   :root {
     --col-blue-glass:   rgba(15, 32, 67, 0.55);
@@ -267,6 +267,8 @@
 
 <script type="module">
 'use strict';
+// tasks-vision is imported dynamically inside loadModel() so that a failed/blocked
+// CDN load does NOT crash the whole module (which would freeze the consent screen).
 
 /* ───────────────────────── i18n ───────────────────────── */
 const FACE_I18N = {
@@ -283,6 +285,8 @@ const FACE_I18N = {
     step2:'😄 ยิ้มกว้างให้เห็นฟัน',
     noFaceBaseline:'⚠️ ไม่พบใบหน้าระหว่างบันทึกค่าเริ่มต้น กรุณาลองใหม่',
     mouthNotAssessable:'⚠️ ตรวจไม่ได้ — กรุณาเปิดให้เห็นปากชัดเจนและยิ้มกว้างใหม่',
+    retrying:'😐 ยังไม่เห็นการยิ้มชัด — กำลังลองใหม่อัตโนมัติ',
+    invalidHelp:'⚠️ ตรวจไม่ได้หลายครั้ง — ให้เจ้าหน้าที่ช่วย หรือกด ↺ ลองใหม่',
     faceUnableAssess:'⚠️ ไม่สามารถประเมินใบหน้าได้',
     resultInvalid:'ตรวจไม่ได้',
     tiltLeft:'↙️ ศีรษะเอียง — ตั้งหน้าให้ตรง',
@@ -322,6 +326,8 @@ const FACE_I18N = {
     step2:'😄 Smile widely, show teeth',
     noFaceBaseline:'⚠️ No face detected during baseline. Please try again.',
     mouthNotAssessable:'⚠️ Unable to assess — keep your mouth visible and smile widely',
+    retrying:'😐 No clear smile yet — retrying automatically',
+    invalidHelp:'⚠️ Could not assess after several tries — ask staff for help, or tap ↺',
     faceUnableAssess:'⚠️ Unable to assess face',
     resultInvalid:'Unable',
     tiltLeft:'↙️ Head tilted — keep head straight',
@@ -361,6 +367,8 @@ const FACE_I18N = {
     step2:'😄 歯を見せて大きく笑って',
     noFaceBaseline:'⚠️ 基準値の記録中に顔が検出されませんでした。もう一度お試しください。',
     mouthNotAssessable:'⚠️ 判定できません — 口元が見えるように大きく笑ってください',
+    retrying:'😐 笑顔が確認できません — 自動で再試行します',
+    invalidHelp:'⚠️ 数回試しましたが判定できません — スタッフに依頼するか ↺ で再試行',
     faceUnableAssess:'⚠️ 顔を評価できません',
     resultInvalid:'判定不可',
     tiltLeft:'↙️ 頭が傾いています — まっすぐに',
@@ -407,21 +415,24 @@ const understandBtn = document.getElementById('understand-btn');
 const poseHud = document.getElementById('pose-hud');
 const debugPanel = document.getElementById('debug-panel');
 
-/* ───────────── Tunable thresholds ───────────── */
-const CALIBRATION_SECONDS = 3;       
-const ACTION_DURATION_MS = 4000;     
+/* ───────────── Tunable thresholds (calibrate on a real device) ───────────── */
+const CALIBRATION_SECONDS = 3;       // short "get ready" before smiling
+const ACTION_DURATION_MS = 4000;     // length of the smile-recording window
+const MAX_ASSESS_ATTEMPTS = 3;       // auto-retry "unable to assess" up to this many times
+const RETRY_DELAY_MS = 2500;         // pause before each auto-retry
+const WEAK_SIDE_RATIO_BAD = 0.30;    // weak/strong rise below this → clearly one-sided → abnormal
 
-const SMILE_DETECT_MIN = 0.22;       
-const SMILE_DETECT_SIDE = 0.30;      
-const SMILE_VALID_STRENGTH = 0.18;   
-const REAL_MOVE_MIN = 0.04;          // ระยะเคลื่อนไหวขั้นต่ำเพื่อยืนยันว่ากล้ามเนื้อมุมปากมีการ "ยกตัวขึ้นจริง"
-const SMILE_REAL_MIN = 0.40;         
-const MIN_VALID_SMILE_FRAMES = 12;   
-const MAX_WAIT_FOR_SMILE_MS = 14000; 
+const SMILE_DETECT_MIN = 0.22;       // (smileL+smileR)/2 to START recording a smile
+const SMILE_DETECT_SIDE = 0.30;      // OR either side this high → a smile has begun (one-sided)
+const SMILE_VALID_STRENGTH = 0.18;   // min strength for a frame to count as evidence
+const REAL_MOVE_MIN = 0.04;          // corner must actually rise (norm by eye width) — guards occlusion
+const SMILE_REAL_MIN = 0.40;         // stronger side must reach a real smile, else "unable to assess"
+const MIN_VALID_SMILE_FRAMES = 12;   // fewer valid frames than this → "unable to assess"
+const MAX_WAIT_FOR_SMILE_MS = 14000; // no genuine smile within this → "unable to assess"
 
-const SMILE_ASYM_WARN = 0.26;        
-const SMILE_ASYM_BAD  = 0.40;        
-const REST_ASYM_CRITICAL = 0.30;     
+const SMILE_ASYM_WARN = 0.26;        // representative asym → caution
+const SMILE_ASYM_BAD  = 0.40;        // representative asym → abnormal
+const REST_ASYM_CRITICAL = 0.30;     // resting mouth-corner asym (norm by eye width) → severe
 
 const MAX_ALLOWED_YAW = 28;
 const MAX_ALLOWED_PITCH = 24;
@@ -441,7 +452,7 @@ let countdownVal = CALIBRATION_SECONDS;
 let countdownPaused = false;
 let noFaceCount = 0;
 
-let restCornerAsymSamples = [];   
+let restCornerAsymSamples = [];   // resting |mLy-mRy|/eyeWidth
 let restCornerL = [], restCornerR = [], restEyeW = [];
 let baseL = null, baseR = null, baseEyeW = null;
 let criticalFired = false;
@@ -453,7 +464,10 @@ let smileEverDetected = false;
 let actionWaitStartMs = null;
 let lastSmileVoiceMs = 0;
 let lastRepAsym = 0;
+// per-side PEAK activation during the smile window (the core stroke signal)
 let peakSmileL = 0, peakSmileR = 0, peakRiseL = 0, peakRiseR = 0;
+let assessAttempts = 0;
+let retryTimer = null;
 
 let pitchNeutralRatio = null;
 
@@ -548,18 +562,21 @@ function goBackHome(){
     if (!confirm(FL.quit)) return;
   }
   if (countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
+  if (retryTimer){ clearTimeout(retryTimer); retryTimer=null; }
   try { speechSynthesis.cancel(); } catch(e){}
   window.location.href = 'index.html';
 }
 
+// expose inline-onclick handlers (module scope is not global)
 window.switchFaceLang = switchFaceLang;
 window.toggleDebug = toggleDebug;
 window.goBackHome = goBackHome;
 
-/* ───────────── pose & geometryจาก landmarks ───────────── */
+/* ───────────── pose & geometry from landmarks ───────────── */
 function computePose(lm){
   const lEye=lm[IDX_L_EYE], rEye=lm[IDX_R_EYE], nose=lm[IDX_NOSE], forehead=lm[IDX_FOREHEAD], chin=lm[IDX_CHIN];
   const mL=lm[IDX_ML], mR=lm[IDX_MR];
+  // roll: rEye - lEye (raw image coords) → ~0° when level
   const dx = rEye.x - lEye.x, dy = rEye.y - lEye.y;
   const rollDeg = Math.atan2(dy, dx) * 180/Math.PI;
   const cosR = Math.cos(-rollDeg*Math.PI/180), sinR = Math.sin(-rollDeg*Math.PI/180);
@@ -616,6 +633,8 @@ function startScreening(){
   smileStartMs=null; frameAsymScores=[]; validSmileFrames=0; smileEverDetected=false;
   actionWaitStartMs=null; lastSmileVoiceMs=0; lastRepAsym=0;
   peakSmileL=0; peakSmileR=0; peakRiseL=0; peakRiseR=0;
+  assessAttempts=0;
+  if (retryTimer){ clearTimeout(retryTimer); retryTimer=null; }
   pitchNeutralRatio=null;
   scoreNum.textContent='—';
   noFaceBanner.style.display='none'; poseWarnMsg.style.display='none';
@@ -658,7 +677,155 @@ function startActionPhase(){
   speakFace(FL.smileVoice);
 }
 
-/* ───────────── การคำนวณและประเมินผลลัพธ์ (แก้ไขใหม่) ───────────── */
+/* ───────────── results ───────────── */
+function onResults(results){
+  if (!isCameraRunning) return;
+  const lmArr = results.faceLandmarks;
+  const blendArr = results.faceBlendshapes;
+
+  if (!lmArr || lmArr.length === 0){
+    noFaceCount++;
+    if (noFaceCount > 12 && ['RESTING_PHASE','ACTION_PHASE','ACTION_WAIT_SMILE'].includes(phase)){
+      hideCenterCountdown(); countdownPaused = true;
+      setUI({glassColor:'var(--col-orange-glass)', msg:'', poseWarn:FL.noFace, showReset:true, showHud:true});
+    }
+    noFaceBanner.style.display='block';
+    return;
+  }
+  noFaceCount=0; noFaceBanner.style.display='none';
+
+  const lm = lmArr[0];
+  const blend = (blendArr && blendArr.length) ? blendArr[0] : null;
+  const { mLy, mRy, rollDeg, yawDeg, pitchDeg, eyeW } = computePose(lm);
+
+  // blendshape smile (subject's anatomical left/right; magnitude is what matters)
+  const smileL = bs(blend,'mouthSmileLeft');
+  const smileR = bs(blend,'mouthSmileRight');
+  const smileTotal = smileL + smileR;
+  const smileStrength = smileTotal / 2;
+  const smileAsym = smileTotal > 0.05 ? Math.abs(smileL - smileR) / smileTotal : 0;
+
+  // geometry corner rise (relative to neutral baseline), normalized by eye width
+  let geomAsym = 0, riseLn = 0, riseRn = 0;
+  if (baseL !== null && baseR !== null){
+    riseLn = Math.max(0, baseL - mLy) / baseEyeW;
+    riseRn = Math.max(0, baseR - mRy) / baseEyeW;
+    const riseSum = riseLn + riseRn;
+    if (riseSum > 0.05) geomAsym = Math.abs(riseLn - riseRn) / riseSum;
+  }
+  const frameAsym = Math.max(smileAsym, geomAsym);
+
+  // debug
+  const setDbg=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setDbg('dbg-sml', smileL.toFixed(2)); setDbg('dbg-smr', smileR.toFixed(2));
+  setDbg('dbg-smstr', smileStrength.toFixed(2)); setDbg('dbg-smasym', smileAsym.toFixed(2));
+  setDbg('dbg-geomasym', geomAsym.toFixed(2)); setDbg('dbg-frasym', frameAsym.toFixed(2));
+  setDbg('dbg-pkl', peakSmileL.toFixed(2)); setDbg('dbg-pkr', peakSmileR.toFixed(2));
+  setDbg('dbg-roll', rollDeg.toFixed(1)+'°'); setDbg('dbg-yaw', yawDeg.toFixed(1)+'°'); setDbg('dbg-pitch', pitchDeg.toFixed(1)+'°');
+  setDbg('dbg-vf', validSmileFrames); setDbg('dbg-rep', lastRepAsym.toFixed(2)); setDbg('dbg-phase', phase);
+
+  if (['BEFORE_START','FACE_DONE','CRITICAL_ASYMMETRY','ABORTED','RETRYING'].includes(phase)) return;
+
+  updatePoseBar('bar-yaw','val-yaw',yawDeg,MAX_ALLOWED_YAW);
+  updatePoseBar('bar-pitch','val-pitch',pitchDeg,MAX_ALLOWED_PITCH);
+  updatePoseBar('bar-roll','val-roll',rollDeg,MAX_ALLOWED_ROLL);
+
+  // pose gate (pause, don't abort)
+  const absYaw=Math.abs(yawDeg), absPitch=Math.abs(pitchDeg), absRoll=Math.abs(rollDeg);
+  if (absYaw>MAX_ALLOWED_YAW || absPitch>MAX_ALLOWED_PITCH || absRoll>MAX_ALLOWED_ROLL){
+    countdownPaused=true; hideCenterCountdown();
+    let t='';
+    if (absRoll>MAX_ALLOWED_ROLL) t = rollDeg>0?FL.tiltLeft:FL.tiltRight;
+    else if (absYaw>MAX_ALLOWED_YAW) t = yawDeg>0?FL.turnRight:FL.turnLeft;
+    else t = pitchDeg>0?FL.lookUp:FL.lookDown;
+    setUI({glassColor:'var(--col-orange-glass)', msg:'', poseWarn:t, showReset:true, showHud:true});
+    return;
+  }
+  if (countdownPaused){
+    countdownPaused=false;
+    poseWarnMsg.style.display='none'; statusMsg.style.display='block';
+    if (phase==='RESTING_PHASE') showCenterCountdown(countdownVal);
+  }
+
+  /* ── RESTING: collect neutral baseline + resting-droop check ── */
+  if (phase==='RESTING_PHASE'){
+    restCornerL.push(mLy); restCornerR.push(mRy); restEyeW.push(eyeW);
+    const restAsym = Math.abs(mLy - mRy) / eyeW;
+    restCornerAsymSamples = [...restCornerAsymSamples.slice(-7), restAsym];
+    if (restCornerAsymSamples.length >= 8){
+      const avg = average(restCornerAsymSamples);
+      if (avg > REST_ASYM_CRITICAL && !criticalFired && absRoll < 12){
+        criticalFired = true;
+        if (countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
+        hideCenterCountdown();
+        phase='CRITICAL_ASYMMETRY';
+        setUI({glassColor:'var(--col-red-glass)', msg:FL.critical, showReset:true, pulse:true});
+        finishCritical();
+        return;
+      }
+    }
+    statusMsg.textContent = FL.step1;
+    const db=document.getElementById('dashboard'); if(db) db.style.background='var(--col-orange-glass)';
+    return;
+  }
+
+  /* ── ACTION: wait for a genuine smile ── */
+  if (phase==='ACTION_PHASE'){
+    statusMsg.textContent = FL.step2;
+    const db=document.getElementById('dashboard'); if(db) db.style.background='var(--col-green-glass)';
+    const now = Date.now();
+    // A smile has begun if BOTH sides average up, OR if EITHER side clearly activates
+    // (one-sided smile must still start the test — that's exactly the stroke case).
+    if (smileStrength >= SMILE_DETECT_MIN || Math.max(smileL, smileR) >= SMILE_DETECT_SIDE){
+      smileEverDetected = true;
+      smileStartMs = now;
+      phase = 'ACTION_WAIT_SMILE';
+      const sp=document.getElementById('smile-prompt'); if(sp) sp.style.display='none';
+      return;
+    }
+    // voice nudge + timeout → invalid (covered mouth / no smile)
+    if (now - lastSmileVoiceMs > 5000){ speakFace(FL.noSmileWarn); lastSmileVoiceMs = now; statusMsg.textContent = FL.noSmileWarn; }
+    if (now - actionWaitStartMs > MAX_WAIT_FOR_SMILE_MS){ finishInvalid(); }
+    return;
+  }
+
+  /* ── WAIT_SMILE: record per-side PEAK activation while smiling ── */
+  if (phase==='ACTION_WAIT_SMILE'){
+    statusMsg.textContent = FL.step2;
+    const db=document.getElementById('dashboard'); if(db) db.style.background='var(--col-green-glass)';
+
+    // A frame is valid evidence only if there's a genuine smile AND the mouth corner
+    // actually rose from the neutral baseline. A still hand over the mouth produces a
+    // hallucinated "smile" blendshape but NO real upward movement → not counted.
+    const realMove = Math.max(riseLn, riseRn) > REAL_MOVE_MIN;
+    if (smileStrength >= SMILE_VALID_STRENGTH && realMove){
+      validSmileFrames++;
+      frameAsymScores.push(frameAsym);
+      // track how far EACH side got at its best moment — this is the core signal
+      peakSmileL = Math.max(peakSmileL, smileL);
+      peakSmileR = Math.max(peakSmileR, smileR);
+      peakRiseL  = Math.max(peakRiseL, riseLn);
+      peakRiseR  = Math.max(peakRiseR, riseRn);
+    }
+
+    const elapsed = Date.now() - smileStartMs;
+    const remain = Math.ceil((ACTION_DURATION_MS - elapsed)/1000);
+    if (remain > 0) showCenterCountdown(remain);
+
+    if (elapsed >= ACTION_DURATION_MS){
+      hideCenterCountdown();
+      const sp=document.getElementById('smile-prompt'); if(sp) sp.style.display='none';
+      if (validSmileFrames < MIN_VALID_SMILE_FRAMES){
+        finishInvalid();   // never saw a real, moving smile → can't say "normal"
+        return;
+      }
+      finishFace();
+    }
+    return;
+  }
+}
+
+/* ───────────── finishers ───────────── */
 function asymToScore(asym){
   return Math.round(Math.max(0, 100 * (1 - Math.min(1, asym/0.8))));
 }
@@ -666,33 +833,37 @@ function asymToScore(asym){
 function finishFace(){
   phase='FACE_DONE';
 
-  // 1. ตรวจสอบก่อนว่าข้างที่เคลื่อนไหวได้มากที่สุด ยิ้มถึงเกณฑ์ขั้นต่ำไหม (เพื่อตัดเคสที่คนไข้ไม่ได้ยิ้มหรือตรวจไม่ได้)
+  // Gate 1: the stronger side must have produced a REAL smile, otherwise we never
+  // truly saw the person smile (weak attempt / occlusion) → unable to assess.
   const strongSide = Math.max(peakSmileL, peakSmileR);
   if (strongSide < SMILE_REAL_MIN){
     finishInvalid();
     return;
   }
 
-  // 2. ลอจิกหลัก: ตรวจสอบเรื่อง "การยกตัวขึ้นจริงของมุมปากแต่ละข้าง" เทียบกับเกณฑ์เคลื่อนไหวขั้นต่ำ (REAL_MOVE_MIN = 0.04)
-  const leftMoved = peakRiseL >= REAL_MOVE_MIN;
-  const rightMoved = peakRiseR >= REAL_MOVE_MIN;
+  // Asymmetry magnitudes (continuous, 0 = symmetric, 1 = fully one-sided).
+  const blendAsym = (peakSmileL + peakSmileR) > 0.05
+    ? Math.abs(peakSmileL - peakSmileR) / (peakSmileL + peakSmileR) : 0;
+  const riseAsym = (peakRiseL + peakRiseR) > 0.05
+    ? Math.abs(peakRiseL - peakRiseR) / (peakRiseL + peakRiseR) : 0;
 
-  let riskLevel = 'ok';
-  
-  // คำนวณสัดส่วนความไม่สมมาตร (Asymmetry Ratio) เพื่อใช้คิดคะแนนและจับเคสที่ยกได้สองข้างแต่แรงต่างกันมาก
-  const blendAsym = (peakSmileL + peakSmileR) > 0.05 ? Math.abs(peakSmileL - peakSmileR) / (peakSmileL + peakSmileR) : 0;
-  const riseAsym = (peakRiseL + peakRiseR) > 0.05 ? Math.abs(peakRiseL - peakRiseR) / (peakRiseL + peakRiseR) : 0;
+  // How much did the WEAKER side move compared with the stronger side?
+  // This is the clinical "one side isn't working" signal — but as a smooth ratio,
+  // not a brittle on/off threshold, so a slightly uneven normal smile isn't flagged.
+  const strongRise = Math.max(peakRiseL, peakRiseR);
+  const weakRise   = Math.min(peakRiseL, peakRiseR);
+  const weakRatio  = strongRise > 0 ? weakRise / strongRise : 0;
+
   let rep = Math.max(blendAsym, riseAsym);
+  let riskLevel;
 
-  // 3. ตัดสินผลลัพธ์ร่วมกันระหว่าง "การขยับยก" และ "ความไม่สมมาตร"
-  if (leftMoved && rightMoved) {
-    // กรณีที่ 1: มุมปากยกขึ้นได้ทั้งสองข้างจริง -> นำมาประเมินความไม่สมมาตรต่อเพื่อเช็คอาการปากเบี้ยวแบบอ่อนแรงบางส่วน (Paresis)
-    riskLevel = rep >= SMILE_ASYM_BAD ? 'bad' : rep >= SMILE_ASYM_WARN ? 'warn' : 'ok';
-  } else {
-    // กรณีที่ 2: ยกได้แค่ข้างเดียว หรือไม่ได้เลยสักข้าง (แต่ผ่านด่าน strongSide มาแล้ว แปลว่าขยับข้างเดียวแน่ๆ)
-    // ตรงตามลอจิก Stroke: ขยับได้ข้างเดียว = ผิดปกติทันที!
+  if (weakRatio < WEAK_SIDE_RATIO_BAD){
+    // weak side moved < 30% of the strong side → clearly one-sided → abnormal
     riskLevel = 'bad';
-    rep = Math.max(rep, 0.50); // บังคับให้ค่า Asymmetry สูงกว่าเกณฑ์ปกติ เพื่อให้แสดงผลสีแดงชัดเจน
+    rep = Math.max(rep, 0.55);
+  } else {
+    // both sides moved meaningfully → grade by how uneven the smile was
+    riskLevel = rep >= SMILE_ASYM_BAD ? 'bad' : rep >= SMILE_ASYM_WARN ? 'warn' : 'ok';
   }
 
   lastRepAsym = rep;
@@ -700,10 +871,9 @@ function finishFace(){
   const score = criticalFired ? Math.min(asymToScore(rep), 30) : asymToScore(rep);
 
   saveAndShow(score, riskLevel, {
-    representativeAsym: rep, blendAsym, riseAsym,
+    representativeAsym: rep, blendAsym, riseAsym, weakRatio,
     peakSmileL, peakSmileR, peakRiseL, peakRiseR,
-    leftMoved, rightMoved, // บันทึกสถานะการขยับยกแต่ละข้างลงหน่วยความจำด้วย
-    validSmileFrames, method: 'absolute_and_ratio_smile_symmetry'
+    validSmileFrames, method: 'weak_side_ratio_smile_symmetry'
   });
 }
 
@@ -712,18 +882,57 @@ function finishCritical(){
 }
 
 function finishInvalid(){
-  phase='FACE_DONE';
   hideCenterCountdown();
   const sp=document.getElementById('smile-prompt'); if(sp) sp.style.display='none';
+  assessAttempts++;
+
+  // Auto-retry the smile step (baseline is kept) so an elderly user isn't left
+  // stuck not knowing to tap. Capped — and NEVER silently becomes "normal".
+  if (assessAttempts < MAX_ASSESS_ATTEMPTS){
+    phase = 'RETRYING';
+    setUI({
+      glassColor:'var(--col-orange-glass)',
+      msg: FL.retrying + '  (' + assessAttempts + '/' + (MAX_ASSESS_ATTEMPTS-1) + ')',
+      showReset:true
+    });
+    speakFace(FL.noSmileWarn);
+    if (retryTimer) clearTimeout(retryTimer);
+    retryTimer = setTimeout(()=>{ if (phase==='RETRYING') startActionPhase(); }, RETRY_DELAY_MS);
+    return;
+  }
+
+  // Limit reached → stop clearly. Save as "invalid" (never "normal") and let the
+  // operator retry or, in a full FAST run, continue to the next step.
+  phase='FACE_DONE';
   sessionStorage.setItem('fast_face', JSON.stringify({
     score:0, riskLevel:'invalid', passed:false,
-    breakdown:{ reason:FL.mouthNotAssessable, validSmileFrames, smileEverDetected, method:'unable_to_assess' }
+    breakdown:{ reason:FL.mouthNotAssessable, attempts:assessAttempts, validSmileFrames, smileEverDetected, method:'unable_to_assess' }
   }));
-  setUI({glassColor:'var(--col-orange-glass)', msg:FL.mouthNotAssessable, showReset:true, showScore:true});
+  const pf=document.getElementById('prog-face'); if(pf){ pf.classList.remove('active'); pf.classList.add('done'); }
+  setUI({glassColor:'var(--col-orange-glass)', msg:FL.invalidHelp, showReset:true, showScore:true});
+  speakFace(FL.mouthNotAssessable);
   scoreNum.textContent = FL.resultInvalid; scoreNum.style.color='#fff';
   const sl=document.getElementById('score-label');
   if(sl){ sl.textContent=FL.resultInvalid; sl.style.background='rgba(232,155,60,0.4)'; sl.style.color='#FFD479'; sl.style.borderColor='#E89B3C'; }
   document.getElementById('score-threshold').textContent='';
+  addNavButton();   // in "full" mode still let them continue to arm/speech
+}
+
+function addNavButton(){
+  setTimeout(()=>{
+    const old=document.getElementById('fast-nav-btn'); if(old) old.remove();
+    const mode=sessionStorage.getItem('fast_mode');
+    const allDone=['fast_face','fast_arm','fast_speech'].every(k=>sessionStorage.getItem(k));
+    let label=FL.navHome, target='index.html', bg='rgba(255,255,255,0.15)';
+    if (mode==='full'){ label=FL.navNext; target='arm-test.html'; bg='#2B7DE9'; }
+    else if (allDone){ label=FL.navResult; target='result.html'; bg='#1FA98F'; }
+    else return;
+    const btn=document.createElement('button');
+    btn.id='fast-nav-btn'; btn.className='action-btn';
+    btn.style.cssText=`background:${bg};border-color:rgba(255,255,255,0.25);color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(43,125,233,0.35);width:100%;padding:13px 16px;border-radius:14px;`;
+    btn.textContent=label; btn.onclick=()=>window.location.href=target;
+    document.getElementById('btn-row').appendChild(btn);
+  }, 400);
 }
 
 function saveAndShow(score, riskLevel, breakdown){
@@ -746,21 +955,7 @@ function saveAndShow(score, riskLevel, breakdown){
     sl.style.borderColor = ok?'#1FA98F':(riskLevel==='warn'?'#E89B3C':'#E5544E');
   }
   document.getElementById('score-threshold').textContent='';
-
-  setTimeout(()=>{
-    const old=document.getElementById('fast-nav-btn'); if(old) old.remove();
-    const mode=sessionStorage.getItem('fast_mode');
-    const allDone=['fast_face','fast_arm','fast_speech'].every(k=>sessionStorage.getItem(k));
-    let label=FL.navHome, target='index.html', bg='rgba(255,255,255,0.15)';
-    if (mode==='full'){ label=FL.navNext; target='arm-test.html'; bg='#2B7DE9'; }
-    else if (allDone){ label=FL.navResult; target='result.html'; bg='#1FA98F'; }
-    else return;
-    const btn=document.createElement('button');
-    btn.id='fast-nav-btn'; btn.className='action-btn';
-    btn.style.cssText=`background:${bg};border-color:rgba(255,255,255,0.25);color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(43,125,233,0.35);width:100%;padding:13px 16px;border-radius:14px;`;
-    btn.textContent=label; btn.onclick=()=>window.location.href=target;
-    document.getElementById('btn-row').appendChild(btn);
-  }, 400);
+  addNavButton();
 }
 
 /* ───────────── camera + detect loop ───────────── */
@@ -831,141 +1026,7 @@ async function loadModel(){
   }
 }
 
-/* ───────────── onResults loop ───────────── */
-function onResults(results){
-  if (!isCameraRunning) return;
-  const lmArr = results.faceLandmarks;
-  const blendArr = results.faceBlendshapes;
-
-  if (!lmArr || lmArr.length === 0){
-    noFaceCount++;
-    if (noFaceCount > 12 && ['RESTING_PHASE','ACTION_PHASE','ACTION_WAIT_SMILE'].includes(phase)){
-      hideCenterCountdown(); countdownPaused = true;
-      setUI({glassColor:'var(--col-orange-glass)', msg:'', poseWarn:FL.noFace, showReset:true, showHud:true});
-    }
-    noFaceBanner.style.display='block';
-    return;
-  }
-  noFaceCount=0; noFaceBanner.style.display='none';
-
-  const lm = lmArr[0];
-  const blend = (blendArr && blendArr.length) ? blendArr[0] : null;
-  const { mLy, mRy, rollDeg, yawDeg, pitchDeg, eyeW } = computePose(lm);
-
-  const smileL = bs(blend,'mouthSmileLeft');
-  const smileR = bs(blend,'mouthSmileRight');
-  const smileTotal = smileL + smileR;
-  const smileStrength = smileTotal / 2;
-  const smileAsym = smileTotal > 0.05 ? Math.abs(smileL - smileR) / smileTotal : 0;
-
-  let geomAsym = 0, riseLn = 0, riseRn = 0;
-  if (baseL !== null && baseR !== null){
-    riseLn = Math.max(0, baseL - mLy) / baseEyeW;
-    riseRn = Math.max(0, baseR - mRy) / baseEyeW;
-    const riseSum = riseLn + riseRn;
-    if (riseSum > 0.05) geomAsym = Math.abs(riseLn - riseRn) / riseSum;
-  }
-  const frameAsym = Math.max(smileAsym, geomAsym);
-
-  const setDbg=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  setDbg('dbg-sml', smileL.toFixed(2)); setDbg('dbg-smr', smileR.toFixed(2));
-  setDbg('dbg-smstr', smileStrength.toFixed(2)); setDbg('dbg-smasym', smileAsym.toFixed(2));
-  setDbg('dbg-geomasym', geomAsym.toFixed(2)); setDbg('dbg-frasym', frameAsym.toFixed(2));
-  setDbg('dbg-pkl', peakSmileL.toFixed(2)); setDbg('dbg-pkr', peakSmileR.toFixed(2));
-  setDbg('dbg-roll', rollDeg.toFixed(1)+'°'); setDbg('dbg-yaw', yawDeg.toFixed(1)+'°'); setDbg('dbg-pitch', pitchDeg.toFixed(1)+'°');
-  setDbg('dbg-vf', validSmileFrames); setDbg('dbg-rep', lastRepAsym.toFixed(2)); setDbg('dbg-phase', phase);
-
-  if (['BEFORE_START','FACE_DONE','CRITICAL_ASYMMETRY','ABORTED'].includes(phase)) return;
-
-  updatePoseBar('bar-yaw','val-yaw',yawDeg,MAX_ALLOWED_YAW);
-  updatePoseBar('bar-pitch','val-pitch',pitchDeg,MAX_ALLOWED_PITCH);
-  updatePoseBar('bar-roll','val-roll',rollDeg,MAX_ALLOWED_ROLL);
-
-  const absYaw=Math.abs(yawDeg), absPitch=Math.abs(pitchDeg), absRoll=Math.abs(rollDeg);
-  if (absYaw>MAX_ALLOWED_YAW || absPitch>MAX_ALLOWED_PITCH || absRoll>MAX_ALLOWED_ROLL){
-    countdownPaused=true; hideCenterCountdown();
-    let t='';
-    if (absRoll>MAX_ALLOWED_ROLL) t = rollDeg>0?FL.tiltLeft:FL.tiltRight;
-    else if (absYaw>MAX_ALLOWED_YAW) t = yawDeg>0?FL.turnRight:FL.turnLeft;
-    else t = pitchDeg>0?FL.lookUp:FL.lookDown;
-    setUI({glassColor:'var(--col-orange-glass)', msg:'', poseWarn:t, showReset:true, showHud:true});
-    return;
-  }
-  if (countdownPaused){
-    countdownPaused=false;
-    poseWarnMsg.style.display='none'; statusMsg.style.display='block';
-    if (phase==='RESTING_PHASE') showCenterCountdown(countdownVal);
-  }
-
-  if (phase==='RESTING_PHASE'){
-    restCornerL.push(mLy); restCornerR.push(mRy); restEyeW.push(eyeW);
-    const restAsym = Math.abs(mLy - mRy) / eyeW;
-    restCornerAsymSamples = [...restCornerAsymSamples.slice(-7), restAsym];
-    if (restCornerAsymSamples.length >= 8){
-      const avg = average(restCornerAsymSamples);
-      if (avg > REST_ASYM_CRITICAL && !criticalFired && absRoll < 12){
-        criticalFired = true;
-        if (countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
-        hideCenterCountdown();
-        phase='CRITICAL_ASYMMETRY';
-        setUI({glassColor:'var(--col-red-glass)', msg:FL.critical, showReset:true, pulse:true});
-        finishCritical();
-        return;
-      }
-    }
-    statusMsg.textContent = FL.step1;
-    const db=document.getElementById('dashboard'); if(db) db.style.background='var(--col-orange-glass)';
-    return;
-  }
-
-  if (phase==='ACTION_PHASE'){
-    statusMsg.textContent = FL.step2;
-    const db=document.getElementById('dashboard'); if(db) db.style.background='var(--col-green-glass)';
-    const now = Date.now();
-    if (smileStrength >= SMILE_DETECT_MIN || Math.max(smileL, smileR) >= SMILE_DETECT_SIDE){
-      smileEverDetected = true;
-      smileStartMs = now;
-      phase = 'ACTION_WAIT_SMILE';
-      const sp=document.getElementById('smile-prompt'); if(sp) sp.style.display='none';
-      return;
-    }
-    if (now - lastSmileVoiceMs > 5000){ speakFace(FL.noSmileWarn); lastSmileVoiceMs = now; statusMsg.textContent = FL.noSmileWarn; }
-    if (now - actionWaitStartMs > MAX_WAIT_FOR_SMILE_MS){ finishInvalid(); }
-    return;
-  }
-
-  if (phase==='ACTION_WAIT_SMILE'){
-    statusMsg.textContent = FL.step2;
-    const db=document.getElementById('dashboard'); if(db) db.style.background='var(--col-green-glass)';
-
-    const realMove = Math.max(riseLn, riseRn) > REAL_MOVE_MIN;
-    if (smileStrength >= SMILE_VALID_STRENGTH && realMove){
-      validSmileFrames++;
-      frameAsymScores.push(frameAsym);
-      peakSmileL = Math.max(peakSmileL, smileL);
-      peakSmileR = Math.max(peakSmileR, smileR);
-      peakRiseL  = Math.max(peakRiseL, riseLn);
-      peakRiseR  = Math.max(peakRiseR, riseRn);
-    }
-
-    const elapsed = Date.now() - smileStartMs;
-    const remain = Math.ceil((ACTION_DURATION_MS - elapsed)/1000);
-    if (remain > 0) showCenterCountdown(remain);
-
-    if (elapsed >= ACTION_DURATION_MS){
-      hideCenterCountdown();
-      const sp=document.getElementById('smile-prompt'); if(sp) sp.style.display='none';
-      if (validSmileFrames < MIN_VALID_SMILE_FRAMES){
-        finishInvalid();   
-        return;
-      }
-      finishFace();
-    }
-    return;
-  }
-}
-
-/* ───────────────────────── init ───────────────────────── */
+/* ───────────── init ───────────── */
 applyFaceLang();
 initProgressDots();
 {

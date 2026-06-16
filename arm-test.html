@@ -106,23 +106,36 @@
   #action-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
   #action-btn.green{background:var(--green)} #action-btn.red{background:var(--red)}
 
-  /* ── ปุ่มภาษามุมบนขวา (fixed) ── */
+  /* ── ปุ่มภาษา: ย้ายไปอยู่ใน top-bar เพื่อไม่ให้ซ้อนกับจุดสถานะ ── */
   #lang-sw-fixed {
-    position: fixed; top: 10px; right: 10px; z-index: 200;
-    display: none; gap: 4px;
+    position: static; z-index: 1;
+    display: none; gap: 4px; flex-shrink: 0;
   }
   #lang-sw-fixed.show { display: flex; }
   .lsf-btn {
-    background: rgba(27,42,58,0.08);
-    border: 1px solid rgba(27,42,58,0.18);
-    color: var(--text); border-radius: 8px;
-    padding: 5px 9px; font-size: 11px;
-    font-weight: 700; cursor: pointer;
+    background: rgba(27,42,58,0.06);
+    border: 1px solid rgba(27,42,58,0.16);
+    color: var(--muted); border-radius: 8px;
+    min-width: 34px; height: 30px; padding: 0 8px;
+    font-size: 11px; font-weight: 800; cursor: pointer;
     font-family: 'Manrope', sans-serif;
-    transition: background 0.15s;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
   }
   .lsf-btn:active { background: var(--blue); color: #fff; }
   .lsf-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+  /* ภาพสาธิตแบบลายเส้น: เห็นคน + แขน + โทรศัพท์ + ทิศหน้าจอชัดเจน */
+  #pose-guide{display:none;margin:2px auto 0;width:min(310px,92vw);flex-shrink:0}
+  .pose-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:10px 12px 9px;box-shadow:var(--shadow)}
+  .pose-title{font-size:13px;font-weight:800;text-align:center;color:var(--text);margin-bottom:4px}
+  .pose-sub{font-size:12px;font-weight:600;text-align:center;color:var(--muted);margin-top:3px}
+  .pose-svg{width:100%;height:auto;display:block}
+  .pose-person{fill:none;stroke:var(--text);stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+  .pose-arm{fill:none;stroke:var(--blue);stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+  .pose-phone{fill:#fff;stroke:var(--green);stroke-width:4}
+  .pose-arrow{fill:none;stroke:var(--amber);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+  .pose-label{font-family:'IBM Plex Sans Thai','Manrope',sans-serif;font-size:12px;font-weight:700;fill:var(--muted)}
+  .pose-side{display:none}.pose-side.active{display:block}
 </style>
 <script src="fast-permissions.js"></script>
 </head>
@@ -163,24 +176,39 @@
       <div class="arm-ring-outer" id="arm-ring"></div>
       <div class="arm-circle" id="arm-circle"><span class="arm-icon" id="arm-icon">🤚</span></div>
     </div>
-    <div id="pose-guide" style="display:none;margin:4px auto 0;max-width:220px">
-      <svg viewBox="0 0 220 140" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
-        <rect x="0" y="0" width="220" height="140" rx="14" fill="#F4F6F8"/>
-        <!-- ไหล่ (จุดหมุน) -->
-        <circle cx="45" cy="70" r="6" fill="#2B7DE9"/>
-        <!-- ต้นแขน (คงที่) -->
-        <line x1="45" y1="70" x2="95" y2="70" stroke="#2B7DE9" stroke-width="9" stroke-linecap="round"/>
-        <!-- ข้อศอก + ปลายแขน + มือถือ (กลุ่มที่ animate งอ→ตรง) -->
-        <g id="forearm-grp" style="transform-origin:95px 70px">
-          <!-- ปลายแขน -->
-          <line x1="95" y1="70" x2="150" y2="70" stroke="#1FA98F" stroke-width="9" stroke-linecap="round"/>
-          <!-- ข้อศอก -->
-          <circle cx="95" cy="70" r="6" fill="#1FA98F"/>
-          <!-- มือถือตั้งขึ้นในมือ -->
-          <rect x="150" y="54" width="24" height="38" rx="5" fill="#fff" stroke="#1FA98F" stroke-width="3.5"/>
-          <line x1="162" y1="86" x2="162" y2="89" stroke="#1FA98F" stroke-width="2.5" stroke-linecap="round"/>
-        </g>
-      </svg>
+    <div id="pose-guide">
+      <div class="pose-card">
+        <div class="pose-side" id="pose-left">
+          <div class="pose-title">ใช้มือซ้ายถือโทรศัพท์</div>
+          <svg class="pose-svg" viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg" aria-label="Left arm phone guide">
+            <circle class="pose-person" cx="150" cy="38" r="18"/>
+            <path class="pose-person" d="M150 58 L150 105"/>
+            <path class="pose-person" d="M124 76 L150 70 L176 76"/>
+            <path class="pose-arm" d="M150 74 L80 74 L52 74"/>
+            <rect class="pose-phone" x="29" y="49" width="24" height="48" rx="6"/>
+            <line class="pose-phone" x1="41" y1="88" x2="41" y2="91"/>
+            <path class="pose-arrow" d="M66 42 C82 35 101 35 118 42"/>
+            <path class="pose-arrow" d="M113 34 L121 44 L108 47"/>
+            <text class="pose-label" x="64" y="121">หน้าจอหันขวา →</text>
+          </svg>
+          <div class="pose-sub">เหยียดแขนซ้ายตรงระดับไหล่ แล้วถือนิ่งๆ</div>
+        </div>
+        <div class="pose-side" id="pose-right">
+          <div class="pose-title">ใช้มือขวาถือโทรศัพท์</div>
+          <svg class="pose-svg" viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg" aria-label="Right arm phone guide">
+            <circle class="pose-person" cx="150" cy="38" r="18"/>
+            <path class="pose-person" d="M150 58 L150 105"/>
+            <path class="pose-person" d="M124 76 L150 70 L176 76"/>
+            <path class="pose-arm" d="M150 74 L220 74 L248 74"/>
+            <rect class="pose-phone" x="247" y="49" width="24" height="48" rx="6"/>
+            <line class="pose-phone" x1="259" y1="88" x2="259" y2="91"/>
+            <path class="pose-arrow" d="M234 42 C218 35 199 35 182 42"/>
+            <path class="pose-arrow" d="M187 34 L179 44 L192 47"/>
+            <text class="pose-label" x="149" y="121">← หน้าจอหันซ้าย</text>
+          </svg>
+          <div class="pose-sub">เหยียดแขนขวาตรงระดับไหล่ แล้วถือนิ่งๆ</div>
+        </div>
+      </div>
     </div>
     <div id="warn-banner"><span class="warn-title" id="warn-title"></span><span class="warn-sub" id="warn-sub"></span></div>
     <p id="instr">Ready</p>
@@ -493,6 +521,15 @@ function tickMeasure() {
   }
 }
 
+function updatePoseGuide() {
+  const guide = $('pose-guide');
+  if (!guide) return;
+  const left = $('pose-left');
+  const right = $('pose-right');
+  if (left) left.classList.toggle('active', arm === 'left');
+  if (right) right.classList.toggle('active', arm === 'right');
+}
+
 function startWait() {
   phase = 'WAIT_VOICE';
   betaWindow = []; stableCount = 0; driftMax = 0; lastWarnKey = '';
@@ -510,6 +547,7 @@ function startWait() {
   $('instr').textContent     = T['instrWait_'+arm];
   $('sub-instr').textContent = T['subWait_'+arm];
   $('action-btn').disabled   = true;
+  updatePoseGuide();
   if ($('pose-guide')) $('pose-guide').style.display = 'block';
 
   speakNow(T['vWait_'+arm], () => {
@@ -654,6 +692,7 @@ function resetAll() {
   ['right','left'].forEach(s=>cardState(s,'','—',T.pending));
   $('final-banner').style.display='none'; $('cd-wrap').style.display='none';
   $('drift-wrap').style.display='none';   $('pre-cd').style.display='none';
+  if ($('pose-guide')) $('pose-guide').style.display='none';
   $('cd-num').textContent=MEASURE_SEC;    $('cd-prog').style.strokeDashoffset=0;
   $('drift-fill').style.width='0%';       $('drift-num').textContent='0.0°';
   $('arm-circle').className='arm-circle'; $('arm-ring').className='arm-ring-outer';
@@ -705,8 +744,8 @@ function armSwitchLang(code) {
   $('lbl-l-arm').textContent = T.armLeft;
   if (phase === 'IDLE') {
     $('action-btn').textContent = T.btnStart;
-    $('instr').textContent = T['instrWait_right'];
-    $('sub-instr').textContent = T['subWait_right'];
+    $('instr').textContent = T['instrWait_left'];
+    $('sub-instr').textContent = T['subWait_left'];
   }
   ['th','en','ja'].forEach(c => {
     const b = $('lsf-' + c);
@@ -730,7 +769,11 @@ function selectLang(code) {
   
   // แสดงปุ่มภาษา
   const lsf = $('lang-sw-fixed');
-  if (lsf) { lsf.classList.add('show'); }
+  if (lsf) {
+    const topRight = document.querySelector('.top-right');
+    if (topRight && lsf.parentNode !== topRight) topRight.insertBefore(lsf, topRight.firstChild);
+    lsf.classList.add('show');
+  }
   ['th','en','ja'].forEach(c => {
     const b = $('lsf-' + c);
     if (b) b.classList.toggle('active', c === code);

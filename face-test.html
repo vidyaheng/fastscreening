@@ -801,7 +801,6 @@ const CRITICAL_THRESHOLD = 0.28;
 const ASYM_THRESHOLD = 0.40;
 const ASYM_CRITICAL = 0.70;
 
-// ปรับปรุงเกณฑ์องศาให้เหมาะสม ยืดหยุ่นขึ้น (โดยเฉพาะก้มหน้าเงยหน้าจาก 18 เป็น 28)
 const MAX_ALLOWED_YAW = 28;
 const MAX_ALLOWED_PITCH = 28; 
 const MAX_ALLOWED_ROLL = 20;
@@ -904,7 +903,6 @@ function computeScore(lm) {
 
   const faceLength = Math.abs(rotateY(chin, lEye) - rotateY(forehead, lEye)) + 1e-6;
   
-  // ผ่อนปรนสมการ Pitch Ratio เล็กน้อยเพื่อลดความไวของการคำนวณก้มเงย
   const currentRatio = (noseRotY - rotateY(forehead, lEye)) / faceLength;
   if (pitchNeutralRatio === null) pitchNeutralRatio = 0.355; 
   const pitchDeg = (currentRatio - pitchNeutralRatio) * 95; 
@@ -1046,6 +1044,7 @@ function startScreening() {
 function processActionPhase(mLy, mRy, lm, faceLength) {
   if (restBaseL === null || restBaseR === null) return;
 
+  // ค่ายิ่งบวก แปลว่ามุมปากยกขึ้นสูง (เพราะแกน Y ในกล้องชี้ลงล่าง ค่าที่ลดลงคือการยกขึ้น)
   const riseL = Math.max(0, restBaseL - mLy);
   const riseR = Math.max(0, restBaseR - mRy);
 
@@ -1055,7 +1054,8 @@ function processActionPhase(mLy, mRy, lm, faceLength) {
   }
   const smileWidthRatio = currentMouthWidth / restBaseMouthWidth;
 
-  const meetsSmileCriteria = (riseL > SMILE_RISE_MIN && riseR > SMILE_RISE_MIN && smileWidthRatio >= 1.08);
+  // สำหรับการ Trigger เริ่มนับถอยหลังตรวจ: ยิ้มเต็มที่หรือยิ้มข้างเดียวก็ให้เริ่มนับ เพื่อจับคะแนนพิสูจน์
+  const meetsSmileCriteria = (riseL > SMILE_RISE_MIN || riseR > SMILE_RISE_MIN || smileWidthRatio >= 1.05);
 
   if (meetsSmileCriteria) {
     if (phase === 'ACTION_PHASE') {
@@ -1067,7 +1067,6 @@ function processActionPhase(mLy, mRy, lm, faceLength) {
   }
 
   if (phase === 'ACTION_PHASE') {
-    // ระบบเตือนเรื่องยิ้ม จะทำงานเฉพาะเฟสรอตรวจจริงตรงนี้เท่านั้น ไม่ปนกับช่วงหน้าเบี้ยว
     const now = Date.now();
     const elapsedSincePrompt = now - lastSmileVoicePromptMs;
 
@@ -1100,11 +1099,25 @@ function processActionPhase(mLy, mRy, lm, faceLength) {
       showCenterCountdown(remain);
     }
 
-    const rawAsym = Math.abs(riseL - riseR);
-    const denom = Math.max(0.01, riseL + riseR);
-    const instAsym = rawAsym / denom;
-
-    if (Math.max(riseL, riseR) > MIN_RISE_TO_SCORE) {
+    // ── Logic ตรวจจับยิ้มข้างเดียวแบบเฉียบคม (Unilateral Droop Check) ──
+    const maxRise = Math.max(riseL, riseR);
+    const minRise = Math.min(riseL, riseR);
+    
+    let instAsym = 0;
+    
+    if (maxRise > MIN_RISE_TO_SCORE) {
+      // ดักเคสถ้ายกข้างเดียวจัดๆ แต่อีกข้างแทบไม่ขยับเลย (ยิ้มเบี้ยวชัดเจน)
+      if (minRise < 0.007 && maxRise > 0.015) {
+        instAsym = 0.65; // บังคับให้ได้คะแนน Asymmetry สูงเกินเกณฑ์ทันที
+      } else {
+        // อัตราส่วนความต่างปกติ
+        instAsym = Math.abs(riseL - riseR) / (riseL + riseR + 1e-5);
+        
+        // ตัวคูณ Penalty: ถ้าข้างนึงยกต่ำกว่า 45% ของอีกข้าง ให้ทวีคูณความเบี้ยวขึ้น
+        if (minRise / (maxRise + 1e-5) < 0.45) {
+          instAsym = Math.max(instAsym, 0.48);
+        }
+      }
       actionAsymScores.push(instAsym);
     } else {
       actionAsymScores.push(0);
@@ -1126,16 +1139,24 @@ function processActionPhase(mLy, mRy, lm, faceLength) {
 
 function asymToFaceScore(asym) {
   if (asym <= 0) return 100;
-  if (asym < ASYM_THRESHOLD) return Math.round(100 - (asym / ASYM_THRESHOLD) * 50);
-  return Math.round(Math.max(0, 50 - ((asym - ASYM_THRESHOLD) / (ASYM_CRITICAL - ASYM_THRESHOLD)) * 50));
+  if (asym < ASYM_THRESHOLD) return Math.round(100 - (asym / ASYM_THRESHOLD) * 40);
+  return Math.round(Math.max(0, 55 - ((asym - ASYM_THRESHOLD) / (ASYM_CRITICAL - ASYM_THRESHOLD)) * 55));
 }
 
 function finishFace() {
   const sorted = [...actionAsymScores].sort((a, b) => a - b);
   const idx = Math.floor(sorted.length * 0.75);
   const repAsym = sorted.length ? sorted[idx] : 0;
-  const faceScore = asymToFaceScore(repAsym);
-  const riskLevel = faceScore >= 70 ? 'ok' : faceScore >= 45 ? 'warn' : 'bad';
+  
+  let faceScore = asymToFaceScore(repAsym);
+  let riskLevel = faceScore >= 70 ? 'ok' : faceScore >= 45 ? 'warn' : 'bad';
+  
+  // บังคับตก (Force Fall) ถ้าสถิติเฉลี่ยชี้ว่ามีจุดที่ปากเบี้ยวข้างเดียวหลุดเข้ามาบ่อยเกินไป
+  if (repAsym >= 0.42) {
+    riskLevel = 'bad';
+    faceScore = Math.min(faceScore, 40);
+  }
+
   const criticalDetected = criticalFired;
   const finalScore = criticalDetected ? Math.min(faceScore, 30) : faceScore;
   const finalRisk = criticalDetected ? 'bad' : riskLevel;
@@ -1143,14 +1164,14 @@ function finishFace() {
   sessionStorage.setItem('fast_face', JSON.stringify({
     score: finalScore,
     riskLevel: finalRisk,
-    passed: !criticalDetected && riskLevel === 'ok',
+    passed: !criticalDetected && finalRisk === 'ok',
     breakdown: { representativeAsym: repAsym, restBaseL, restBaseR, method: 'inter_side_movement_symmetry' }
   }));
 
   const pf = document.getElementById('prog-face');
   if (pf) { pf.classList.remove('active'); pf.classList.add('done'); }
 
-  const ok = !criticalDetected && riskLevel === 'ok';
+  const ok = !criticalDetected && finalRisk === 'ok';
   setUI({
     glassColor: ok ? 'var(--col-green-glass)' : (finalRisk === 'warn' ? 'var(--col-orange-glass)' : 'var(--col-red-glass)'),
     msg: ok ? FL.faceDone : FL.faceAbnormal,
@@ -1263,7 +1284,6 @@ function onFaceMeshResults(results) {
   const lm = results.multiFaceLandmarks[0];
   const { mLy, mRy, rollDeg, yawDeg, pitchDeg, faceLength } = computeScore(lm);
 
-  // ── ส่วนแสดงผลดีบักแผงควบคุม ──
   document.getElementById('dbg-mly').textContent = mLy.toFixed(4);
   document.getElementById('dbg-mry').textContent = mRy.toFixed(4);
   document.getElementById('dbg-ely').textContent = lm[IDX_L_EYE].y.toFixed(4);
@@ -1297,7 +1317,6 @@ function onFaceMeshResults(results) {
   const absPitch = Math.abs(pitchDeg);
   const absRoll = Math.abs(rollDeg);
 
-  // ── ปรับปรุง Logic ตรวจเช็คท่าทางแบบ Real-time และฟื้นฟูอัตโนมัติ ──
   if (absYaw > MAX_ALLOWED_YAW || absPitch > MAX_ALLOWED_PITCH || absRoll > MAX_ALLOWED_ROLL) {
     countdownPaused = true; 
     hideCenterCountdown(); 
@@ -1307,29 +1326,24 @@ function onFaceMeshResults(results) {
     else if (absYaw > MAX_ALLOWED_YAW) poseText = yawDeg > 0 ? FL.turnRight : FL.turnLeft;
     else if (absPitch > MAX_ALLOWED_PITCH) poseText = pitchDeg > 0 ? FL.lookUp : FL.lookDown;
 
-    // เปลี่ยนพื้นหลังเป็นสีส้มใส (var(--col-orange-glass)) ดูสวยงามสบายตาและเป็นมิตรขึ้น
     setUI({ glassColor: 'var(--col-orange-glass)', msg: '', poseWarn: poseText, showReset: true, showHud: true });
     return; 
   }
 
-  // ── ด่านตรวจผ่านแล้ว: เคลียร์คำเตือน และทำงานต่อทันทีอัตโนมัติ ──
   if (countdownPaused) {
     countdownPaused = false;
     poseWarnMsg.style.display = 'none';
     poseWarnMsg.textContent = '';
     statusMsg.style.display = 'block';
 
-    // ถ้าเดิมหลุดไปตอนรอการยิ้ม ให้สแตนด์บายเพื่อเปิดเลขกลางจอใหม่
     if (phase === 'ACTION_WAIT_SMILE') {
       phase = 'ACTION_PHASE';
       actionStartMs = null;
     } else if (phase === 'RESTING_PHASE') {
-      // แสดงตัวเลขนับถอยหลังต่อในส่วน Calibration
       showCenterCountdown(countdownVal);
     }
   }
 
-  // คืนค่าสีพื้นหลังปกติของช่วงเฟสการทำงานปัจจุบัน
   const db = document.getElementById('dashboard');
   if (db && poseWarnMsg.style.display === 'none') {
     if (phase === 'RESTING_PHASE') db.style.background = 'var(--col-orange-glass)';

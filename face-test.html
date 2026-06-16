@@ -808,6 +808,12 @@ const MAX_ALLOWED_ROLL = 20;
 const MIN_MOUTH_EYE_RATIO = 0.15;
 const MIN_RISE_TO_SCORE = 0.005;
 const SMILE_RISE_MIN = 0.012;
+// Extra normalized thresholds to prevent head movement from being mistaken as a smile
+// and to catch one-sided mouth movement more reliably.
+const SMILE_RISE_NORM_MIN = 0.025;
+const SMILE_WIDTH_RATIO_MIN = 1.05;
+const UNILATERAL_DELTA_NORM_MIN = 0.055;
+const UNILATERAL_FORCE_BAD_NORM = 0.075;
 
 let smileStarted = false;
 let lastSmileVoicePromptMs = 0;
@@ -820,9 +826,12 @@ const IDX_ML = 61, IDX_MR = 291;
 
 let restSamplesL = [];
 let restSamplesR = [];
+let restSamplesMouthWidth = [];
+let restSamplesMouthDelta = [];
 let restBaseL = null;
 let restBaseR = null;
 let restBaseMouthWidth = null;
+let restBaseMouthDelta = null;
 
 let recentAsymScores = [];
 let recentRestAsym = [];
@@ -989,6 +998,12 @@ function handleCalibrationTick() {
 
     restBaseL = restSamplesL.reduce((a,b)=>a+b, 0) / restSamplesL.length;
     restBaseR = restSamplesR.reduce((a,b)=>a+b, 0) / restSamplesR.length;
+    restBaseMouthWidth = restSamplesMouthWidth.length
+      ? restSamplesMouthWidth.reduce((a,b)=>a+b, 0) / restSamplesMouthWidth.length
+      : null;
+    restBaseMouthDelta = restSamplesMouthDelta.length
+      ? restSamplesMouthDelta.reduce((a,b)=>a+b, 0) / restSamplesMouthDelta.length
+      : (restBaseL - restBaseR);
     
     startActionPhase();
   }
@@ -1016,7 +1031,8 @@ function startActionPhase() {
 
 function startScreening() {
   restSamplesL = []; restSamplesR = [];
-  restBaseL = null; restBaseR = null; restBaseMouthWidth = null;
+  restSamplesMouthWidth = []; restSamplesMouthDelta = [];
+  restBaseL = null; restBaseR = null; restBaseMouthWidth = null; restBaseMouthDelta = null;
   recentAsymScores = []; recentRestAsym = [];
   pitchNeutralSamples = []; pitchNeutralRatio = null;
   criticalFired = false;
@@ -1044,18 +1060,33 @@ function startScreening() {
 function processActionPhase(mLy, mRy, lm, faceLength) {
   if (restBaseL === null || restBaseR === null) return;
 
-  // ค่ายิ่งบวก แปลว่ามุมปากยกขึ้นสูง (เพราะแกน Y ในกล้องชี้ลงล่าง ค่าที่ลดลงคือการยกขึ้น)
+  const safeFaceLength = faceLength + 1e-6;
+
+  // Y axis goes down. A smaller y value means the mouth corner moved upward.
   const riseL = Math.max(0, restBaseL - mLy);
   const riseR = Math.max(0, restBaseR - mRy);
 
-  const currentMouthWidth = Math.sqrt((lm[IDX_ML].x - lm[IDX_MR].x)**2 + (lm[IDX_ML].y - lm[IDX_MR].y)**2);
-  if (!restBaseMouthWidth) {
-    restBaseMouthWidth = currentMouthWidth;
-  }
-  const smileWidthRatio = currentMouthWidth / restBaseMouthWidth;
+  const riseLNorm = riseL / safeFaceLength;
+  const riseRNorm = riseR / safeFaceLength;
+  const maxRiseNorm = Math.max(riseLNorm, riseRNorm);
+  const minRiseNorm = Math.min(riseLNorm, riseRNorm);
+  const riseDiffNorm = Math.abs(riseLNorm - riseRNorm);
 
-  // สำหรับการ Trigger เริ่มนับถอยหลังตรวจ: ยิ้มเต็มที่หรือยิ้มข้างเดียวก็ให้เริ่มนับ เพื่อจับคะแนนพิสูจน์
-  const meetsSmileCriteria = (riseL > SMILE_RISE_MIN || riseR > SMILE_RISE_MIN || smileWidthRatio >= 1.05);
+  const currentMouthWidth = Math.sqrt((lm[IDX_ML].x - lm[IDX_MR].x)**2 + (lm[IDX_ML].y - lm[IDX_MR].y)**2);
+  const mouthWidthRatio = restBaseMouthWidth ? currentMouthWidth / (restBaseMouthWidth + 1e-6) : 1;
+
+  // Compare current left-right mouth height difference against the user's own relaxed baseline.
+  // This catches a one-sided lifted mouth corner even if the mouth width does not increase.
+  const baseDelta = (restBaseMouthDelta !== null) ? restBaseMouthDelta : (restBaseL - restBaseR);
+  const currentDelta = mLy - mRy;
+  const deltaChangeNorm = Math.abs(currentDelta - baseDelta) / safeFaceLength;
+
+  // Start measurement when we see a real smile OR a clearly one-sided mouth change.
+  // This avoids triggering from whole-head movement, because head translation tends to move both corners together.
+  const meetsSmileCriteria =
+    maxRiseNorm >= SMILE_RISE_NORM_MIN ||
+    mouthWidthRatio >= SMILE_WIDTH_RATIO_MIN ||
+    deltaChangeNorm >= UNILATERAL_DELTA_NORM_MIN;
 
   if (meetsSmileCriteria) {
     if (phase === 'ACTION_PHASE') {
@@ -1078,7 +1109,7 @@ function processActionPhase(mLy, mRy, lm, faceLength) {
       speakFace(FL.noSmileWarn);
       lastSmileVoicePromptMs = now;
     }
-    
+
     statusMsg.textContent = FL.step2;
     hideCenterCountdown();
     return;
@@ -1099,28 +1130,33 @@ function processActionPhase(mLy, mRy, lm, faceLength) {
       showCenterCountdown(remain);
     }
 
-    // ── Logic ตรวจจับยิ้มข้างเดียวแบบเฉียบคม (Unilateral Droop Check) ──
-    const maxRise = Math.max(riseL, riseR);
-    const minRise = Math.min(riseL, riseR);
-    
     let instAsym = 0;
-    
-    if (maxRise > MIN_RISE_TO_SCORE) {
-      // ดักเคสถ้ายกข้างเดียวจัดๆ แต่อีกข้างแทบไม่ขยับเลย (ยิ้มเบี้ยวชัดเจน)
-      if (minRise < 0.007 && maxRise > 0.015) {
-        instAsym = 0.65; // บังคับให้ได้คะแนน Asymmetry สูงเกินเกณฑ์ทันที
-      } else {
-        // อัตราส่วนความต่างปกติ
-        instAsym = Math.abs(riseL - riseR) / (riseL + riseR + 1e-5);
-        
-        // ตัวคูณ Penalty: ถ้าข้างนึงยกต่ำกว่า 45% ของอีกข้าง ให้ทวีคูณความเบี้ยวขึ้น
-        if (minRise / (maxRise + 1e-5) < 0.45) {
-          instAsym = Math.max(instAsym, 0.48);
-        }
-      }
+
+    // Movement ratio: high when one side moves much more than the other.
+    const movementRatioAsym = Math.abs(riseL - riseR) / (riseL + riseR + 1e-5);
+
+    // Height-difference change: high when the final mouth angle is clearly different from baseline.
+    const heightDeltaAsym = Math.min(1, deltaChangeNorm / 0.12);
+
+    // Use the stronger signal. This is important because assisted one-side lifting
+    // may create a strong mouth-angle change without a large smile-width change.
+    instAsym = Math.max(movementRatioAsym, heightDeltaAsym);
+
+    // Force abnormal for obvious one-sided movement.
+    // Case A: one corner rises clearly while the other barely moves.
+    if (riseDiffNorm >= UNILATERAL_FORCE_BAD_NORM && minRiseNorm < maxRiseNorm * 0.55) {
+      instAsym = Math.max(instAsym, 0.70);
+    }
+
+    // Case B: mouth angle compared with baseline changes sharply, even if both y values are noisy.
+    if (deltaChangeNorm >= UNILATERAL_FORCE_BAD_NORM) {
+      instAsym = Math.max(instAsym, 0.70);
+    }
+
+    // Store only frames where the user is actually producing a smile/mouth movement.
+    // This prevents neutral/noisy frames from diluting the final percentile score.
+    if (meetsSmileCriteria) {
       actionAsymScores.push(instAsym);
-    } else {
-      actionAsymScores.push(0);
     }
 
     statusMsg.textContent = FL.step2;
@@ -1165,7 +1201,7 @@ function finishFace() {
     score: finalScore,
     riskLevel: finalRisk,
     passed: !criticalDetected && finalRisk === 'ok',
-    breakdown: { representativeAsym: repAsym, restBaseL, restBaseR, method: 'inter_side_movement_symmetry' }
+    breakdown: { representativeAsym: repAsym, restBaseL, restBaseR, restBaseMouthWidth, restBaseMouthDelta, method: 'inter_side_movement_symmetry_plus_mouth_angle' }
   }));
 
   const pf = document.getElementById('prog-face');
@@ -1354,8 +1390,14 @@ function onFaceMeshResults(results) {
   if (phase === 'RESTING_PHASE') {
     restSamplesL.push(mLy);
     restSamplesR.push(mRy);
+    const restMouthWidthNow = Math.sqrt((lm[IDX_ML].x - lm[IDX_MR].x)**2 + (lm[IDX_ML].y - lm[IDX_MR].y)**2);
+    restSamplesMouthWidth.push(restMouthWidthNow);
+    restSamplesMouthDelta.push(mLy - mRy);
+
     if (restSamplesL.length > MAX_HISTORY) restSamplesL.shift();
     if (restSamplesR.length > MAX_HISTORY) restSamplesR.shift();
+    if (restSamplesMouthWidth.length > MAX_HISTORY) restSamplesMouthWidth.shift();
+    if (restSamplesMouthDelta.length > MAX_HISTORY) restSamplesMouthDelta.shift();
 
     const rawRestAsym = Math.abs(mLy - mRy);
     recentRestAsym = [...recentRestAsym.slice(-(REST_FIRE_WINDOW - 1)), rawRestAsym];

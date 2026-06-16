@@ -474,9 +474,22 @@ let pitchNeutralRatio = null;
 /* ───────────── helpers ───────────── */
 const SPEAK_LANG = { th:'th-TH', en:'en-US', ja:'ja-JP' };
 let cachedVoices = [];
+let speechPrimed = false;
 function loadVoices(){ try { cachedVoices = speechSynthesis.getVoices() || []; } catch(e){ cachedVoices = []; } }
 if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
 loadVoices();
+// iOS Safari only enables speechSynthesis after a speak() call made INSIDE a user
+// gesture. Call this from a tap handler once to unlock it, so the first real prompt
+// (which fires later, after async camera init) is actually spoken.
+function primeSpeech(){
+  if (speechPrimed || typeof speechSynthesis === 'undefined') return;
+  try {
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    speechSynthesis.speak(u);
+    speechPrimed = true;
+  } catch(e){}
+}
 function speakFace(txt){
   if (typeof speechSynthesis === 'undefined' || !txt) return;
   try {
@@ -1036,12 +1049,15 @@ initProgressDots();
 
 understandBtn.addEventListener('click', ()=>{
   if (!modelReady) return;
+  primeSpeech();            // unlock iOS TTS within the tap gesture
   disclaimerEl.style.display='none';
   startCamera();
 });
-startBtn.addEventListener('click', ()=>{ startBtn.classList.add('hidden'); startScreening(); });
+startBtn.addEventListener('click', ()=>{ primeSpeech(); startBtn.classList.add('hidden'); startScreening(); });
 resetBtn.addEventListener('click', ()=>{
+  primeSpeech();
   if (countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
+  if (retryTimer){ clearTimeout(retryTimer); retryTimer=null; }
   hideCenterCountdown();
   try { speechSynthesis.cancel(); } catch(e){}
   startScreening();

@@ -594,6 +594,42 @@
     }
   }
 
+
+  /* ─────────────────────────────────────────────
+     PATCH 7 — final result spacing
+     ให้ปุ่ม “ทดสอบใหม่” ลงมาอยู่เป็นกลุ่มเดียวกับ “หน้าหลัก”
+     และเว้น score panel ให้ลอยแยกด้านบนชัดเจน
+     ───────────────────────────────────────────── */
+  body.result-visible #dashboard{
+    bottom:calc(14px + env(safe-area-inset-bottom, 0px))!important;
+  }
+  body.result-visible #btn-row{
+    gap:10px!important;
+  }
+  body.result-visible #start-btn,
+  body.result-visible #fast-nav-btn{
+    min-height:58px!important;
+  }
+  body.result-visible #score-box{
+    bottom:calc(212px + env(safe-area-inset-bottom, 0px))!important;
+  }
+
+  @media (max-height:760px){
+    body.result-visible #dashboard{
+      bottom:calc(10px + env(safe-area-inset-bottom, 0px))!important;
+    }
+    body.result-visible #btn-row{
+      gap:8px!important;
+    }
+    body.result-visible #start-btn,
+    body.result-visible #fast-nav-btn{
+      min-height:52px!important;
+    }
+    body.result-visible #score-box{
+      bottom:calc(176px + env(safe-area-inset-bottom, 0px))!important;
+    }
+  }
+
 </style>
 <script src="fast-permissions.js"></script>
 </head>

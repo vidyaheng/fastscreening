@@ -324,7 +324,7 @@ const CONFIG = {
     calibrating: '... กำลังปรับค่า ...', noiseCalib: '🔇 วัดเสียงรบกวนรอบห้อง...',
     resultOk: 'ปกติ', resultWarn: 'เฝ้าระวัง', resultBad: 'ความเสี่ยงสูง',
     subOk: 'การพูดอยู่ในเกณฑ์ปกติ', subWarn: 'พบความผิดปกติเล็กน้อย ควรทดสอบซ้ำ', subBad: 'พบความผิดปกติของการพูด ควรพบแพทย์',
-    noVoice: 'ไม่มีเสียง', noSpeechSegment: 'ไม่พบช่วงสัญญาณเสียง', wordMismatch: 'คำไม่ตรงประโยค',
+    noVoice: 'ไม่มีเสียง', voiceButNoText: 'มีเสียงพูด แต่ระบบจำคำตามภาษาที่เลือกไม่ได้', noSpeechSegment: 'ไม่พบช่วงสัญญาณเสียง', wordMismatch: 'คำไม่ตรงประโยค',
     issueWord: 'คำไม่ถูก/นึกไม่ออก', issueSlow: 'พูดช้า', issueUnstable: 'เสียงไม่สม่ำเสมอ',
   },
   en: {
@@ -346,7 +346,7 @@ const CONFIG = {
     calibrating: '... calibrating ...', noiseCalib: '🔇 Measuring background noise...',
     resultOk: 'Normal', resultWarn: 'Caution', resultBad: 'High Risk',
     subOk: 'Speech appears within normal range', subWarn: 'Mild abnormality detected; please retest', subBad: 'Speech abnormality detected; seek medical help',
-    noVoice: 'No voice', noSpeechSegment: 'No speech segment detected', wordMismatch: 'Sentence mismatch',
+    noVoice: 'No voice', voiceButNoText: 'Voice detected, but not recognized in the selected language', noSpeechSegment: 'No speech segment detected', wordMismatch: 'Sentence mismatch',
     issueWord: 'incorrect/missing words', issueSlow: 'slow speech', issueUnstable: 'unstable voice',
   },
   ja: {
@@ -368,7 +368,7 @@ const CONFIG = {
     calibrating: '... 調整中 ...', noiseCalib: '🔇 周囲の騒音を測定中...',
     resultOk: '正常', resultWarn: '注意', resultBad: '高リスク',
     subOk: '発話は正常範囲です', subWarn: '軽度の異常があります。再テストしてください', subBad: '発話の異常があります。医師に相談してください',
-    noVoice: '音声なし', noSpeechSegment: '音声区間が検出されません', wordMismatch: '文が一致しません',
+    noVoice: '音声なし', voiceButNoText: '音声は検出されましたが、選択した言語として認識できません', noSpeechSegment: '音声区間が検出されません', wordMismatch: '文が一致しません',
     issueWord: '単語が不正確/出ない', issueSlow: '発話が遅い', issueUnstable: '声が不安定',
   },
 };
@@ -956,6 +956,15 @@ function evaluateSpeech(text, confidence) {
     return cleanText.includes(kk) || kk.includes(cleanText);
   }) : false;
 
+  // VAD กับ ASR ต้องแยกกัน: ASR ไม่มี transcript ไม่ได้แปลว่าไม่มีเสียงพูด
+  const hasVoice =
+    vowelEnergyBuf.length >= 10 ||
+    voiceHistory.length >= 3 ||
+    (speechStartMs && lastVoiceMs && lastVoiceMs > speechStartMs);
+  if (hasVoice && (!speechEndMs || speechEndMs < speechStartMs)) {
+    speechEndMs = getLastSpeechSegmentEnd();
+  }
+
   // 1. คะแนน Word Accuracy (40%)
   let wordScore = 0, wordLabel = '—';
   const isManual = text === '__manual__' || text === '__no_api__';
@@ -964,8 +973,14 @@ function evaluateSpeech(text, confidence) {
     wordScore = 50; wordLabel = 'N/A';
     $('transcript-box').textContent = text === '__manual__' ? '[หยุดแมนนวล]' : '[ไม่พบ Speech API]';
   } else if (text === '') {
-    wordScore = 0; wordLabel = T.noVoice;
-    $('transcript-box').textContent = '[ไม่ได้ยินเสียงคำพูด]';
+    wordScore = 0;
+    if (hasVoice) {
+      wordLabel = T.wordMismatch;
+      $('transcript-box').textContent = '[' + (T.voiceButNoText || T.wordMismatch) + ']';
+    } else {
+      wordLabel = T.noVoice;
+      $('transcript-box').textContent = '[' + T.noVoice + ']';
+    }
   } else {
     wordScore = wordMatched ? Math.round(70 + confidence * 30) : Math.round(confidence * 30);
     wordLabel = wordMatched ? `✓ ${(confidence*100).toFixed(0)}%` : `✗ ${(confidence*100).toFixed(0)}%`;
@@ -985,10 +1000,11 @@ function evaluateSpeech(text, confidence) {
       rateLabel  = `${syllPerSec.toFixed(1)} syl/s`;
       if (isManual) rateScore = Math.round(rateScore * 0.7);
     } else {
-      rateScore = 0; rateLabel = T.wordMismatch;
+      rateScore = 0;
+      rateLabel = (text === '' && hasVoice) ? (T.voiceButNoText || T.wordMismatch) : T.wordMismatch;
     }
   } else {
-    rateLabel = T.noSpeechSegment;
+    rateLabel = hasVoice ? (T.voiceButNoText || T.wordMismatch) : T.noSpeechSegment;
   }
 
   // 3. คะแนน Volume Stability (20%)

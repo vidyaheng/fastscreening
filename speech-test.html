@@ -173,6 +173,48 @@
   #noise-overlay{background:rgba(5,9,16,.78)!important;z-index:300!important;}
   #noise-overlay>div{background:rgba(12,18,28,.92)!important;border:1px solid rgba(255,255,255,.16);box-shadow:0 16px 44px rgba(0,0,0,.46)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);}
   #noise-title{color:#fff!important;}
+
+  /* RESULT MODE FIX: ให้ปุ่มอยู่ใต้การ์ดผลลัพธ์ ไม่ทับคะแนน */
+  #test-screen.done{
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch;
+  }
+  #test-screen.done #mid{
+    overflow:visible !important;
+    flex:0 0 auto;
+    padding-bottom:12px !important;
+  }
+  #test-screen.done #fast-nav-btn,
+  #test-screen.done #action-btn{
+    position:relative !important;
+    left:auto !important;
+    right:auto !important;
+    bottom:auto !important;
+    width:calc(100% - 24px) !important;
+    margin:8px 12px 0 !important;
+    min-height:58px;
+    flex-shrink:0;
+  }
+  #test-screen.done #fast-nav-btn{
+    order:20;
+  }
+  #test-screen.done #action-btn{
+    order:21;
+    margin-bottom:18px !important;
+  }
+  #test-screen.done #debug-toggle,
+  #test-screen.done #debug-box{
+    position:relative !important;
+    left:auto !important;
+    right:auto !important;
+    bottom:auto !important;
+    width:calc(100% - 24px) !important;
+    margin:8px 12px 0 !important;
+  }
+  #test-screen.done .rb-score{
+    font-size:38px;
+  }
+
   #noise-desc{color:rgba(255,255,255,.70)!important;}
   #noise-go-btn{background:rgba(255,255,255,.08)!important;color:#fff!important;border-color:rgba(255,255,255,.18)!important;}
 
@@ -434,6 +476,7 @@ function goBack() {
 }
 
 function resetUI() {
+  if ($('test-screen')) $('test-screen').classList.remove('done');
   $('mic-circle').className        = 'mic-circle';
   $('mic-icon').textContent        = '🎤';
   $('transcript-box').style.display = 'none';
@@ -520,6 +563,7 @@ function setBar(key, pct, label) {
 // CORE AUDIO AUDIO CAPTURE
 // ═══════════════════════════════════════════════════
 async function startRecording() {
+  if ($('test-screen')) $('test-screen').classList.remove('done');
   phase = 'CALIBRATING';
   $('mic-circle').className        = 'mic-circle calibrating';
   $('mic-icon').textContent        = '🔇';
@@ -829,6 +873,7 @@ function drawWave(freqArr, N) {
 function evaluateSpeech(text, confidence) {
   stopAll();
   phase = 'DONE';
+  if ($('test-screen')) $('test-screen').classList.add('done');
   $('mic-circle').className   = 'mic-circle';
   $('mic-icon').textContent   = '📊';
   $('action-btn').textContent = T.btnRetry;

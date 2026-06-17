@@ -425,8 +425,8 @@
 <div class="top-right"></div>
 </div>
 <div id="result-row">
-<div class="rcard" id="card-left"><span class="rcard-arm" id="lbl-l-arm">LEFT</span><span class="rcard-icon" id="ico-left">—</span><span class="rcard-lbl" id="lbl-left">Pending</span></div>
-<div class="rcard" id="card-right"><span class="rcard-arm" id="lbl-r-arm">RIGHT</span><span class="rcard-icon" id="ico-right">—</span><span class="rcard-lbl" id="lbl-right">Pending</span></div>
+<div class="rcard" id="card-left"><span class="rcard-arm" id="lbl-l-arm"></span><span class="rcard-icon" id="ico-left">—</span><span class="rcard-lbl" id="lbl-left"></span></div>
+<div class="rcard" id="card-right"><span class="rcard-arm" id="lbl-r-arm"></span><span class="rcard-icon" id="ico-right">—</span><span class="rcard-lbl" id="lbl-right"></span></div>
 </div>
 <div id="mid">
 <div class="arm-wrap">
@@ -1012,11 +1012,13 @@ function armSwitchLang(code) {
   T = LANG[code];
   sessionStorage.setItem('fast_lang', code);
   // refresh UI strings
-  $('top-lbl').textContent = 'FAST · Arm Screening';
+  $('top-lbl').textContent = T.title;
   $('cd-unit').textContent = T.cdUnit;
   $('drift-lbl').textContent = T.driftLbl;
   $('lbl-r-arm').textContent = T.armRight;
   $('lbl-l-arm').textContent = T.armLeft;
+  $('lbl-right').textContent = results.right ? (results.right === 'pass' ? T.passLbl : T.failLbl) : T.pending;
+  $('lbl-left').textContent  = results.left  ? (results.left  === 'pass' ? T.passLbl : T.failLbl) : T.pending;
   if (phase === 'IDLE') {
     $('action-btn').textContent = T.btnStart;
     $('instr').textContent = T['instrWait_left'];

@@ -331,7 +331,7 @@ const CONFIG = {
     langCode: 'en-US',
     target: 'Today is a sunny day',
     syllables: 6,
-    keywords: ['today is a sunny day', 'sunny day', 'today is sunny'],
+    keywords: ['today is a sunny day', 'today is sunny', 'sunny day', "today's a sunny day", "today is a sunny Day", 'today sunny day'],
     hint: 'Press the button, wait for the signal, then speak clearly.',
     btnStart: 'Start Speaking', btnRetry: 'Test Again',
     btnStop: '⏹ Stop', listening: '... listening ...',
@@ -353,7 +353,7 @@ const CONFIG = {
     langCode: 'ja-JP',
     target: '今日はいい天気です',
     syllables: 8,
-    keywords: ['今日はいい天気です', 'いい天気', '今日はいい天気'],
+    keywords: ['今日はいい天気です', '今日は良い天気です', '今日はいい天気', '今日は良い天気', 'いい天気', '良い天気', 'きょうはいいてんきです', 'きょうはよいてんきです'],
     hint: 'ボタンを押して、合図を待ってから、はっきり話してください。',
     btnStart: '発言する', btnRetry: '再テスト',
     btnStop: '⏹ 停止', listening: '... 聞き取り中 ...',
@@ -610,18 +610,45 @@ async function startRecording() {
   if (SR) {
     recognition = new SR();
     recognition.lang           = T.langCode;
-    recognition.continuous     = true; // ล็อกระบบคลาวด์ไว้ ห้ามชิงปิดการรับฟังตอนคนไข้เว้นคำ
-    recognition.interimResults = false;
+    recognition.continuous     = false; // iOS/Chrome ทำงานเสถียรกว่าแบบ single utterance โดยเฉพาะ en/ja
+    recognition.interimResults = true;  // เก็บ interim ไว้กันกรณี final ไม่ออกในบางภาษา
+    recognition.maxAlternatives = 5;
     let gotResult = false;
-    
+    let bestTranscript = '';
+    let bestConfidence = 0;
+    let finalTimer = null;
+
     recognition.onresult = (e) => {
       gotResult = true;
-      // ประมวลผลย้อนเวลากลุ่มประวัติเสียงเพื่อตัดสัญญาณ Noise เคาะโต๊ะทิ้ง
       speechEndMs = getLastSpeechSegmentEnd();
 
-      const text = e.results[0][0].transcript.toLowerCase().trim();
-      const conf = e.results[0][0].confidence;
-      setTimeout(() => evaluateSpeech(text, conf), 100);
+      // อ่านทุก result/alternative ไม่ใช้ e.results[0] อย่างเดียว
+      // เพราะบาง engine โดยเฉพาะ en/ja อาจส่งหลาย segment หรือคำใกล้เคียงเป็น alternative
+      let bestLocalText = '';
+      let bestLocalConf = 0;
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const res = e.results[i];
+        for (let j = 0; j < res.length; j++) {
+          const alt = res[j];
+          const tx = (alt.transcript || '').trim();
+          const cf = Number.isFinite(alt.confidence) ? alt.confidence : 0.75;
+          if (tx && (cf > bestLocalConf || !bestLocalText)) {
+            bestLocalText = tx;
+            bestLocalConf = cf;
+          }
+        }
+      }
+      if (bestLocalText) {
+        bestTranscript = bestLocalText;
+        bestConfidence = Math.max(bestConfidence, bestLocalConf);
+        $('transcript-box').textContent = `"${bestTranscript}"`;
+      }
+
+      // รอเผื่อ final/interim ตามมาอีกนิด แล้วค่อย evaluate
+      clearTimeout(finalTimer);
+      finalTimer = setTimeout(() => {
+        if (phase !== 'DONE') evaluateSpeech(bestTranscript, bestConfidence || 0.75);
+      }, 900);
     };
 
     recognition.onerror = (e) => {
@@ -879,9 +906,18 @@ function evaluateSpeech(text, confidence) {
   $('action-btn').textContent = T.btnRetry;
   $('action-btn').className   = 'green';
 
-  const cleanText = text.trim().toLowerCase().replace(/\s+/g, '');
+  const normalizeSpeechText = (v) => String(v || '')
+    .toLowerCase()
+    .replace(/[’']/g, '')
+    .replace(/[.,!?。、「」"\s]/g, '')
+    .replace(/良い/g, 'いい')
+    .replace(/よい/g, 'いい')
+    .replace(/きょう/g, '今日');
+
+  const cleanText = normalizeSpeechText(text);
   const wordMatched = cleanText ? T.keywords.some(k => {
-    return cleanText.includes(k.toLowerCase().replace(/\s+/g, ''));
+    const kk = normalizeSpeechText(k);
+    return cleanText.includes(kk) || kk.includes(cleanText);
   }) : false;
 
   // 1. คะแนน Word Accuracy (40%)

@@ -155,21 +155,88 @@
     const overlay = document.createElement('div');
     overlay.id = 'fast-perm-overlay';
     overlay.style.cssText = `
-      position:fixed;inset:0;z-index:9999;background:rgba(10,14,20,0.97);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      gap:20px;padding:32px 28px;backdrop-filter:blur(8px);
-      font-family:'DM Sans',-apple-system,sans-serif;color:#F1F5F9;text-align:center`;
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      background:#F8FAFC;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      font-family:'IBM Plex Sans Thai','Manrope',sans-serif;
+      color:#0F172A;
+      text-align:center;
+      `;
 
-    const icon = kind === 'camera' ? '📷' : '🎤';
+    const icon = '🧠';
     const needMsg = kind === 'camera' ? S.needCamera : S.needMic;
-
+    
     overlay.innerHTML = `
-      <div style="font-size:48px">${icon}</div>
-      <p style="font-size:15px;line-height:1.6;max-width:300px;color:rgba(241,245,249,0.8)">${needMsg}</p>
-      <button id="fast-perm-allow" style="background:#3B82F6;color:#fff;border:none;
-        border-radius:14px;padding:15px 40px;font-size:16px;font-weight:600;
-        cursor:pointer;font-family:inherit">${S.allowBtn}</button>
-      <div id="fast-perm-error" style="display:none;width:100%;max-width:320px"></div>`;
+    <div style="
+      width:100%;
+      max-width:420px;
+      background:#FFFFFF;
+      border:1px solid #E2E8F0;
+      border-radius:28px;
+      padding:32px 24px;
+      box-shadow:0 12px 40px rgba(15,23,42,.08);
+    ">
+    
+      <div style="
+        width:72px;
+        height:72px;
+        margin:0 auto 18px;
+        border-radius:20px;
+        background:#DBEAFE;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:40px;
+      ">
+        ${icon}
+      </div>
+    
+      <div style="
+        font-size:22px;
+        font-weight:800;
+        color:#0F172A;
+        margin-bottom:12px;
+      ">
+        FAST Screening
+      </div>
+    
+      <p style="
+        font-size:15px;
+        line-height:1.7;
+        color:#475569;
+        margin-bottom:24px;
+      ">
+        ${needMsg}
+      </p>
+    
+      <button
+        id="fast-perm-allow"
+        style="
+          width:100%;
+          background:#2B7DE9;
+          color:#FFFFFF;
+          border:none;
+          border-radius:18px;
+          padding:16px;
+          font-size:16px;
+          font-weight:700;
+          cursor:pointer;
+          box-shadow:0 8px 24px rgba(43,125,233,.25);
+        ">
+        ${S.allowBtn}
+      </button>
+    
+      <div
+        id="fast-perm-error"
+        style="display:none;margin-top:16px;">
+      </div>
+    
+    </div>`;
 
     document.body.appendChild(overlay);
 

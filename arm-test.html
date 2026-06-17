@@ -1005,29 +1005,97 @@ function goArmHome(){
   window.location.href = 'index.html';
 }
 
-function armSwitchLang(code) {
-  // ห้ามสลับระหว่างวัด
-  if (phase === 'CALIB' || phase === 'PRE_MEASURE' || phase === 'MEASURE') return;
-  if (!LANG[code]) return;
-  T = LANG[code];
-  sessionStorage.setItem('fast_lang', code);
-  // refresh UI strings
-  $('top-lbl').textContent = T.title;
-  $('cd-unit').textContent = T.cdUnit;
-  $('drift-lbl').textContent = T.driftLbl;
-  $('lbl-r-arm').textContent = T.armRight;
-  $('lbl-l-arm').textContent = T.armLeft;
-  $('lbl-right').textContent = results.right ? (results.right === 'pass' ? T.passLbl : T.failLbl) : T.pending;
-  $('lbl-left').textContent  = results.left  ? (results.left  === 'pass' ? T.passLbl : T.failLbl) : T.pending;
-  if (phase === 'IDLE') {
-    $('action-btn').textContent = T.btnStart;
-    $('instr').textContent = T['instrWait_left'];
-    $('sub-instr').textContent = T['subWait_left'];
-  }
+function currentLangCode(){
+  return Object.keys(LANG).find(k => LANG[k] === T) || sessionStorage.getItem('fast_lang') || 'th';
+}
+
+function armNavText(){
+  const code = currentLangCode();
+  const mode = sessionStorage.getItem('fast_mode');
+  const allDone = ['fast_face','fast_arm','fast_speech'].every(k => sessionStorage.getItem(k));
+  const L = {
+    th: { result:'ดูผลรวม FAST →', next:'ทดสอบการพูดต่อ →', home:'กลับหน้าหลัก' },
+    en: { result:'View FAST Score →', next:'Continue to Speech →', home:'Back to Home' },
+    ja: { result:'FASTスコアを見る →', next:'音声テストへ →', home:'ホームへ' }
+  }[code] || { result:'ดูผลรวม FAST →', next:'ทดสอบการพูดต่อ →', home:'กลับหน้าหลัก' };
+
+  if (mode === 'full') return L.next;
+  return allDone ? L.result : L.home;
+}
+
+function refreshArmLanguageUI(){
+  if (!T) return;
+
+  // Header / meters
+  if ($('top-lbl')) $('top-lbl').textContent = 'FAST · ' + T.topLbl;
+  if ($('cd-unit')) $('cd-unit').textContent = T.cdUnit;
+  if ($('drift-lbl')) $('drift-lbl').textContent = T.driftLbl;
+
+  // Result cards
+  if ($('lbl-r-arm')) $('lbl-r-arm').textContent = T.armRight;
+  if ($('lbl-l-arm')) $('lbl-l-arm').textContent = T.armLeft;
+  if ($('lbl-right')) $('lbl-right').textContent = results.right ? (results.right === 'pass' ? T.passLbl : T.failLbl) : T.pending;
+  if ($('lbl-left'))  $('lbl-left').textContent  = results.left  ? (results.left  === 'pass' ? T.passLbl : T.failLbl) : T.pending;
+
+  // Language buttons
+  const code = currentLangCode();
   ['th','en','ja'].forEach(c => {
     const b = $('lsf-' + c);
     if (b) b.classList.toggle('active', c === code);
   });
+
+  // Guide image text
+  updatePoseGuide();
+
+  // Warning banner, if visible
+  if (isWarnVisible()) {
+    if (lastWarnKey === 'flat') {
+      $('warn-title').textContent = T.warnFlat;
+      $('warn-sub').textContent = T.warnFlatSub;
+    } else if (lastWarnKey === 'wrong') {
+      $('warn-title').textContent = T['warnWrong_' + arm];
+      $('warn-sub').textContent = T['warnWrongSub_' + arm];
+    }
+  }
+
+  // Main instruction by current phase
+  if (phase === 'IDLE' || phase === 'WAIT_VOICE') {
+    $('instr').textContent = T['instrWait_' + arm];
+    $('sub-instr').textContent = T['subWait_' + arm];
+    $('action-btn').textContent = T.btnStart;
+  } else if (phase === 'CALIB' || phase === 'PRE_MEASURE') {
+    if (!isWarnVisible()) {
+      $('instr').textContent = T.instrCalib;
+      $('sub-instr').textContent = T.subCalib;
+    }
+  } else if (phase === 'MEASURE') {
+    $('instr').textContent = T.instrMeasure;
+    $('sub-instr').textContent = T.subMeasure;
+  } else if (phase === 'BETWEEN') {
+    $('instr').textContent = T['instrDone_' + arm];
+    $('sub-instr').textContent = '';
+    if (arm === 'left') $('action-btn').textContent = T.btnNext;
+  } else if (phase === 'DONE') {
+    const ok = results.right === 'pass' && results.left === 'pass';
+    $('fb-title').textContent = ok ? T.finalOk : T.finalBad;
+    $('fb-sub').textContent = ok ? T.finalOkSub : T.finalBadSub;
+    $('instr').textContent = ok ? T.finalOk : T.finalBad;
+    $('sub-instr').textContent = '';
+    $('action-btn').textContent = T.btnRetry;
+
+    const navBtn = $('fast-nav-btn');
+    if (navBtn) navBtn.textContent = armNavText();
+  }
+}
+
+function armSwitchLang(code) {
+  // ห้ามสลับระหว่างวัดจริง เพื่อไม่ให้เสียง/ตัวจับเวลา/logic เพี้ยน
+  if (phase === 'CALIB' || phase === 'PRE_MEASURE' || phase === 'MEASURE') return;
+  if (!LANG[code]) return;
+
+  T = LANG[code];
+  sessionStorage.setItem('fast_lang', code);
+  refreshArmLanguageUI();
 }
 
 function selectLang(code) {
@@ -1056,17 +1124,10 @@ function selectLang(code) {
     if (b) b.classList.toggle('active', c === code);
   });
   
-  $('top-lbl').textContent='FAST · Arm Screening'; $('cd-unit').textContent=T.cdUnit;
-  $('drift-lbl').textContent=T.driftLbl; $('lbl-r-arm').textContent=T.armRight;
-  $('lbl-l-arm').textContent=T.armLeft;  $('lbl-right').textContent=T.pending;
-  $('lbl-left').textContent=T.pending;
-
-  // ── 2. แก้ไขให้เป็นแขนซ้าย (left) ตั้งแต่เริ่มโหลดหน้าจอ ──
-  arm = 'left'; // บังคับตัวแปรให้มั่นใจว่าเป็นแขนซ้ายอีกครั้ง
-  $('instr').textContent=T['instrWait_left'];     //  เปลี่ยนจาก _right เป็น _left
-  $('sub-instr').textContent=T['subWait_left'];  //  เปลี่ยนจาก _right เป็น _left
+  // ── 2. เริ่มต้นที่แขนซ้ายเสมอ และ render UI ตามภาษาปัจจุบัน ──
+  arm = 'left';
+  refreshArmLanguageUI();
   
-  $('action-btn').textContent=T.btnStart;
   $('action-btn').disabled=false;
   $('action-btn').className='';
 }

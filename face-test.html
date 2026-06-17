@@ -669,9 +669,29 @@
     box-shadow:none!important;
     padding:0!important;
   }
-  body:not(.result-visible) #smile-prompt[style*="display: block"] ~ #disclaimer-overlay ~ #no-face-banner,
+  body:not(.result-visible) #smile-prompt[style*="display:block"] ~ #disclaimer-overlay ~ #no-face-banner,
   body:not(.result-visible) #smile-prompt[style*="display:block"] ~ #disclaimer-overlay ~ #no-face-banner{
     /* no-op selector kept harmless for Safari parsing */
+  }
+  #disclaimer-overlay{
+    background:#F8FAFC!important;
+    color:#0F172A!important;
+  }
+  
+  #disclaimer-overlay h2{
+    color:#0F172A!important;
+  }
+  
+  #disclaimer-overlay p{
+    color:#475569!important;
+  }
+  
+  #disclaimer-overlay p strong{
+    color:#DC2626!important;
+  }
+  
+  #disclaimer-overlay .disc-icon{
+    font-size:52px!important;
   }
 
 </style>

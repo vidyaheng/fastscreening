@@ -229,17 +229,17 @@
     <div id="transcript-box"></div>
     <div id="metrics-box">
       <div>
-        <div class="metric-row"><span>Word Accuracy</span><span class="metric-val" id="val-word">—</span></div>
+        <div class="metric-row"><span id="lbl-word-accuracy">Word Accuracy</span><span class="metric-val" id="val-word">—</span></div>
         <div class="bar-track"><div class="bar-fill" id="bar-word"></div></div>
         <div style="text-align:right;font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px" id="score-word"></div>
       </div>
       <div>
-        <div class="metric-row"><span>Speech Rate</span><span class="metric-val" id="val-rate">—</span></div>
+        <div class="metric-row"><span id="lbl-speech-rate">Speech Rate</span><span class="metric-val" id="val-rate">—</span></div>
         <div class="bar-track"><div class="bar-fill" id="bar-rate"></div></div>
         <div style="text-align:right;font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px" id="score-rate"></div>
       </div>
       <div>
-        <div class="metric-row"><span>Volume Stability</span><span class="metric-val" id="val-stab">—</span></div>
+        <div class="metric-row"><span id="lbl-volume-stability">Volume Stability</span><span class="metric-val" id="val-stab">—</span></div>
         <div class="bar-track"><div class="bar-fill" id="bar-stab"></div></div>
         <div style="text-align:right;font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px" id="score-stab"></div>
       </div>
@@ -274,7 +274,16 @@ const CONFIG = {
     noiseTitle: 'เสียงรบกวนมากเกินไป',
     noiseDesc: 'ห้องนี้มีเสียงรบกวนสูง อาจทำให้ผลคลาดเคลื่อน',
     noiseMove: 'ย้ายไปที่เงียบกว่า', noiseGo: 'วัดต่อ',
-    noisyTag: '⚠ วัดในที่มีเสียงรบกวน ผลอาจคลาดเคลื่อน',
+    noisyTag: '⚠ SNR ต่ำกว่า 10 dB ผลอาจคลาดเคลื่อนจากเสียงรบกวน',
+    topTitle: 'FAST · คัดกรองการพูด',
+    accuracy: 'ความถูกต้อง', ready: 'พร้อม', rate: 'ความเร็ว', pending: 'รอวัด',
+    wordAccuracy: 'ความถูกต้องของคำ', speechRate: 'ความเร็วการพูด', volumeStability: 'ความสม่ำเสมอของเสียง',
+    noiseMetric: 'เสียงรบกวน', snrMetric: 'SNR',
+    calibrating: '... กำลังปรับค่า ...', noiseCalib: '🔇 วัดเสียงรบกวนรอบห้อง...',
+    resultOk: 'ปกติ', resultWarn: 'เฝ้าระวัง', resultBad: 'ความเสี่ยงสูง',
+    subOk: 'การพูดอยู่ในเกณฑ์ปกติ', subWarn: 'พบความผิดปกติเล็กน้อย ควรทดสอบซ้ำ', subBad: 'พบความผิดปกติของการพูด ควรพบแพทย์',
+    noVoice: 'ไม่มีเสียง', noSpeechSegment: 'ไม่พบช่วงสัญญาณเสียง', wordMismatch: 'คำไม่ตรงประโยค',
+    issueWord: 'คำไม่ถูก/นึกไม่ออก', issueSlow: 'พูดช้า', issueUnstable: 'เสียงไม่สม่ำเสมอ',
   },
   en: {
     langCode: 'en-US',
@@ -287,7 +296,16 @@ const CONFIG = {
     noiseTitle: 'Too much noise',
     noiseDesc: 'This room is noisy, results may be inaccurate.',
     noiseMove: 'Move somewhere quieter', noiseGo: 'Measure anyway',
-    noisyTag: '⚠ Measured in noise, result may be inaccurate',
+    noisyTag: '⚠ SNR below 10 dB; background noise may affect the result',
+    topTitle: 'FAST · Speech Screening',
+    accuracy: 'Accuracy', ready: 'Ready', rate: 'Rate', pending: 'Pending',
+    wordAccuracy: 'Word Accuracy', speechRate: 'Speech Rate', volumeStability: 'Volume Stability',
+    noiseMetric: 'Noise', snrMetric: 'SNR',
+    calibrating: '... calibrating ...', noiseCalib: '🔇 Measuring background noise...',
+    resultOk: 'Normal', resultWarn: 'Caution', resultBad: 'High Risk',
+    subOk: 'Speech appears within normal range', subWarn: 'Mild abnormality detected; please retest', subBad: 'Speech abnormality detected; seek medical help',
+    noVoice: 'No voice', noSpeechSegment: 'No speech segment detected', wordMismatch: 'Sentence mismatch',
+    issueWord: 'incorrect/missing words', issueSlow: 'slow speech', issueUnstable: 'unstable voice',
   },
   ja: {
     langCode: 'ja-JP',
@@ -300,7 +318,16 @@ const CONFIG = {
     noiseTitle: '騒音が多すぎます',
     noiseDesc: 'この部屋は騒がしく、結果が不正確になる可能性があります。',
     noiseMove: '静かな場所へ移動', noiseGo: 'このまま測定',
-    noisyTag: '⚠ 騒音下で測定、結果は不正確な可能性',
+    noisyTag: '⚠ SNRが10 dB未満のため、騒音で結果が不正確な可能性があります',
+    topTitle: 'FAST · 音声スクリーニング',
+    accuracy: '正確さ', ready: '準備完了', rate: '速度', pending: '待機中',
+    wordAccuracy: '単語の正確さ', speechRate: '発話速度', volumeStability: '音量の安定性',
+    noiseMetric: '騒音', snrMetric: 'SNR',
+    calibrating: '... 調整中 ...', noiseCalib: '🔇 周囲の騒音を測定中...',
+    resultOk: '正常', resultWarn: '注意', resultBad: '高リスク',
+    subOk: '発話は正常範囲です', subWarn: '軽度の異常があります。再テストしてください', subBad: '発話の異常があります。医師に相談してください',
+    noVoice: '音声なし', noSpeechSegment: '音声区間が検出されません', wordMismatch: '文が一致しません',
+    issueWord: '単語が不正確/出ない', issueSlow: '発話が遅い', issueUnstable: '声が不安定',
   },
 };
 
@@ -312,9 +339,9 @@ const NOISE_MULTIPLIER = 2.5;  // threshold = noiseFloor × 2.5
 const NOISE_FLOOR_CAP  = 0.08; // จำกัดเพดาน noise ป้องกันไมค์หลอน
 const NORMAL_MIN       = 2.5;  // เกณฑ์ความเร็วขั้นต่ำคนปกติ (syl/sec)
 const NORMAL_MAX       = 6.0;  // เกณฑ์ความเร็วสูงสุดคนปกติ (syl/sec)
-// SNR gate: ถ้า noise floor สูงเกินเกณฑ์ = ห้องดังเกินไป (อ้างอิง SNR ≥10dB, ANSI S3.1)
-const NOISE_FLOOR_WARN = 0.05; // noiseFloor เกินนี้ = เตือนว่าเสียงรบกวนมาก (ปรับตามทดสอบจริง)
-let   noisyAck         = false; // ผู้ใช้กดยอมรับวัดต่อทั้งที่เสียงดัง
+// SNR gate: คำนวณหลังพูดเสร็จเท่านั้น เพราะต้องมีทั้งเสียงพูดจริงและ noise floor
+const SNR_WARN_DB      = 10;   // ถ้า speech/noise ต่ำกว่า 10 dB → ติดป้ายเตือนผลอาจคลาดเคลื่อน
+let   noisyAck         = false; // คงไว้เพื่อ compatibility กับ overlay เดิม แต่ไม่ใช้เตือนก่อนพูดแล้ว
 
 // ═══════════════════════════════════════════════════
 // STATE
@@ -333,8 +360,17 @@ function setSpeechCard(key, state, main, sub, icon){
   if (iconEl && icon !== undefined) iconEl.textContent = icon;
 }
 function resetSpeechCards(){
-  setSpeechCard('word','active','Accuracy','Ready','🗣️');
-  setSpeechCard('rate','','Rate','Pending','⏱️');
+  const L = T || CONFIG.th;
+  setSpeechCard('word','active',L.accuracy,L.ready,'🗣️');
+  setSpeechCard('rate','',L.rate,L.pending,'⏱️');
+}
+
+function updateSpeechLabels() {
+  const L = T || CONFIG.th;
+  if ($('top-lbl')) $('top-lbl').textContent = L.topTitle;
+  if ($('lbl-word-accuracy')) $('lbl-word-accuracy').textContent = L.wordAccuracy;
+  if ($('lbl-speech-rate')) $('lbl-speech-rate').textContent = L.speechRate;
+  if ($('lbl-volume-stability')) $('lbl-volume-stability').textContent = L.volumeStability;
 }
 let T = null;
 let phase = 'IDLE'; // IDLE | CALIBRATING | RECORDING | DONE
@@ -371,7 +407,7 @@ function selectLang(code) {
   $('word-target').textContent   = T.target;
   $('hint-text').textContent     = T.hint;
   $('action-btn').textContent    = T.btnStart;
-  if ($('top-lbl')) $('top-lbl').textContent = 'FAST · Speech Screening';
+  updateSpeechLabels();
   // แสดงและ highlight ปุ่มภาษา
   const lsf = $('lang-sw-fixed');
   if (lsf) lsf.classList.add('show');
@@ -408,6 +444,7 @@ function resetUI() {
   $('debug-toggle').style.display  = 'none';
   $('action-btn').className        = '';
   $('action-btn').textContent      = T ? T.btnStart : '';
+  updateSpeechLabels();
   ['word','rate','stab'].forEach(k => {
     $('bar-'+k).style.width      = '0%';
     $('bar-'+k).style.background = 'var(--blue)';
@@ -474,8 +511,8 @@ function setBar(key, pct, label) {
   $('val-'+key).textContent      = label;
   const scoreEl = $('score-'+key);
   if (scoreEl) scoreEl.textContent = pct > 0 ? `score: ${Math.round(p)}` : '';
-  if (key === 'word') setSpeechCard('word', p >= 65 ? 'pass' : p >= 35 ? 'active' : 'fail', 'Accuracy', Math.round(p) + '%', p >= 65 ? '✅' : p >= 35 ? '⚠️' : '❌');
-  if (key === 'rate') setSpeechCard('rate', p >= 65 ? 'pass' : p >= 35 ? 'active' : 'fail', 'Rate', Math.round(p) + '%', p >= 65 ? '✅' : p >= 35 ? '⚠️' : '❌');
+  if (key === 'word') setSpeechCard('word', p >= 65 ? 'pass' : p >= 35 ? 'active' : 'fail', (T||CONFIG.th).accuracy, Math.round(p) + '%', p >= 65 ? '✅' : p >= 35 ? '⚠️' : '❌');
+  if (key === 'rate') setSpeechCard('rate', p >= 65 ? 'pass' : p >= 35 ? 'active' : 'fail', (T||CONFIG.th).rate, Math.round(p) + '%', p >= 65 ? '✅' : p >= 35 ? '⚠️' : '❌');
 }
 
 
@@ -486,15 +523,15 @@ async function startRecording() {
   phase = 'CALIBRATING';
   $('mic-circle').className        = 'mic-circle calibrating';
   $('mic-icon').textContent        = '🔇';
-  $('action-btn').textContent      = '... กำลังปรับค่า ...';
+  $('action-btn').textContent      = T.calibrating;
   $('action-btn').className        = '';
   $('transcript-box').style.display = 'block';
-  $('transcript-box').textContent  = '🔇 วัดเสียงรบกวนรอบห้อง...';
+  $('transcript-box').textContent  = T.noiseCalib;
   $('metrics-box').style.display   = 'flex';
   $('debug-toggle').style.display  = 'block';
   $('debug-box').textContent       = 'calibrating noise floor...';
-  setSpeechCard('word','active','Noise','Calibrating','🔇');
-  setSpeechCard('rate','','Rate','Pending','⏱️');
+  setSpeechCard('word','active',T.noiseMetric,T.calibrating.replace(/\.\.\.|…/g,'').trim() || T.pending,'🔇');
+  setSpeechCard('rate','',T.rate,T.pending,'⏱️');
 
   try {
     const permLang = sessionStorage.getItem('fast_lang') || 'th';
@@ -629,13 +666,7 @@ function runLoop() {
       noiseFloor   = Math.min(avg + std, NOISE_FLOOR_CAP);
       dynThreshold = noiseFloor * NOISE_MULTIPLIER;
 
-      // ── SNR Gate: ถ้าเสียงรบกวนสูงเกินเกณฑ์ และผู้ใช้ยังไม่ยอมรับ → เตือน ──
-      if (noiseFloor > NOISE_FLOOR_WARN && !noisyAck) {
-        phase = 'NOISY_WARN';
-        showNoiseWarning();
-        return;
-      }
-
+      // ไม่เตือนเสียงรบกวนก่อนพูด เพราะยังไม่มี signal ของเสียงพูดจริงให้เทียบ SNR
       phase = 'RECORDING';
       $('mic-circle').className       = 'mic-circle recording';
       $('mic-icon').textContent       = '👄';
@@ -643,7 +674,7 @@ function runLoop() {
       $('action-btn').className       = 'red';
       $('transcript-box').textContent = T.listening || '... กำลังฟัง ...';
       // ติดธงว่าวัดในที่มี noise (สำหรับติดป้ายผลลัพธ์)
-      window.MEASURED_NOISY = (noiseFloor > NOISE_FLOOR_WARN);
+      window.MEASURED_NOISY = false;
     }
 
     drawWave(freqArr, N);
@@ -700,8 +731,12 @@ function runLoop() {
 
   // แสดงผลค่าดิบในช่องดีบั๊กพจนานุกรม
   const ratio = noiseFloor > 0 ? (vEnergy / noiseFloor) : 0;
+  const liveSpeechEnergy = calcSpeechEnergy(vowelEnergyBuf);
+  const liveSnrDb = calcSnrDb(liveSpeechEnergy, noiseFloor);
   $('debug-box').innerHTML =
     `noiseFloor:&nbsp;&nbsp; ${noiseFloor.toFixed(5)}<br>` +
+    `speechEnergy: ${liveSpeechEnergy.toFixed(5)}<br>` +
+    `SNR:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${liveSnrDb !== null ? liveSnrDb.toFixed(1) + ' dB' : '—'}<br>` +
     `dynThreshold: ${dynThreshold.toFixed(5)}<br>` +
     `vEnergy:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${vEnergy.toFixed(5)}<br>` +
     `flatness:&nbsp;&nbsp;&nbsp; ${flatness.toFixed(3)} ${isToner ? '(tone✓)' : '(noise✗)'}<br>` +
@@ -757,6 +792,20 @@ function calcStab(buf) {
   return Math.round(Math.max(0, Math.min(1, 1 - (cv - 0.3) / 1.2)) * 100);
 }
 
+function calcSpeechEnergy(buf) {
+  // ใช้ค่าเฉลี่ยของ top 20% เพื่อลดผลจากช่วงเบา/เว้นคำ แต่ไม่ใช้ peak เดี่ยวที่อาจเป็น noise spike
+  if (!buf || buf.length === 0) return 0;
+  const sorted = [...buf].sort((a,b)=>b-a);
+  const n = Math.max(1, Math.ceil(sorted.length * 0.20));
+  return sorted.slice(0, n).reduce((a,b)=>a+b,0) / n;
+}
+
+function calcSnrDb(speechEnergy, noiseEnergy) {
+  const eps = 0.0001;
+  if (!speechEnergy || !noiseEnergy) return null;
+  return 20 * Math.log10(Math.max(speechEnergy, eps) / Math.max(noiseEnergy, eps));
+}
+
 function drawWave(freqArr, N) {
   const ctx = $('freq-canvas').getContext('2d');
   ctx.clearRect(0, 0, 120, 120);
@@ -798,7 +847,7 @@ function evaluateSpeech(text, confidence) {
     wordScore = 50; wordLabel = 'N/A';
     $('transcript-box').textContent = text === '__manual__' ? '[หยุดแมนนวล]' : '[ไม่พบ Speech API]';
   } else if (text === '') {
-    wordScore = 0; wordLabel = 'ไม่มีเสียง';
+    wordScore = 0; wordLabel = T.noVoice;
     $('transcript-box').textContent = '[ไม่ได้ยินเสียงคำพูด]';
   } else {
     wordScore = wordMatched ? Math.round(70 + confidence * 30) : Math.round(confidence * 30);
@@ -819,15 +868,21 @@ function evaluateSpeech(text, confidence) {
       rateLabel  = `${syllPerSec.toFixed(1)} syl/s`;
       if (isManual) rateScore = Math.round(rateScore * 0.7);
     } else {
-      rateScore = 0; rateLabel = 'คำไม่ตรงประโยค';
+      rateScore = 0; rateLabel = T.wordMismatch;
     }
   } else {
-    rateLabel = 'ไม่พบช่วงสัญญาณเสียง';
+    rateLabel = T.noSpeechSegment;
   }
 
   // 3. คะแนน Volume Stability (20%)
   const stabScore = calcStab(vowelEnergyBuf);
   const stabLabel = vowelEnergyBuf.length >= 10 ? `${stabScore}%` : 'ข้อมูลน้อยเกินไป';
+
+  // 4. SNR หลังพูดเสร็จ: speechEnergy เทียบกับ noiseFloor จริง
+  const speechEnergy = calcSpeechEnergy(vowelEnergyBuf);
+  const snrDb = calcSnrDb(speechEnergy, noiseFloor);
+  const snrLow = snrDb !== null && snrDb < SNR_WARN_DB;
+  window.MEASURED_NOISY = snrLow;
 
   // คะแนนรวมถ่วงน้ำหนักรวม
   const speechScore = Math.round(wordScore*0.40 + rateScore*0.40 + stabScore*0.20);
@@ -847,6 +902,8 @@ function evaluateSpeech(text, confidence) {
   $('debug-box').innerHTML =
     `── Final (V3 Trailing) ──<br>` +
     `noiseFloor:&nbsp;&nbsp; ${noiseFloor.toFixed(5)}<br>` +
+    `speechEnergy: ${speechEnergy.toFixed(5)}<br>` +
+    `SNR:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${snrDb !== null ? snrDb.toFixed(1) + ' dB' : '—'}<br>` +
     `dynThreshold: ${dynThreshold.toFixed(5)}<br>` +
     `transcript:&nbsp;&nbsp; "${text}"<br>` +
     `duration:&nbsp;&nbsp;&nbsp;&nbsp; ${durSec.toFixed(2)}s (Pure Word)<br>` +
@@ -857,14 +914,14 @@ function evaluateSpeech(text, confidence) {
 
   // บรรยายผลลัพธ์แบนเนอร์ประเมินความเสี่ยงทางการแพทย์
   let cls, title, sub;
-  if      (speechScore >= 70) { cls='ok';   title='ปกติ';          sub='การพูดอยู่ในเกณฑ์ปกติ'; }
-  else if (speechScore >= 45) { cls='warn'; title='เฝ้าระวัง';    sub='พบความผิดปกติเล็กน้อย ควรทดสอบซ้ำ'; }
-  else                        { cls='bad';  title='ความเสี่ยงสูง'; sub='พบความผิดปกติของการพูด ควรพบแพทย์'; }
+  if      (speechScore >= 70) { cls='ok';   title=T.resultOk;   sub=T.subOk; }
+  else if (speechScore >= 45) { cls='warn'; title=T.resultWarn; sub=T.subWarn; }
+  else                        { cls='bad';  title=T.resultBad;  sub=T.subBad; }
 
   const issues = [];
-  if (wordScore < 50) issues.push('คำไม่ถูก/นึกไม่ออก');
-  if (rateScore < 40) issues.push(`พูดช้า (${syllPerSec.toFixed(1)} syl/s)`);
-  if (stabScore < 40) issues.push('เสียงไม่สม่ำเสมอ');
+  if (wordScore < 50) issues.push(T.issueWord);
+  if (rateScore < 40) issues.push(`${T.issueSlow} (${syllPerSec.toFixed(1)} syl/s)`);
+  if (stabScore < 40) issues.push(T.issueUnstable);
   if (issues.length)  sub = issues.join(' · ');
 
   const col = {ok:'var(--green)',warn:'var(--amber)',bad:'var(--red)'}[cls];
@@ -874,14 +931,14 @@ function evaluateSpeech(text, confidence) {
   $('rb-title').textContent = title; $('rb-title').style.color = col;
   $('rb-score').textContent = speechScore + ' / 100'; $('rb-score').style.color = col;
   // ติดป้ายเตือนถ้าวัดในที่มีเสียงรบกวน
-  $('rb-sub').textContent   = window.MEASURED_NOISY ? (sub + ' · ' + T.noisyTag) : sub;
+  $('rb-sub').textContent   = window.MEASURED_NOISY ? (sub + ` · ${T.noisyTag} (${snrDb.toFixed(1)} dB)`) : sub;
 
   // ── บันทึกผลลง sessionStorage สำหรับ FAST integration ──
   const result = {
     score: speechScore,
     riskLevel: cls,
     breakdown: { wordScore, rateScore, stabScore },
-    raw: { transcript: text, syllablesPerSec: syllPerSec, durationSec: durSec },
+    raw: { transcript: text, syllablesPerSec: syllPerSec, durationSec: durSec, noiseFloor, speechEnergy, snrDb },
     measuredNoisy: !!window.MEASURED_NOISY
   };
   sessionStorage.setItem('fast_speech', JSON.stringify(result));
@@ -892,6 +949,7 @@ function evaluateSpeech(text, confidence) {
   $('debug-box').innerHTML =
     `[ผลวินิจฉัย VAD]<br>` +
     `duration: ${durSec.toFixed(2)}s<br>` +
+    `SNR: ${snrDb !== null ? snrDb.toFixed(1) + ' dB' : '—'}<br>` +
     `flatness ตอนเสียงดัง:<br>&nbsp;&nbsp;min ${flatMin.toFixed(3)} / max ${flatMax.toFixed(3)}<br>` +
     `frames ดัง: ${loudCount}<br>` +
     `frames tonal(พูดจริง): ${tonerCount}<br>` +

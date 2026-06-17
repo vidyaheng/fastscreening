@@ -818,6 +818,19 @@ const FACE_I18N = {
     discTitle:'ข้อมูลสำคัญก่อนใช้งาน',
     discBody:'แอปนี้มีวัตถุประสงค์เพื่อ <strong>ให้ข้อมูลเบื้องต้นเท่านั้น</strong> ไม่ใช่การวินิจฉัยทางการแพทย์ และไม่สามารถทดแทนการตรวจโดยแพทย์ผู้เชี่ยวชาญได้<br><br>หากสงสัยว่ามี <strong>อาการสโตรก</strong> ให้โทร <strong>1669 ทันที</strong>',
     understand:'รับทราบและเริ่มใช้งาน',
+    cardFace:'ใบหน้า',
+    cardSmile:'รอยยิ้ม',
+    cardReady:'พร้อม',
+    cardPending:'รอทดสอบ',
+    cardAligning:'จัดตำแหน่ง',
+    cardAligned:'ตรงแล้ว',
+    cardTesting:'กำลังทดสอบ',
+    cardPassed:'ปกติ',
+    cardNormal:'สมมาตร',
+    cardCheck:'ตรวจสอบ',
+    cardUnable:'ตรวจไม่ได้',
+    cardAbnormal:'ผิดปกติ',
+    cardUrgent:'เร่งด่วน',
     loadingModel:'กำลังโหลดระบบตรวจจับใบหน้า...',
     noFace:'⚠️ ไม่พบใบหน้า — วางใบหน้าให้อยู่กลางกรอบ',
     loading:'กำลังเปิดกล้องและโหลดระบบ...',
@@ -859,6 +872,19 @@ const FACE_I18N = {
     discTitle:'Important Information',
     discBody:'This app is for <strong>preliminary screening only</strong>. It is not a medical diagnosis and cannot replace examination by a specialist.<br><br>If you suspect a <strong>stroke</strong>, call <strong>emergency services immediately</strong>.',
     understand:'I Understand, Start',
+    cardFace:'Face',
+    cardSmile:'Smile',
+    cardReady:'Ready',
+    cardPending:'Pending',
+    cardAligning:'Aligning',
+    cardAligned:'Aligned',
+    cardTesting:'Testing',
+    cardPassed:'Normal',
+    cardNormal:'Symmetric',
+    cardCheck:'Check',
+    cardUnable:'Unable',
+    cardAbnormal:'Abnormal',
+    cardUrgent:'Urgent',
     loadingModel:'Loading face detection engine...',
     noFace:'⚠️ No face detected — center your face in the frame',
     loading:'Opening camera and loading...',
@@ -900,6 +926,19 @@ const FACE_I18N = {
     discTitle:'重要なお知らせ',
     discBody:'このアプリは<strong>予備的なスクリーニングのみ</strong>を目的としています。医学的診断ではなく、専門医の診察に代わるものではありません。<br><br><strong>脳卒中</strong>の疑いがある場合は、<strong>すぐに救急に電話してください</strong>。',
     understand:'了解して開始',
+    cardFace:'顔',
+    cardSmile:'笑顔',
+    cardReady:'準備完了',
+    cardPending:'待機中',
+    cardAligning:'調整中',
+    cardAligned:'正面',
+    cardTesting:'測定中',
+    cardPassed:'正常',
+    cardNormal:'対称',
+    cardCheck:'確認',
+    cardUnable:'判定不可',
+    cardAbnormal:'異常',
+    cardUrgent:'緊急',
     loadingModel:'顔検出エンジンを読み込み中...',
     noFace:'⚠️ 顔が検出されません — 顔を枠の中央に合わせてください',
     loading:'カメラを起動しています...',
@@ -1128,22 +1167,46 @@ function setFaceCard(key, state, main, sub, icon){
 }
 function updateFaceStatusCards(){
   if(phase==='BEFORE_START'){
-    setFaceCard('face','active','Face','Ready','🙂');
-    setFaceCard('smile','','Smile','Pending','😄');
+    setFaceCard('face','active',FL.cardFace,FL.cardReady,'🙂');
+    setFaceCard('smile','',FL.cardSmile,FL.cardPending,'😄');
+
   } else if(phase==='RESTING_PHASE'){
-    setFaceCard('face','active','Face','Aligning','🙂');
-    setFaceCard('smile','','Smile','Pending','😄');
+    setFaceCard('face','active',FL.cardFace,FL.cardAligning,'🙂');
+    setFaceCard('smile','',FL.cardSmile,FL.cardPending,'😄');
+
   } else if(phase==='ACTION_PHASE' || phase==='ACTION_WAIT_SMILE'){
-    setFaceCard('face','pass','Face','Aligned','✅');
-    setFaceCard('smile','active','Smile','Testing','😄');
+    setFaceCard('face','pass',FL.cardFace,FL.cardAligned,'✅');
+    setFaceCard('smile','active',FL.cardSmile,FL.cardTesting,'😄');
+
   } else if(phase==='FACE_DONE'){
     let risk='ok';
-    try{ risk=(JSON.parse(sessionStorage.getItem('fast_face')||'{}').riskLevel)||'ok'; }catch(e){}
-    setFaceCard('face', risk==='bad'?'fail':(risk==='warn'||risk==='invalid'?'warn':'pass'), 'Face', risk==='ok'?'Passed':(risk==='invalid'?'Unable':'Check'), risk==='bad'?'⚠️':'✅');
-    setFaceCard('smile', risk==='bad'?'fail':(risk==='warn'||risk==='invalid'?'warn':'pass'), 'Smile', risk==='ok'?'Normal':(risk==='invalid'?'Unable':'Abnormal'), risk==='bad'?'🚨':'😄');
+    try{
+      risk = (JSON.parse(sessionStorage.getItem('fast_face') || '{}').riskLevel) || 'ok';
+    }catch(e){}
+
+    const state = risk==='bad'
+      ? 'fail'
+      : (risk==='warn' || risk==='invalid' ? 'warn' : 'pass');
+
+    setFaceCard(
+      'face',
+      state,
+      FL.cardFace,
+      risk==='ok' ? FL.cardPassed : (risk==='invalid' ? FL.cardUnable : FL.cardCheck),
+      risk==='bad' ? '⚠️' : '✅'
+    );
+
+    setFaceCard(
+      'smile',
+      state,
+      FL.cardSmile,
+      risk==='ok' ? FL.cardNormal : (risk==='invalid' ? FL.cardUnable : FL.cardAbnormal),
+      risk==='bad' ? '🚨' : '😄'
+    );
+
   } else if(phase==='CRITICAL_ASYMMETRY'){
-    setFaceCard('face','fail','Face','Urgent','🚨');
-    setFaceCard('smile','fail','Smile','Abnormal','⚠️');
+    setFaceCard('face','fail',FL.cardFace,FL.cardUrgent,'🚨');
+    setFaceCard('smile','fail',FL.cardSmile,FL.cardAbnormal,'⚠️');
   }
 }
 

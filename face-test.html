@@ -630,6 +630,22 @@
     }
   }
 
+
+  /* ─────────────────────────────────────────────
+     PATCH 8 — remove duplicated instruction box
+     ใช้แถบ smile-prompt เพียงชั้นเดียว ไม่ให้ status-msg ซ้อนด้านหลัง
+     ───────────────────────────────────────────── */
+  body:not(.result-visible) #smile-prompt{
+    background:transparent!important;
+    border:none!important;
+    box-shadow:none!important;
+    padding:0!important;
+  }
+  body:not(.result-visible) #smile-prompt[style*="display: block"] ~ #disclaimer-overlay ~ #no-face-banner,
+  body:not(.result-visible) #smile-prompt[style*="display:block"] ~ #disclaimer-overlay ~ #no-face-banner{
+    /* no-op selector kept harmless for Safari parsing */
+  }
+
 </style>
 <script src="fast-permissions.js"></script>
 </head>
@@ -1223,7 +1239,7 @@ function startActionPhase(){
   smileStartMs=null; frameAsymScores=[]; validSmileFrames=0; smileEverDetected=false;
   peakSmileL=0; peakSmileR=0; peakRiseL=0; peakRiseR=0;
   actionWaitStartMs=Date.now(); lastSmileVoiceMs=Date.now();
-  setUI({glassColor:'var(--col-green-glass)', msg:FL.step2, showReset:true, showHud:true});
+  setUI({glassColor:'var(--col-green-glass)', msg:'', showReset:true, showHud:true});
   const sp=document.getElementById('smile-prompt');
   if(sp){ sp.querySelector('div').textContent=FL.smilePrompt; sp.style.display='block'; }
   speakFace(FL.smileVoice);
@@ -1336,7 +1352,13 @@ function onResults(results){
       return;
     }
     // voice nudge + timeout → invalid (covered mouth / no smile)
-    if (now - lastSmileVoiceMs > 5000){ speakFace(FL.noSmileWarn); lastSmileVoiceMs = now; statusMsg.textContent = FL.noSmileWarn; }
+    if (now - lastSmileVoiceMs > 5000){
+      speakFace(FL.noSmileWarn);
+      lastSmileVoiceMs = now;
+      const sp=document.getElementById('smile-prompt');
+      if(sp){ sp.querySelector('div').textContent=FL.noSmileWarn; sp.style.display='block'; }
+      statusMsg.style.display = 'none';
+    }
     if (now - actionWaitStartMs > MAX_WAIT_FOR_SMILE_MS){ finishInvalid(); }
     return;
   }

@@ -423,6 +423,7 @@ let animationFrameId = null;
 
 // Speech Recognition
 let recognition = null;
+let recognitionStarted = false;
 
 // Noise Floor Calibration
 let noiseFloor     = 0;      
@@ -500,6 +501,7 @@ function resetUI() {
   if ($('noise-overlay')) $('noise-overlay').style.display = 'none';
   vowelEnergyBuf = []; voiceHistory = []; speechStartMs = null; speechEndMs = null; lastVoiceMs = null;
   flatMin = 1; flatMax = 0; tonerCount = 0; loudCount = 0;
+  recognitionStarted = false;
   resetSpeechCards();
 }
 
@@ -605,69 +607,102 @@ async function startRecording() {
     return;
   }
 
-  // ตั้งค่า Speech Recognition (ให้ยอมรอ ไม่ชิงปิดไมค์เอง)
+  // Speech Recognition จะเริ่มหลังจบ calibration เท่านั้น
+  // สำคัญ: ถ้า start ตอน CALIBRATING โดยเฉพาะ continuous=false
+  // engine อาจ onend ก่อนผู้ใช้พูด ทำให้ evaluate เป็น no voice ทุกภาษา
+}
+
+function beginSpeechRecognition() {
+  if (recognitionStarted) return;
+  recognitionStarted = true;
+
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (SR) {
     recognition = new SR();
-    recognition.lang           = T.langCode;
-    recognition.continuous     = false; // iOS/Chrome ทำงานเสถียรกว่าแบบ single utterance โดยเฉพาะ en/ja
-    recognition.interimResults = true;  // เก็บ interim ไว้กันกรณี final ไม่ออกในบางภาษา
+    recognition.lang            = T.langCode;
+    recognition.continuous      = true;   // ให้รอระหว่างคนไข้เว้นคำ ไม่ชิงจบเร็ว
+    recognition.interimResults  = true;
     recognition.maxAlternatives = 5;
+
     let gotResult = false;
     let bestTranscript = '';
     let bestConfidence = 0;
     let finalTimer = null;
+    let safetyTimer = null;
+
+    const finishWith = (text, conf) => {
+      clearTimeout(finalTimer);
+      clearTimeout(safetyTimer);
+      if (phase !== 'DONE') {
+        speechEndMs = getLastSpeechSegmentEnd();
+        evaluateSpeech(text, conf);
+      }
+    };
 
     recognition.onresult = (e) => {
       gotResult = true;
       speechEndMs = getLastSpeechSegmentEnd();
 
-      // อ่านทุก result/alternative ไม่ใช้ e.results[0] อย่างเดียว
-      // เพราะบาง engine โดยเฉพาะ en/ja อาจส่งหลาย segment หรือคำใกล้เคียงเป็น alternative
       let bestLocalText = '';
       let bestLocalConf = 0;
-      for (let i = e.resultIndex; i < e.results.length; i++) {
+      for (let i = 0; i < e.results.length; i++) {
         const res = e.results[i];
         for (let j = 0; j < res.length; j++) {
           const alt = res[j];
           const tx = (alt.transcript || '').trim();
-          const cf = Number.isFinite(alt.confidence) ? alt.confidence : 0.75;
+          const cf = Number.isFinite(alt.confidence) && alt.confidence > 0 ? alt.confidence : 0.75;
           if (tx && (cf > bestLocalConf || !bestLocalText)) {
             bestLocalText = tx;
             bestLocalConf = cf;
           }
         }
       }
+
       if (bestLocalText) {
         bestTranscript = bestLocalText;
         bestConfidence = Math.max(bestConfidence, bestLocalConf);
         $('transcript-box').textContent = `"${bestTranscript}"`;
       }
 
-      // รอเผื่อ final/interim ตามมาอีกนิด แล้วค่อย evaluate
+      // final result จะจบทันที, interim ให้รออีกนิด
+      let hasFinal = false;
+      for (let i = 0; i < e.results.length; i++) {
+        if (e.results[i].isFinal) hasFinal = true;
+      }
       clearTimeout(finalTimer);
       finalTimer = setTimeout(() => {
-        if (phase !== 'DONE') evaluateSpeech(bestTranscript, bestConfidence || 0.75);
-      }, 900);
+        if (bestTranscript) finishWith(bestTranscript, bestConfidence || 0.75);
+      }, hasFinal ? 450 : 1400);
     };
 
     recognition.onerror = (e) => {
-      if ((phase === 'RECORDING' || phase === 'CALIBRATING') && !gotResult) {
-        speechEndMs = getLastSpeechSegmentEnd();
-        setTimeout(() => evaluateSpeech('', 0), 100);
+      // no-speech / aborted ตอนเริ่ม อย่าเพิ่งตัดสินทันที ถ้ายังไม่มีเสียงจาก VAD
+      if (phase === 'RECORDING' && !gotResult) {
+        clearTimeout(safetyTimer);
+        safetyTimer = setTimeout(() => {
+          if (phase !== 'DONE' && !bestTranscript) finishWith('', 0);
+        }, 2500);
       }
     };
 
     recognition.onend = () => {
-      if ((phase === 'RECORDING' || phase === 'CALIBRATING') && !gotResult) {
-        speechEndMs = getLastSpeechSegmentEnd();
-        setTimeout(() => { if (phase !== 'DONE') evaluateSpeech('', 0); }, 100);
+      // Chrome/iOS ชอบ onend เอง: ถ้ายังไม่จับคำแต่ยังอยู่ RECORDING ให้ restart
+      if (phase === 'RECORDING' && !bestTranscript) {
+        try { recognition.start(); } catch(e) {}
+        return;
+      }
+      if (phase === 'RECORDING' && bestTranscript) {
+        finishWith(bestTranscript, bestConfidence || 0.75);
       }
     };
 
-    recognition.start();
+    try { recognition.start(); } catch(e) {}
+
+    // กันกรณี engine ไม่คืน event เลย: ให้จบหลัง 8 วิ แต่ใช้ VAD duration ได้
+    safetyTimer = setTimeout(() => {
+      if (phase !== 'DONE') finishWith(bestTranscript || '', bestConfidence || 0);
+    }, 8000);
   } else {
-    // ฟอลแบ็กโหมดกรณีเบราว์เซอร์ไม่รองรับ
     setTimeout(() => {
       if (phase !== 'DONE') {
         speechEndMs = getLastSpeechSegmentEnd();
@@ -746,6 +781,7 @@ function runLoop() {
       $('transcript-box').textContent = T.listening || '... กำลังฟัง ...';
       // ติดธงว่าวัดในที่มี noise (สำหรับติดป้ายผลลัพธ์)
       window.MEASURED_NOISY = false;
+      beginSpeechRecognition();
     }
 
     drawWave(freqArr, N);

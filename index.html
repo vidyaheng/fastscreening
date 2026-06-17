@@ -221,6 +221,53 @@
   }
   .btn-clear.show{display:block}
 
+
+
+  /* UX PATCH — Quick Stroke identity + inline individual choices */
+  body.individual-open .hero{
+    padding-top:16px!important;
+    padding-bottom:8px!important;
+  }
+  body.individual-open .hero-mark{
+    width:58px!important;height:58px!important;border-radius:22px!important;
+    margin-bottom:10px!important;
+  }
+  body.individual-open .hero h1{font-size:clamp(24px,6vw,30px)!important;margin-bottom:4px!important;}
+  body.individual-open .hero p{font-size:13px!important;line-height:1.45!important;}
+  body.individual-open .emergency{
+    margin-top:8px!important;padding:10px 13px!important;border-radius:18px!important;
+  }
+  body.individual-open .emergency-icon{width:38px!important;height:38px!important;border-radius:15px!important;}
+  body.individual-open .disclaimer-line{margin-top:7px!important;font-size:11px!important;}
+  body.individual-open .modes{padding-top:14px!important;gap:10px!important;}
+  body.individual-open .mode.primary{
+    padding:14px 16px!important;border-radius:22px!important;
+  }
+  body.individual-open .mode.primary .mode-head{margin-bottom:8px!important;}
+  body.individual-open .mode.primary .mode-icon{width:44px!important;height:44px!important;border-radius:17px!important;}
+  body.individual-open .mode.primary .mode-steps{display:none!important;}
+  body.individual-open .mode.alt{
+    border-color:rgba(43,125,233,.24)!important;
+    box-shadow:var(--blue-glow)!important;
+  }
+  .progress-wrap{
+    padding:0 0 0!important;
+    margin:-2px 0 0!important;
+    display:none;
+  }
+  .progress-wrap.open{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:10px!important;
+    animation:choiceIn .22s ease-out both;
+  }
+  @keyframes choiceIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  .progress-wrap.open .test-row{margin-bottom:0!important;}
+  body.individual-open .cta-zone{padding-top:12px!important;}
+
+  .quick-stroke-icon svg .pulse-line{stroke-linecap:round;stroke-linejoin:round;}
+  .quick-stroke-icon svg .bolt{fill:#fff;stroke:none;}
+
   @media (min-width:520px){
     body{max-width:430px;margin:0 auto;box-shadow:0 0 0 1px rgba(27,42,58,.06),0 24px 70px rgba(27,42,58,.16)}
   }
@@ -237,10 +284,10 @@
 
 <header>
   <div class="brand">
-    <div class="brand-mark">
-      <svg viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>
+    <div class="brand-mark quick-stroke-icon">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path class="pulse-line" d="M3 13h3.4l1.7-4.8 3.1 10.2 2.3-7.8 1.7 2.4H21"/><path class="bolt" d="M13.2 2.8 7.4 12h4.1l-1.2 9.2 6.3-10.8h-4.2z" opacity=".92"/></svg>
     </div>
-    <div class="brand-text">FAST<span>·</span></div>
+    <div class="brand-text">Quick<span> Stroke</span></div>
   </div>
   <div class="lang-seg">
     <button class="on" onclick="setLang('th')">TH</button>
@@ -250,8 +297,8 @@
 </header>
 
 <div class="hero">
-  <div class="hero-mark">
-    <svg viewBox="0 0 24 24"><path d="M3 12h3.5l1.8-5 3.2 11 2.5-9 1.5 3H21"/></svg>
+  <div class="hero-mark quick-stroke-icon">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="pulse-line" d="M3 13h3.4l1.7-4.8 3.1 10.2 2.3-7.8 1.7 2.4H21"/><path class="bolt" d="M13.2 2.8 7.4 12h4.1l-1.2 9.2 6.3-10.8h-4.2z" opacity=".92"/></svg>
   </div>
   <h1 data-i="title">รู้ทันสโตรก</h1>
   <p data-i="sub">หน้า · แขน · เสียง<br>ตรวจเบื้องต้นได้เอง</p>
@@ -288,7 +335,7 @@
   <button class="mode alt" onclick="toggleIndividual()">
     <div class="mode-head">
       <div class="mode-icon">
-        <svg viewBox="0 0 24 24"><path d="M11 4H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h7M11 4h9a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-9M11 4v8M3 18h18"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h16M4 12h16M4 18.5h16"/><path d="m6.3 5.5 1.2 1.2 2.3-2.6M6.3 12l1.2 1.2 2.3-2.6M6.3 18.5l1.2 1.2 2.3-2.6"/></svg>
       </div>
       <div class="mode-titles">
         <span class="mode-badge" data-i="indBadge">เลือกเองได้</span>
@@ -297,9 +344,8 @@
       <span class="mode-arrow" id="ind-chevron"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
     </div>
   </button>
-</div>
 
-<div class="progress-wrap" id="ind-section">
+  <div class="progress-wrap" id="ind-section">
   <button class="test-row" id="row-face" onclick="goTest('face')">
     <div class="test-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg></div>
     <div class="test-body"><div class="test-name" data-i="face">หน้า</div><div class="test-state" id="state-face" data-i="notDone">ยังไม่เช็ค</div></div>
@@ -315,6 +361,7 @@
     <div class="test-body"><div class="test-name" data-i="speech">เสียง</div><div class="test-state" id="state-speech" data-i="notDone">ยังไม่เช็ค</div></div>
     <div class="test-score" id="score-speech">—</div>
   </button>
+  </div>
 </div>
 
 <div class="cta-zone">
@@ -339,7 +386,7 @@ const I18N = {
     seeResult:'ดูผลรวม', clearBtn:'ล้างผล',
   },
   en: {
-    title:'Beat the Clock', sub:'Face · Arms · Speech<br>a first quick check',
+    title:'Quick Stroke', sub:'Face · Arms · Speech<br>a first quick check',
     emergency:'Suspect a stroke? Call <b>emergency</b>',
     notDiagnosis:'Not a diagnosis · See a doctor to be sure',
     fullBadge:'All-in-one', fullName:'Check all 3', indBadge:'Pick & go', indName:'Test one by one',
@@ -383,11 +430,18 @@ function startFull() {
 
 function toggleIndividual() {
   indOpen = !indOpen;
-  document.getElementById('ind-section').classList.toggle('open', indOpen);
+  const section = document.getElementById('ind-section');
+  section.classList.toggle('open', indOpen);
+  document.body.classList.toggle('individual-open', indOpen);
   const chev = document.getElementById('ind-chevron');
   chev.style.transform = indOpen ? 'rotate(90deg)' : '';
   chev.style.transition = 'transform 0.2s';
-  if (indOpen) updateProgress();
+  if (indOpen) {
+    updateProgress();
+    requestAnimationFrame(() => {
+      section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
 }
 
 function goTest(m) {

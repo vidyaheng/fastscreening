@@ -332,6 +332,66 @@
     #status-msg,#pose-warn-msg{bottom:132px!important;}
   }
 
+
+  /* ─────────────────────────────────────────────
+     PATCH 4 — final-result layout: no overlap, two full-width actions
+     ───────────────────────────────────────────── */
+  body.result-visible #dashboard{
+    bottom:calc(16px + env(safe-area-inset-bottom, 0px))!important;
+    left:18px!important; right:18px!important;
+    z-index:130!important;
+  }
+  body.result-visible #btn-row{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:12px!important;
+    margin:0!important;
+    width:100%!important;
+  }
+  body.result-visible #start-btn,
+  body.result-visible #fast-nav-btn{
+    position:static!important;
+    display:flex!important;
+    width:100%!important;
+    min-height:62px!important;
+    margin:0!important;
+    left:auto!important; right:auto!important; bottom:auto!important;
+    border-radius:22px!important;
+    align-items:center!important; justify-content:center!important;
+    font-size:22px!important; font-weight:800!important;
+  }
+  body.result-visible #start-btn{
+    background:linear-gradient(180deg,#2388ff,#0d58b8)!important;
+    border:1px solid rgba(83,170,255,.60)!important;
+    box-shadow:0 0 24px rgba(43,125,233,.38),0 16px 40px rgba(0,0,0,.45)!important;
+  }
+  body.result-visible #fast-nav-btn{
+    background:rgba(40,48,58,.82)!important;
+    border:1px solid rgba(255,255,255,.20)!important;
+    box-shadow:0 12px 30px rgba(0,0,0,.38)!important;
+  }
+  body.result-visible #dashboard-header,
+  body.result-visible #reset-btn,
+  body.result-visible #status-msg,
+  body.result-visible #pose-warn-msg{
+    display:none!important;
+  }
+  body.result-visible #score-box{
+    top:auto!important;
+    left:18px!important; right:18px!important;
+    bottom:calc(164px + env(safe-area-inset-bottom, 0px))!important;
+    z-index:126!important;
+    max-height:none!important;
+    padding:14px 16px!important;
+  }
+  @media (max-height:760px){
+    body.result-visible #dashboard{left:14px!important;right:14px!important;bottom:10px!important;}
+    body.result-visible #btn-row{gap:9px!important;}
+    body.result-visible #start-btn,
+    body.result-visible #fast-nav-btn{min-height:54px!important;font-size:19px!important;border-radius:19px!important;}
+    body.result-visible #score-box{left:14px!important;right:14px!important;bottom:128px!important;padding:10px 12px!important;}
+  }
+
 </style>
 <script src="fast-permissions.js"></script>
 </head>
@@ -727,6 +787,11 @@ function applyFaceLang(){
     else navBtn.textContent = allDone ? FL.navResult : FL.navHome;
   }
   updateFaceStatusCards();
+  if (document.body.classList.contains('result-visible')) {
+    const langCode = sessionStorage.getItem('fast_lang') || 'th';
+    const retryText = langCode === 'en' ? '↻ Test Again' : (langCode === 'ja' ? '↻ 再テスト' : '↻ ทดสอบใหม่');
+    if (startBtn) startBtn.textContent = retryText;
+  }
 }
 
 
@@ -846,10 +911,25 @@ function updatePoseBar(barId, valId, deg, maxDeg){
 function setUI({glassColor,msg,poseWarn='',showScore=false,showStart=false,showReset=false,showHud=false,pulse=false}){
   const db=document.getElementById('dashboard');
   if(db){ db.style.background=glassColor; db.classList.toggle('pulse',pulse); }
+  document.body.classList.toggle('result-visible', !!showScore);
+
   if(poseWarn){ poseWarnMsg.textContent=poseWarn; poseWarnMsg.style.display='block'; statusMsg.style.display='none'; }
   else { poseWarnMsg.style.display='none'; statusMsg.textContent=msg; statusMsg.style.display=msg?'block':'none'; }
-  startBtn.classList.toggle('hidden',!showStart);
-  resetBtn.classList.toggle('hidden',!showReset);
+
+  // ตอนแสดงผลจบ ให้ใช้ปุ่มหลักเป็น “ทดสอบใหม่” แบบ full-width
+  // และซ่อนปุ่ม reset ลอยเดิม เพื่อไม่ให้ชนกับ panel คะแนน / ปุ่มไปต่อ
+  if (showScore) {
+    const langCode = sessionStorage.getItem('fast_lang') || 'th';
+    const retryText = langCode === 'en' ? '↻ Test Again' : (langCode === 'ja' ? '↻ 再テスト' : '↻ ทดสอบใหม่');
+    startBtn.textContent = retryText;
+    startBtn.classList.remove('hidden');
+    resetBtn.classList.add('hidden');
+  } else {
+    startBtn.textContent = FL.startBtn;
+    startBtn.classList.toggle('hidden', !showStart);
+    resetBtn.classList.toggle('hidden', !showReset);
+  }
+
   const bh=document.getElementById('back-home-btn'); if(bh) bh.style.display='block';
   poseHud.style.display = (debugVisible && showHud) ? 'flex' : 'none';
   scoreBox.style.display = showScore ? 'flex' : 'none';
@@ -1165,7 +1245,8 @@ function addNavButton(){
     btn.id='fast-nav-btn'; btn.className='action-btn';
     btn.style.cssText=`background:${bg};border-color:rgba(255,255,255,0.25);color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(43,125,233,0.35);width:100%;padding:13px 16px;border-radius:14px;`;
     btn.textContent=label; btn.onclick=()=>window.location.href=target;
-    document.getElementById('btn-row').appendChild(btn);
+    const row=document.getElementById('btn-row');
+    if (row) row.appendChild(btn);
   }, 400);
 }
 
@@ -1274,7 +1355,13 @@ understandBtn.addEventListener('click', ()=>{
   disclaimerEl.style.display='none';
   startCamera();
 });
-startBtn.addEventListener('click', ()=>{ primeSpeech(); startBtn.classList.add('hidden'); startScreening(); });
+startBtn.addEventListener('click', ()=>{
+  primeSpeech();
+  document.body.classList.remove('result-visible');
+  const oldNav=document.getElementById('fast-nav-btn'); if(oldNav) oldNav.remove();
+  startBtn.classList.add('hidden');
+  startScreening();
+});
 resetBtn.addEventListener('click', ()=>{
   primeSpeech();
   if (countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }

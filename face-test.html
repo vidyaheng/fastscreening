@@ -296,6 +296,42 @@
     #status-msg,#pose-warn-msg{bottom:126px!important;}
   }
 
+
+
+  /* ─────────────────────────────────────────────
+     PATCH 3 — prevent score panel from colliding with Home/top controls
+     ───────────────────────────────────────────── */
+  #score-box{
+    top:auto!important;
+    left:12px!important;
+    right:12px!important;
+    bottom:150px!important;
+    z-index:108!important;
+    max-height:116px!important;
+  }
+  #score-container{min-height:42px!important;}
+  #score-threshold{margin-top:3px!important;}
+
+  /* ตอนยังไม่จบ ให้ status อยู่เหนือปุ่มล่าง แต่ไม่ขึ้นไปทับ header */
+  #status-msg,#pose-warn-msg{
+    top:auto!important;
+    left:12px!important;
+    right:12px!important;
+    bottom:150px!important;
+    z-index:107!important;
+  }
+
+  /* ถ้าคะแนนแสดงแล้ว ซ่อน status เพื่อไม่ให้กล่องซ้อนกัน */
+  body.result-visible #status-msg,
+  body.result-visible #pose-warn-msg{
+    display:none!important;
+  }
+
+  @media (max-height:760px){
+    #score-box{bottom:132px!important;max-height:104px!important;padding:9px 12px!important;}
+    #status-msg,#pose-warn-msg{bottom:132px!important;}
+  }
+
 </style>
 <script src="fast-permissions.js"></script>
 </head>
@@ -1255,6 +1291,20 @@ window.addEventListener('beforeunload', ()=>{
 });
 
 loadModel();
+
+
+/* PATCH 3: keep CSS aware when score panel is visible */
+try {
+  const __scoreBoxForLayout = document.getElementById('score-box');
+  if (__scoreBoxForLayout) {
+    const __syncResultVisible = () => {
+      const visible = getComputedStyle(__scoreBoxForLayout).display !== 'none';
+      document.body.classList.toggle('result-visible', visible);
+    };
+    new MutationObserver(__syncResultVisible).observe(__scoreBoxForLayout, { attributes:true, attributeFilter:['style','class'] });
+    __syncResultVisible();
+  }
+} catch(e) {}
 </script>
 </body>
 </html>

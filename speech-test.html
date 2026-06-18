@@ -431,6 +431,29 @@ let animationFrameId = null;
 // Speech Recognition
 let recognition = null;
 let recognitionStarted = false;
+let recognitionRunId = 0;
+let recognitionFinalTimer = null;
+let recognitionSafetyTimer = null;
+
+function clearRecognitionTimers() {
+  if (recognitionFinalTimer) { clearTimeout(recognitionFinalTimer); recognitionFinalTimer = null; }
+  if (recognitionSafetyTimer) { clearTimeout(recognitionSafetyTimer); recognitionSafetyTimer = null; }
+}
+
+function resetRecognitionEngine() {
+  recognitionRunId++; // ทำให้ event/timer จากรอบเก่าถูก ignore
+  clearRecognitionTimers();
+  recognitionStarted = false;
+  if (recognition) {
+    try {
+      recognition.onresult = null;
+      recognition.onerror = null;
+      recognition.onend = null;
+      recognition.abort();
+    } catch(e) {}
+    recognition = null;
+  }
+}
 
 // Noise Floor Calibration
 let noiseFloor     = 0;      
@@ -508,7 +531,7 @@ function resetUI() {
   if ($('noise-overlay')) $('noise-overlay').style.display = 'none';
   vowelEnergyBuf = []; voiceHistory = []; speechStartMs = null; speechEndMs = null; lastVoiceMs = null;
   flatMin = 1; flatMax = 0; tonerCount = 0; loudCount = 0;
-  recognitionStarted = false;
+  resetRecognitionEngine();
   resetSpeechCards();
 }
 
@@ -572,6 +595,8 @@ function setBar(key, pct, label) {
 // CORE AUDIO AUDIO CAPTURE
 // ═══════════════════════════════════════════════════
 async function startRecording() {
+  // เคลียร์ ASR/audio จากรอบก่อนให้หมดก่อนเริ่มรอบใหม่
+  stopAll();
   if ($('test-screen')) $('test-screen').classList.remove('done');
   phase = 'CALIBRATING';
   $('mic-circle').className        = 'mic-circle calibrating';
@@ -620,8 +645,9 @@ async function startRecording() {
 }
 
 function beginSpeechRecognition() {
-  if (recognitionStarted) return;
-  recognitionStarted = true;
+  // เริ่ม ASR ใหม่แบบ clean ทุกครั้ง เพื่อกัน Chrome/WebKit ค้างจากรอบก่อน
+  resetRecognitionEngine();
+  const runId = ++recognitionRunId;
 
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (SR) {
@@ -634,12 +660,12 @@ function beginSpeechRecognition() {
     let gotResult = false;
     let bestTranscript = '';
     let bestConfidence = 0;
-    let finalTimer = null;
-    let safetyTimer = null;
+
+    const isCurrentRun = () => runId === recognitionRunId && phase === 'RECORDING';
 
     const finishWith = (text, conf) => {
-      clearTimeout(finalTimer);
-      clearTimeout(safetyTimer);
+      if (!isCurrentRun()) return;
+      clearRecognitionTimers();
       if (phase !== 'DONE') {
         speechEndMs = getLastSpeechSegmentEnd();
         evaluateSpeech(text, conf);
@@ -647,6 +673,7 @@ function beginSpeechRecognition() {
     };
 
     recognition.onresult = (e) => {
+      if (!isCurrentRun()) return;
       gotResult = true;
       speechEndMs = getLastSpeechSegmentEnd();
 
@@ -676,41 +703,64 @@ function beginSpeechRecognition() {
       for (let i = 0; i < e.results.length; i++) {
         if (e.results[i].isFinal) hasFinal = true;
       }
-      clearTimeout(finalTimer);
-      finalTimer = setTimeout(() => {
-        if (bestTranscript) finishWith(bestTranscript, bestConfidence || 0.75);
+      if (recognitionFinalTimer) clearTimeout(recognitionFinalTimer);
+      recognitionFinalTimer = setTimeout(() => {
+        if (isCurrentRun() && bestTranscript) finishWith(bestTranscript, bestConfidence || 0.75);
       }, hasFinal ? 450 : 1400);
     };
 
     recognition.onerror = (e) => {
-      // no-speech / aborted ตอนเริ่ม อย่าเพิ่งตัดสินทันที ถ้ายังไม่มีเสียงจาก VAD
-      if (phase === 'RECORDING' && !gotResult) {
-        clearTimeout(safetyTimer);
-        safetyTimer = setTimeout(() => {
-          if (phase !== 'DONE' && !bestTranscript) finishWith('', 0);
+      if (!isCurrentRun()) return;
+
+      // no-speech / network / audio-capture: อย่าตัดสินทันที ถ้ายังไม่มีเสียงจาก VAD
+      // ให้ VAD มีเวลาตรวจเสียงก่อน แล้วค่อย fallback เป็น voice-but-no-text/no voice
+      if (!gotResult) {
+        if (recognitionSafetyTimer) clearTimeout(recognitionSafetyTimer);
+        recognitionSafetyTimer = setTimeout(() => {
+          if (isCurrentRun() && !bestTranscript) finishWith('', 0);
         }, 2500);
       }
     };
 
     recognition.onend = () => {
+      if (!isCurrentRun()) return;
+
       // Chrome/iOS ชอบ onend เอง: ถ้ายังไม่จับคำแต่ยังอยู่ RECORDING ให้ restart
-      if (phase === 'RECORDING' && !bestTranscript) {
-        try { recognition.start(); } catch(e) {}
+      if (!bestTranscript) {
+        startRecognitionSafely(0);
         return;
       }
-      if (phase === 'RECORDING' && bestTranscript) {
-        finishWith(bestTranscript, bestConfidence || 0.75);
-      }
+      finishWith(bestTranscript, bestConfidence || 0.75);
     };
 
-    try { recognition.start(); } catch(e) {}
+    function startRecognitionSafely(attempt) {
+      if (!isCurrentRun() || !recognition) return;
+      try {
+        recognition.start();
+        recognitionStarted = true;
+        return;
+      } catch(e) {
+        // รอบสองมักเจอ InvalidStateError เพราะ engine รอบก่อนยังปิดไม่สนิท
+        // จึงต้อง retry สั้น ๆ แทนที่จะ catch เงียบแล้วปล่อยให้ ASR ไม่ทำงาน
+        recognitionStarted = false;
+        if (attempt < 4) {
+          setTimeout(() => startRecognitionSafely(attempt + 1), 250);
+        } else {
+          if (isCurrentRun()) {
+            $('transcript-box').textContent = T.listening + ' (ASR retry failed; using voice detection)';
+          }
+        }
+      }
+    }
+
+    startRecognitionSafely(0);
 
     // กันกรณี engine ไม่คืน event เลย: ให้จบหลัง 8 วิ แต่ใช้ VAD duration ได้
-    safetyTimer = setTimeout(() => {
-      if (phase !== 'DONE') finishWith(bestTranscript || '', bestConfidence || 0);
+    recognitionSafetyTimer = setTimeout(() => {
+      if (isCurrentRun()) finishWith(bestTranscript || '', bestConfidence || 0);
     }, 8000);
   } else {
-    setTimeout(() => {
+    recognitionSafetyTimer = setTimeout(() => {
       if (phase !== 'DONE') {
         speechEndMs = getLastSpeechSegmentEnd();
         evaluateSpeech('__no_api__', 1.0);
@@ -721,7 +771,7 @@ function beginSpeechRecognition() {
 
 function stopAll() {
   if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
-  if (recognition)  { try { recognition.abort(); }   catch(e){} recognition = null; }
+  resetRecognitionEngine();
   if (source)       { try { source.disconnect(); }   catch(e){} source = null; }
   if (streamRef)    { streamRef.getTracks().forEach(t => t.stop()); streamRef = null; }
   if (audioCtx)     { try { audioCtx.close(); }      catch(e){} audioCtx = null; }

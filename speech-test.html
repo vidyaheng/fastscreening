@@ -469,6 +469,27 @@ let speechEndMs    = null;
 let lastVoiceMs    = null;
 let flatMin = 1, flatMax = 0, tonerCount = 0, loudCount = 0; // diagnostic
 
+function resetMeasurementState() {
+  noiseFloor = 0;
+  noiseFrames = [];
+  calibStartMs = null;
+  dynThreshold = 0.04;
+
+  vowelEnergyBuf = [];
+  voiceHistory = [];
+  speechStartMs = null;
+  speechEndMs = null;
+  lastVoiceMs = null;
+
+  flatMin = 1;
+  flatMax = 0;
+  tonerCount = 0;
+  loudCount = 0;
+
+  noisyAck = false;
+  window.MEASURED_NOISY = false;
+}
+
 // ═══════════════════════════════════════════════════
 // UI CONTROL
 // ═══════════════════════════════════════════════════
@@ -526,11 +547,8 @@ function resetUI() {
   });
   $('freq-canvas').getContext('2d').clearRect(0,0,120,120);
   
-  noiseFloor = 0; noiseFrames = []; calibStartMs = null; dynThreshold = 0.04;
-  noisyAck = false; window.MEASURED_NOISY = false;
+  resetMeasurementState();
   if ($('noise-overlay')) $('noise-overlay').style.display = 'none';
-  vowelEnergyBuf = []; voiceHistory = []; speechStartMs = null; speechEndMs = null; lastVoiceMs = null;
-  flatMin = 1; flatMax = 0; tonerCount = 0; loudCount = 0;
   resetRecognitionEngine();
   resetSpeechCards();
 }
@@ -545,8 +563,9 @@ function handleAction() {
     evaluateSpeech('__manual__', 0);
   }
   else if (phase === 'DONE') {
-    // ปุ่ม "ทดสอบอีกครั้ง" ควรเริ่มรอบใหม่ทันที ไม่ใช่แค่ reset หน้า
-    // ไม่อย่างนั้นผู้ใช้อาจกดแล้วพูดทันที แต่ระบบยังอยู่ IDLE จึงไม่ detect เสียง
+    // รอบใหม่ควรกลับไปหน้าพร้อมเริ่ม แล้วให้ผู้ใช้กด "เริ่มพูด" อีกครั้ง
+    // เหตุผล: getUserMedia/SpeechRecognition รอบสองเสถียรกว่าเมื่อเริ่มจาก user gesture ใหม่
+    stopAll();
     phase = 'IDLE';
     resetUI();
 
@@ -554,8 +573,10 @@ function handleAction() {
     const existing = document.getElementById('fast-nav-btn');
     if (existing) existing.remove();
 
-    // เริ่มรอบใหม่หลัง DOM reset เสร็จ
-    setTimeout(() => startRecording(), 80);
+    $('transcript-box').style.display = 'block';
+    $('transcript-box').textContent = T.hint;
+    $('action-btn').textContent = T.btnStart;
+    $('action-btn').className = '';
   }
 }
 
@@ -611,7 +632,10 @@ function setBar(key, pct, label) {
 async function startRecording() {
   // เคลียร์ ASR/audio จากรอบก่อนให้หมดก่อนเริ่มรอบใหม่
   stopAll();
+  resetMeasurementState();
   if ($('test-screen')) $('test-screen').classList.remove('done');
+  const existingNav = document.getElementById('fast-nav-btn');
+  if (existingNav) existingNav.remove();
   phase = 'CALIBRATING';
   $('mic-circle').className        = 'mic-circle calibrating';
   $('mic-icon').textContent        = '🔇';
@@ -639,6 +663,9 @@ async function startRecording() {
     }
     streamRef = perm.stream;
     audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') {
+      try { await audioCtx.resume(); } catch(e) {}
+    }
     analyser  = audioCtx.createAnalyser();
     analyser.fftSize               = 1024;
     analyser.smoothingTimeConstant = 0.2; 
@@ -732,7 +759,7 @@ function beginSpeechRecognition() {
         if (recognitionSafetyTimer) clearTimeout(recognitionSafetyTimer);
         recognitionSafetyTimer = setTimeout(() => {
           if (isCurrentRun() && !bestTranscript) finishWith('', 0);
-        }, 2500);
+        }, 6000);
       }
     };
 

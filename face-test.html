@@ -36,52 +36,6 @@
   #video { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); display:block; }
   #canvas { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:2; }
 
-  #disclaimer-overlay {
-      position:absolute;
-      inset:0;
-      background:#F8FAFC;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:18px;
-      padding:28px;
-      z-index:130;
-  }
-  
-  #disclaimer-overlay .disc-icon {
-      font-size:52px;
-  }
-  
-  #disclaimer-overlay h2 {
-      color:#0F172A;
-      font-size:21px;
-      font-weight:800;
-      letter-spacing:0.3px;
-      text-align:center;
-  }
-  
-  #disclaimer-overlay p {
-      color:#475569;
-      font-size:15px;
-      font-weight:500;
-      text-align:center;
-      line-height:1.65;
-      max-width:320px;
-  }
-  
-  #disclaimer-overlay p strong {
-      color:#DC2626;
-      font-weight:700;
-  }
-  #understand-btn {
-    margin-top:8px; background:#2B7DE9; color:#fff; border:none; border-radius:14px;
-    padding:16px 44px; font-family:inherit; font-size:16px; font-weight:700;
-    cursor:pointer; letter-spacing:0.3px; transition:transform 0.12s;
-    box-shadow:0 6px 18px rgba(43,125,233,0.4);
-  }
-  #understand-btn:active { transform:scale(0.97); }
-  #understand-btn:disabled { opacity:0.55; cursor:default; }
 
   #no-face-banner {
     display:none; position:absolute; top:55px; left:50%; transform:translateX(-50%);
@@ -248,9 +202,6 @@
   #center-countdown{top:46%;font-size:118px;}
   #smile-prompt{top:46%!important;}
   #debug-panel{top:168px;border-radius:18px;background:rgba(8,12,16,.86);border:1px solid rgba(255,255,255,.16);box-shadow:0 16px 40px rgba(0,0,0,.45);}
-  #disclaimer-overlay{background:rgba(5,9,16,.90);z-index:300;}
-  #disclaimer-overlay h2{font-size:24px;}
-  #understand-btn{border-radius:22px;background:linear-gradient(180deg,#2388ff,#0d58b8);box-shadow:0 0 24px rgba(43,125,233,.38),0 16px 40px rgba(0,0,0,.45);}
 
   @media (max-height:760px){
     #top-bar{top:14px}.top-label{font-size:19px;}#face-home-btn{top:14px;}
@@ -669,30 +620,6 @@
     box-shadow:none!important;
     padding:0!important;
   }
-  body:not(.result-visible) #smile-prompt[style*="display:block"] ~ #disclaimer-overlay ~ #no-face-banner,
-  body:not(.result-visible) #smile-prompt[style*="display:block"] ~ #disclaimer-overlay ~ #no-face-banner{
-    /* no-op selector kept harmless for Safari parsing */
-  }
-  #disclaimer-overlay{
-    background:#F8FAFC!important;
-    color:#0F172A!important;
-  }
-  
-  #disclaimer-overlay h2{
-    color:#0F172A!important;
-  }
-  
-  #disclaimer-overlay p{
-    color:#475569!important;
-  }
-  
-  #disclaimer-overlay p strong{
-    color:#DC2626!important;
-  }
-  
-  #disclaimer-overlay .disc-icon{
-    font-size:52px!important;
-  }
 
 </style>
 <script src="fast-permissions.js"></script>
@@ -735,12 +662,6 @@
     <div style="font-size:46px;font-weight:800;color:#fff;text-shadow:0 3px 14px rgba(0,0,0,0.75);letter-spacing:0.5px;"></div>
   </div>
 
-  <div id="disclaimer-overlay">
-    <div class="disc-icon">🧠</div>
-    <h2 id="disc-title">ข้อมูลสำคัญก่อนใช้งาน</h2>
-    <p id="disc-body"></p>
-    <button id="understand-btn" disabled></button>
-  </div>
 
   <div id="no-face-banner"></div>
 
@@ -815,9 +736,6 @@
 /* ───────────────────────── i18n ───────────────────────── */
 const FACE_I18N = {
   th: {
-    discTitle:'ข้อมูลสำคัญก่อนใช้งาน',
-    discBody:'แอปนี้มีวัตถุประสงค์เพื่อ <strong>ให้ข้อมูลเบื้องต้นเท่านั้น</strong> ไม่ใช่การวินิจฉัยทางการแพทย์ และไม่สามารถทดแทนการตรวจโดยแพทย์ผู้เชี่ยวชาญได้<br><br>หากสงสัยว่ามี <strong>อาการสโตรก</strong> ให้โทร <strong>1669 ทันที</strong>',
-    understand:'รับทราบและเริ่มใช้งาน',
     cardFace:'ใบหน้า',
     cardSmile:'รอยยิ้ม',
     cardReady:'พร้อม',
@@ -869,9 +787,6 @@ const FACE_I18N = {
     quit:'ต้องการออกจากการทดสอบใช่หรือไม่?',
   },
   en: {
-    discTitle:'Important Information',
-    discBody:'This app is for <strong>preliminary screening only</strong>. It is not a medical diagnosis and cannot replace examination by a specialist.<br><br>If you suspect a <strong>stroke</strong>, call <strong>emergency services immediately</strong>.',
-    understand:'I Understand, Start',
     cardFace:'Face',
     cardSmile:'Smile',
     cardReady:'Ready',
@@ -923,9 +838,6 @@ const FACE_I18N = {
     quit:'Quit the test?',
   },
   ja: {
-    discTitle:'重要なお知らせ',
-    discBody:'このアプリは<strong>予備的なスクリーニングのみ</strong>を目的としています。医学的診断ではなく、専門医の診察に代わるものではありません。<br><br><strong>脳卒中</strong>の疑いがある場合は、<strong>すぐに救急に電話してください</strong>。',
-    understand:'了解して開始',
     cardFace:'顔',
     cardSmile:'笑顔',
     cardReady:'準備完了',
@@ -995,8 +907,6 @@ const noFaceBanner = document.getElementById('no-face-banner');
 const centerCD = document.getElementById('center-countdown');
 const scoreBox = document.getElementById('score-box');
 const scoreNum = document.getElementById('score-num');
-const disclaimerEl = document.getElementById('disclaimer-overlay');
-const understandBtn = document.getElementById('understand-btn');
 const poseHud = document.getElementById('pose-hud');
 const debugPanel = document.getElementById('debug-panel');
 
@@ -1097,9 +1007,6 @@ function average(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length :
 function applyFaceLang(){
   const setText=(id,t)=>{const el=document.getElementById(id);if(el)el.textContent=t;};
   const setHTML=(id,h)=>{const el=document.getElementById(id);if(el)el.innerHTML=h;};
-  setText('disc-title',FL.discTitle);
-  setHTML('disc-body',FL.discBody);
-  setText('understand-btn', modelReady ? FL.understand : FL.loadingModel);
   setText('no-face-banner',FL.noFace);
   setText('start-btn',FL.startBtn);
   setText('reset-btn','↺');
@@ -1700,15 +1607,11 @@ async function loadModel(){
     try { faceLandmarker = await make("GPU"); }
     catch(e){ console.warn('GPU delegate failed, falling back to CPU', e); faceLandmarker = await make("CPU"); }
     modelReady = true;
-    understandBtn.disabled = false;
-    understandBtn.textContent = FL.understand;
+    startCamera();
   } catch(err){
     console.error('model load failed', err);
-    understandBtn.textContent = FL.modelErr;
-    const db = document.getElementById('disc-body');
-    if (db) db.innerHTML = FL.discBody +
-      '<br><br><span style="color:#FF8A80;font-size:12px;word-break:break-word">' +
-      String((err && (err.message || err.name)) || err) + '</span>';
+    statusMsg.textContent = FL.modelErr;
+    startBtn.classList.add('hidden');
   }
 }
 
@@ -1720,12 +1623,6 @@ initProgressDots();
   ['th','en','ja'].forEach(c=>{ const b=document.getElementById('lsw-'+c); if(b) b.classList.toggle('active', c===il); });
 }
 
-understandBtn.addEventListener('click', ()=>{
-  if (!modelReady) return;
-  primeSpeech();            // unlock iOS TTS within the tap gesture
-  disclaimerEl.style.display='none';
-  startCamera();
-});
 startBtn.addEventListener('click', ()=>{
   primeSpeech();
   document.body.classList.remove('result-visible');

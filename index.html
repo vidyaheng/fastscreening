@@ -223,6 +223,80 @@
 
 
 
+
+
+  /* First-open disclaimer screen — same clinical glass theme as index */
+  .disclaimer-overlay{
+    position:fixed;inset:0;z-index:9999;
+    background:
+      radial-gradient(circle at 50% -6%, rgba(43,125,233,.22), transparent 34%),
+      radial-gradient(circle at 100% 18%, rgba(31,169,143,.10), transparent 26%),
+      var(--paper);
+    display:none;align-items:center;justify-content:center;
+    padding:28px 22px;color:var(--ink);
+  }
+  .disclaimer-overlay.show{display:flex;}
+  .disclaimer-card{
+    width:100%;max-width:430px;
+    background:var(--surface);
+    border:1px solid var(--glass-border);
+    border-radius:32px;
+    padding:28px 22px 22px;
+    box-shadow:var(--shadow-lg);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    text-align:center;
+  }
+  .disc-mark{
+    width:82px;height:82px;margin:0 auto 18px;border-radius:30px;
+    background:linear-gradient(180deg,#2388ff,var(--clinical-deep));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:var(--blue-glow);
+  }
+  .disc-mark svg{width:42px;height:42px;stroke:#fff;fill:none;stroke-width:2.05;}
+  .disc-eyebrow{
+    font-family:'Manrope';font-size:11px;font-weight:800;letter-spacing:1.6px;
+    color:var(--clinical);text-transform:uppercase;margin-bottom:8px;
+  }
+  .disclaimer-card h2{
+    font-size:clamp(25px,6.8vw,34px);font-weight:800;line-height:1.18;
+    letter-spacing:-.5px;color:var(--ink);margin-bottom:14px;
+  }
+  .disc-body{
+    font-size:15px;line-height:1.7;color:var(--ink-soft);font-weight:600;
+    margin:0 auto 16px;max-width:350px;
+  }
+  .disc-emergency{
+    display:flex;align-items:center;gap:12px;text-align:left;
+    background:rgba(252,235,234,.86);border:1px solid rgba(229,84,78,.18);
+    border-radius:22px;padding:13px 14px;margin:0 0 18px;
+  }
+  .disc-emergency-icon{
+    width:44px;height:44px;border-radius:17px;background:var(--coral);flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(229,84,78,.22);
+  }
+  .disc-emergency-icon svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2.35;}
+  .disc-emergency-text{font-size:14px;line-height:1.45;color:var(--ink);font-weight:800;}
+  .disc-emergency-text b{color:var(--coral);}
+  #disc-accept-btn{
+    width:100%;min-height:62px;border:none;border-radius:24px;
+    background:linear-gradient(180deg,#2388ff,var(--clinical-deep));
+    color:#fff;font-family:'IBM Plex Sans Thai','Manrope',sans-serif;
+    font-size:18px;font-weight:800;cursor:pointer;
+    box-shadow:0 0 24px rgba(43,125,233,.22),0 16px 38px rgba(27,42,58,.12);
+    transition:transform .12s;
+  }
+  #disc-accept-btn:active{transform:scale(.985);}
+  .disc-note{font-size:12px;color:var(--ink-faint);font-weight:700;line-height:1.55;margin-top:12px;}
+  @media (max-height:760px){
+    .disclaimer-card{padding:22px 18px 18px;border-radius:28px;}
+    .disc-mark{width:68px;height:68px;border-radius:25px;margin-bottom:12px;}
+    .disc-mark svg{width:34px;height:34px;}
+    .disclaimer-card h2{font-size:24px;margin-bottom:10px;}
+    .disc-body{font-size:13.5px;margin-bottom:12px;}
+    .disc-emergency{padding:11px 12px;border-radius:18px;margin-bottom:14px;}
+    #disc-accept-btn{min-height:56px;font-size:17px;}
+  }
+
   /* UX PATCH — Quick Stroke identity + inline individual choices */
   body.individual-open .hero{
     padding-top:16px!important;
@@ -372,6 +446,28 @@
   <button class="btn-clear" id="btn-clear" onclick="clearAll()" data-i="clearBtn">ล้างผล</button>
 </div>
 
+
+<div id="disclaimer-overlay" class="disclaimer-overlay" role="dialog" aria-modal="true" aria-labelledby="disc-title">
+  <div class="disclaimer-card">
+    <div class="disc-mark quick-stroke-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path class="pulse-line" d="M3 13h3.4l1.7-4.8 3.1 10.2 2.3-7.8 1.7 2.4H21"/><path class="bolt" d="M13.2 2.8 7.4 12h4.1l-1.2 9.2 6.3-10.8h-4.2z" opacity=".92"/></svg>
+    </div>
+    <div class="disc-eyebrow" data-i="discEyebrow">Quick Stroke</div>
+    <h2 id="disc-title" data-i="discTitle">ข้อมูลสำคัญก่อนใช้งาน</h2>
+    <p class="disc-body" data-i="discBody">
+      แอปนี้ใช้เพื่อคัดกรองเบื้องต้นเท่านั้น ไม่ใช่การวินิจฉัยทางการแพทย์ และไม่สามารถทดแทนแพทย์ได้
+    </p>
+    <div class="disc-emergency">
+      <div class="disc-emergency-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      </div>
+      <div class="disc-emergency-text" data-i="discEmergency">ถ้าสงสัยว่าเป็นสโตรก ให้โทร <b>1669</b> ทันที</div>
+    </div>
+    <button id="disc-accept-btn" type="button" onclick="acceptDisclaimer()" data-i="discAccept">รับทราบและเริ่มใช้งาน</button>
+    <div class="disc-note" data-i="discNote">จะแสดงเฉพาะครั้งแรกของแท็บนี้</div>
+  </div>
+</div>
+
 <script>
 'use strict';
 
@@ -384,6 +480,10 @@ const I18N = {
     face:'หน้า', arm:'แขน', speech:'เสียง', notDone:'ยังไม่เช็ค',
     ok:'ปกติ', warn:'ต้องระวัง', bad:'ผิดปกติ',
     seeResult:'ดูผลรวม', clearBtn:'ล้างผล',
+    discEyebrow:'Quick Stroke', discTitle:'ข้อมูลสำคัญก่อนใช้งาน',
+    discBody:'แอปนี้ใช้เพื่อคัดกรองเบื้องต้นเท่านั้น ไม่ใช่การวินิจฉัยทางการแพทย์ และไม่สามารถทดแทนแพทย์ได้',
+    discEmergency:'ถ้าสงสัยว่าเป็นสโตรก ให้โทร <b>1669</b> ทันที',
+    discAccept:'รับทราบและเริ่มใช้งาน', discNote:'จะแสดงเฉพาะครั้งแรกของแท็บนี้',
   },
   en: {
     title:'Quick Stroke', sub:'Face · Arms · Speech<br>a first quick check',
@@ -393,6 +493,10 @@ const I18N = {
     face:'Face', arm:'Arms', speech:'Speech', notDone:'Not yet',
     ok:'Normal', warn:'Watch', bad:'Abnormal',
     seeResult:'See result', clearBtn:'Clear',
+    discEyebrow:'Quick Stroke', discTitle:'Important before use',
+    discBody:'This app is for preliminary screening only. It is not a medical diagnosis and cannot replace a doctor.',
+    discEmergency:'If you suspect a stroke, call <b>emergency services</b> immediately.',
+    discAccept:'I understand — start', discNote:'Shown only once for this tab',
   },
   ja: {
     title:'脳卒中を<br>見逃さない', sub:'顔・腕・声で<br>まずは簡単チェック',
@@ -402,6 +506,10 @@ const I18N = {
     face:'顔', arm:'腕', speech:'声', notDone:'未チェック',
     ok:'正常', warn:'注意', bad:'異常',
     seeResult:'結果を見る', clearBtn:'クリア',
+    discEyebrow:'Quick Stroke', discTitle:'使用前の重要事項',
+    discBody:'このアプリは初期スクリーニング用です。医学的診断ではなく、医師の診察に代わるものではありません。',
+    discEmergency:'脳卒中が疑われる場合は、すぐに<b>救急</b>へ連絡してください。',
+    discAccept:'理解して開始', discNote:'このタブでは最初の1回だけ表示されます',
   },
 };
 
@@ -482,8 +590,23 @@ function clearAll(silent) {
   if (!silent) updateProgress();
 }
 
+
+function showDisclaimerIfNeeded() {
+  if (!sessionStorage.getItem('fast_disclaimer_ok')) {
+    const overlay = document.getElementById('disclaimer-overlay');
+    if (overlay) overlay.classList.add('show');
+  }
+}
+
+function acceptDisclaimer() {
+  sessionStorage.setItem('fast_disclaimer_ok', '1');
+  const overlay = document.getElementById('disclaimer-overlay');
+  if (overlay) overlay.classList.remove('show');
+}
+
 setLang(sessionStorage.getItem('fast_lang') || 'th');
 updateProgress();
+showDisclaimerIfNeeded();
 </script>
 </body>
 </html>

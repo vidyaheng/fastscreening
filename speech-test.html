@@ -536,13 +536,27 @@ function resetUI() {
 }
 
 function handleAction() {
-  if      (phase === 'IDLE')      startRecording();
+  if (phase === 'IDLE') {
+    startRecording();
+  }
   else if (phase === 'RECORDING') {
     // ผู้ใช้กดปุ่มหยุดบันทึกด้วยตัวเองแมนนวล
     speechEndMs = getLastSpeechSegmentEnd();
     evaluateSpeech('__manual__', 0);
   }
-  else if (phase === 'DONE')      { phase = 'IDLE'; resetUI(); }
+  else if (phase === 'DONE') {
+    // ปุ่ม "ทดสอบอีกครั้ง" ควรเริ่มรอบใหม่ทันที ไม่ใช่แค่ reset หน้า
+    // ไม่อย่างนั้นผู้ใช้อาจกดแล้วพูดทันที แต่ระบบยังอยู่ IDLE จึงไม่ detect เสียง
+    phase = 'IDLE';
+    resetUI();
+
+    // ลบปุ่ม FAST navigation ที่ถูกสร้างหลังผลลัพธ์ เพื่อไม่ให้ซ้อนกับรอบใหม่
+    const existing = document.getElementById('fast-nav-btn');
+    if (existing) existing.remove();
+
+    // เริ่มรอบใหม่หลัง DOM reset เสร็จ
+    setTimeout(() => startRecording(), 80);
+  }
 }
 
 // ── SNR Gate: แสดง/จัดการคำเตือนเสียงรบกวน ──

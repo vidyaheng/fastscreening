@@ -307,9 +307,11 @@
 const CONFIG = {
   th: {
     langCode: 'th-TH',
-    target: 'วันนี้อากาศดี',
-    syllables: 5,
-    keywords: ['วันนี้อากาศดี', 'อากาศดี', 'วันนี้'],
+    target: 'วันนี้ท้องฟ้าแจ่มใส',
+    // ใช้เป็นจำนวน speech units สำหรับคำนวณ rate; ภาษาไทย/อังกฤษ = syllables
+    syllables: 6,
+    rateUnit: 'syl/s',
+    keywords: ['วันนี้ท้องฟ้าแจ่มใส', 'ท้องฟ้าแจ่มใส', 'วันนี้'],
     hint: 'กดปุ่ม รอสัญญาณ แล้วพูดประโยคนี้ให้ชัดเจน',
     btnStart: 'เริ่มพูด', btnRetry: 'ทดสอบอีกครั้ง',
     btnStop: '⏹ หยุด', listening: '... กำลังฟัง ...',
@@ -329,9 +331,11 @@ const CONFIG = {
   },
   en: {
     langCode: 'en-US',
-    target: 'Today is a sunny day',
+    target: 'The sky is blue today',
+    // ใช้เป็นจำนวน speech units สำหรับคำนวณ rate; ภาษาไทย/อังกฤษ = syllables
     syllables: 6,
-    keywords: ['today is a sunny day', 'today is sunny', 'sunny day', "today's a sunny day", "today is a sunny Day", 'today sunny day'],
+    rateUnit: 'syl/s',
+    keywords: ['the sky is blue today', 'sky is blue today', 'the sky is blue', 'sky blue today'],
     hint: 'Press the button, wait for the signal, then speak clearly.',
     btnStart: 'Start Speaking', btnRetry: 'Test Again',
     btnStop: '⏹ Stop', listening: '... listening ...',
@@ -351,9 +355,11 @@ const CONFIG = {
   },
   ja: {
     langCode: 'ja-JP',
-    target: '今日はいい天気です',
-    syllables: 8,
-    keywords: ['今日はいい天気です', '今日は良い天気です', '今日はいい天気', '今日は良い天気', 'いい天気', '良い天気', 'きょうはいいてんきです', 'きょうはよいてんきです'],
+    target: '今日は空がきれいです',
+    // ภาษาญี่ปุ่นเป็น mora-timed จึงใช้จำนวน mora เป็น speech units
+    syllables: 11,
+    rateUnit: 'mora/s',
+    keywords: ['今日は空がきれいです', '今日は空が綺麗です', '空がきれいです', '空が綺麗です', 'きょうはそらがきれいです', '今日はそらがきれいです'],
     hint: 'ボタンを押して、合図を待ってから、はっきり話してください。',
     btnStart: '発言する', btnRetry: '再テスト',
     btnStop: '⏹ 停止', listening: '... 聞き取り中 ...',
@@ -379,8 +385,8 @@ const CONFIG = {
 const CALIBRATION_MS   = 300;  // เก็บ noise floor 300ms แรกก่อนพูด
 const NOISE_MULTIPLIER = 2.5;  // threshold = noiseFloor × 2.5
 const NOISE_FLOOR_CAP  = 0.08; // จำกัดเพดาน noise ป้องกันไมค์หลอน
-const NORMAL_MIN       = 2.5;  // เกณฑ์ความเร็วขั้นต่ำคนปกติ (syl/sec)
-const NORMAL_MAX       = 6.0;  // เกณฑ์ความเร็วสูงสุดคนปกติ (syl/sec)
+const NORMAL_MIN       = 2.5;  // เกณฑ์ความเร็วขั้นต่ำคนปกติ (speech units/sec)
+const NORMAL_MAX       = 6.0;  // เกณฑ์ความเร็วสูงสุดคนปกติ (speech units/sec)
 // SNR gate: คำนวณหลังพูดเสร็จเท่านั้น เพราะต้องมีทั้งเสียงพูดจริงและ noise floor
 const SNR_WARN_DB      = 10;   // ถ้า speech/noise ต่ำกว่า 10 dB → ติดป้ายเตือนผลอาจคลาดเคลื่อน
 let   noisyAck         = false; // คงไว้เพื่อ compatibility กับ overlay เดิม แต่ไม่ใช้เตือนก่อนพูดแล้ว
@@ -389,6 +395,7 @@ let   noisyAck         = false; // คงไว้เพื่อ compatibility 
 // STATE
 // ═══════════════════════════════════════════════════
 const $ = id => document.getElementById(id);
+const rateUnitLabel = () => (T && T.rateUnit) ? T.rateUnit : 'syl/s';
 function goSpeechHome(){ stopAll(); window.location.href = 'index.html'; }
 function setSpeechCard(key, state, main, sub, icon){
   const card = $('speech-card-' + key);
@@ -829,7 +836,7 @@ function runLoop() {
   const durSec = speechStartMs ? (previewEnd - speechStartMs) / 1000 : 0;
   if (durSec > 0.3) {
     const rate = T.syllables / durSec;
-    setBar('rate', rateToScore(rate), `${rate.toFixed(1)} syl/s`);
+    setBar('rate', rateToScore(rate), `${rate.toFixed(1)} ${rateUnitLabel()}`);
   }
   if (vowelEnergyBuf.length > 10) {
     const s = calcStab(vowelEnergyBuf);
@@ -948,6 +955,7 @@ function evaluateSpeech(text, confidence) {
     .replace(/[.,!?。、「」"\s]/g, '')
     .replace(/良い/g, 'いい')
     .replace(/よい/g, 'いい')
+    .replace(/綺麗/g, 'きれい')
     .replace(/きょう/g, '今日');
 
   const cleanText = normalizeSpeechText(text);
@@ -997,7 +1005,7 @@ function evaluateSpeech(text, confidence) {
     if (wordMatched || isManual) {
       syllPerSec = T.syllables / durSec;
       rateScore  = rateToScore(syllPerSec);
-      rateLabel  = `${syllPerSec.toFixed(1)} syl/s`;
+      rateLabel  = `${syllPerSec.toFixed(1)} ${rateUnitLabel()}`;
       if (isManual) rateScore = Math.round(rateScore * 0.7);
     } else {
       rateScore = 0;
@@ -1053,7 +1061,7 @@ function evaluateSpeech(text, confidence) {
 
   const issues = [];
   if (wordScore < 50) issues.push(T.issueWord);
-  if (rateScore < 40) issues.push(`${T.issueSlow} (${syllPerSec.toFixed(1)} syl/s)`);
+  if (rateScore < 40) issues.push(`${T.issueSlow} (${syllPerSec.toFixed(1)} ${rateUnitLabel()})`);
   if (stabScore < 40) issues.push(T.issueUnstable);
   if (issues.length)  sub = issues.join(' · ');
 
@@ -1071,7 +1079,7 @@ function evaluateSpeech(text, confidence) {
     score: speechScore,
     riskLevel: cls,
     breakdown: { wordScore, rateScore, stabScore },
-    raw: { transcript: text, syllablesPerSec: syllPerSec, durationSec: durSec, noiseFloor, speechEnergy, snrDb },
+    raw: { transcript: text, syllablesPerSec: syllPerSec, speechUnitsPerSec: syllPerSec, rateUnit: rateUnitLabel(), durationSec: durSec, noiseFloor, speechEnergy, snrDb },
     measuredNoisy: !!window.MEASURED_NOISY
   };
   sessionStorage.setItem('fast_speech', JSON.stringify(result));
